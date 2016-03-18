@@ -31,4 +31,4 @@ define('FAST_WS_SOCKET_BACKLOG', 10);
 define('FAST_WS_LOG_PATH', '/tmp/fast_ws_'.date('Y-m-d').'.log');
 
 //载入FastWS核心文件
-require_once './Core/fastws.php';
+return require_once './Core/fastws.php';

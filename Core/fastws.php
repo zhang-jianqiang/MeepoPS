@@ -32,4 +32,5 @@ set_time_limit(0);
 
 //初始化WebSocket类
 $fastWS = new \FastWS\Core\WebSocket();
-$fastWS->run();
+
+return $fastWS;
