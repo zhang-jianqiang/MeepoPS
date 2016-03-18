@@ -177,7 +177,7 @@ class WebSocket{
             return false;
         }
         $this->clientList[] = $connect;
-        $this->callFunction($this->callFunc['new_connection'], $this);
+        $this->callFunction($this->callFunc['new_connection'], $connect);
         return $connect;
     }
 
@@ -208,7 +208,7 @@ class WebSocket{
                     socket_close($client);
                     $this->socketClose();
                 }
-                $this->callFunction($this->callFunc['read_data'], array($this, $msg), true);
+                $this->callFunction($this->callFunc['read_data'], array($connect, $msg), true);
             }
         }
     }
