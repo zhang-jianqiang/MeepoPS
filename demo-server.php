@@ -18,7 +18,6 @@ class Test{
     }
 
     public function callFuncNewConnection($connect){
-        var_dump($connect);
         $totalNum = count($this->fastWS->clientList);
         echo $msg = "第".$totalNum."位新用户你好:\n这里是FastWS测试服务器\n请输入'quit'退出本次回话.\n";
         $this->fastWS->socketWrite($connect, $msg);
