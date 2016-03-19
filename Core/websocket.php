@@ -197,6 +197,7 @@ echo "buf2:\r\n";var_dump($buf);
                     }
 echo 'h';
                     $msg .= $buf;
+echo "msg:\r\n";var_dump($msg);
                 }
 echo "\n";var_dump($msg);echo "\n";
 echo 'd';
