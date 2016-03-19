@@ -84,10 +84,6 @@ class WebSocket{
      * @return int 已发送的消息长度
      */
     public function socketWrite($connect, $msg, $length=null){
-        echo '2----------';
-        var_dump($connect);
-        var_dump($msg);
-        var_dump($length);
         if(is_null($length)){
             $length = strlen($msg);
         }
@@ -157,8 +153,6 @@ class WebSocket{
         }else{
             $sysFunc = 'call_user_func';
         }
-        echo '1----------';
-        var_dump($func);
         if(is_string($func) && function_exists($func)){
             $sysFunc($func, $param);
         }else if(is_array($func) && count($func) >= 2) {
@@ -186,19 +180,35 @@ class WebSocket{
      * @return bool|resource
      */
     private function readClientList($selectList){
+var_dump($selectList);var_dump($this->clientList);
+echo 'a';
         foreach ($this->clientList as $key => $client) {
+echo 'b';
             if (in_array($client, $selectList)) {
+echo 'c';
                 $msg = '';
-                while($buf = $this->socketRead($client, PHP_NORMAL_READ)){
+                while(true){
+                    $buf = $this->socketRead($client, PHP_NORMAL_READ);
+echo "buf:\r\n";var_dump($buf);
+$buf = socket_read($client, $this->msgLength, $type);
+echo "buf2:\r\n";var_dump($buf);
+                    if($buf === false){
+                        break;
+                    }
+echo 'h';
                     $msg .= $buf;
                 }
+echo "\n";var_dump($msg);echo "\n";
+echo 'd';
                 if($buf === false){
                     return false;
                 }
+echo 'e';
                 $msg = trim($msg);
                 if (!$msg) {
                     continue;
                 }
+echo 'f';
                 if ($msg === 'quit') {
                     unset($this->clientList[$key]);
                     $this->connectClose($client);
@@ -208,8 +218,10 @@ class WebSocket{
                     socket_close($client);
                     $this->socketClose();
                 }
+		echo $msg;
                 $this->callFunction($this->callFunc['read_data'], array($connect, $msg), true);
             }
+echo 'g';
         }
     }
 
@@ -222,20 +234,28 @@ class WebSocket{
             $selectList = $this->clientList;
             $selectList[] = $this->socket;
             //监听
+echo 1;
             if($this->socketSelect($selectList, $write, $except) < 1) {
+echo '*';
                 Log::write('socketSelect() failed: reason: ' . $this->socketError());
                 continue;
             }
+echo 2;
             //新增客户端
             if (in_array($this->socket, $selectList)) {
+echo 3;
                 if($this->addContent() === false){
+echo 4;
                     Log::write('addContent() failed: reason: ' . $this->socketError());
                 }
             }
+echo 5;
             //遍历客户端
             if($this->readClientList($selectList) === false){
+echo 6;
                 Log::write('readClientList() failed: reason: ' . $this->socketError());
             }
+echo 7;
         } while (true);
         $this->socketClose();
     }
