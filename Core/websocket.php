@@ -185,23 +185,27 @@ echo 'a';
         foreach ($this->clientList as $key => $client) {
 echo 'b';
             if (in_array($client, $selectList)) {
+		$msg =  socket_read($client, $this->msgLength, PHP_NORMAL_READ);
+/*
 echo 'c';
                 $msg = '';
                 while(true){
-                    $buf = $this->socketRead($client, PHP_NORMAL_READ);
-echo "buf:\r\n";var_dump($buf);
-$buf = socket_read($client, $this->msgLength, $type);
+                    //$buf = $this->socketRead($client, PHP_NORMAL_READ);
+$buf = socket_read($client, $this->msgLength, PHP_NORMAL_READ);
 echo "buf2:\r\n";var_dump($buf);
                     if($buf === false){
+echo 'i';
                         break;
                     }
+
 echo 'h';
                     $msg .= $buf;
 echo "msg:\r\n";var_dump($msg);
                 }
+*/
 echo "\n";var_dump($msg);echo "\n";
 echo 'd';
-                if($buf === false){
+                if($msg === false){
                     return false;
                 }
 echo 'e';
@@ -220,7 +224,7 @@ echo 'f';
                     $this->socketClose();
                 }
 		echo $msg;
-                $this->callFunction($this->callFunc['read_data'], array($connect, $msg), true);
+                $this->callFunction($this->callFunc['read_data'], array($client, $msg), true);
             }
 echo 'g';
         }
