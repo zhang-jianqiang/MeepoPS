@@ -24,10 +24,21 @@ class Test{
     }
 
     public function callFuncReadData($connect, $data){
-var_dump($connect);
-var_dump($data);
-        $msg = "服务器收到了你发送的信息: " . $data . "\n";
+        $msg = '服务器收到了你发送的信息: ' . $data . "\n";
         $this->fastWS->socketWrite($connect, $msg);
+        if ($data === 'quit') {
+            $this->fastWS->connectClose($connect);
+        }
+        if ($data === 'shutdown') {
+            $this->fastWS->close();
+            unset($this->fastWS);
+        }
+        //广播 - 发送给每一个用户
+        $key = array_search($connect, $this->fastWS->clientList);
+        foreach($this->fastWS->clientList as $client){
+            $msg = $key . '号用户说: ' . $data . "\n";
+            $this->fastWS->socketWrite($client, $msg);
+        }
     }
 }
 

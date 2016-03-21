@@ -27,6 +27,9 @@ define('FAST_WS_SOCKET_NUM', 4);
 //WebSocket 允许的挤压量
 define('FAST_WS_SOCKET_BACKLOG', 10);
 
+//读取数据的方式 是否优先读取一个请求.默认为False.更加均衡
+define('PRIORITY_ONE_QUERY', false);
+
 //Log路径
 define('FAST_WS_LOG_PATH', '/tmp/fast_ws_'.date('Y-m-d').'.log');
 

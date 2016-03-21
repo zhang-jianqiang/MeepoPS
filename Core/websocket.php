@@ -25,6 +25,10 @@ class WebSocket{
     //socket句柄
     private $socket = null;
 
+    /**
+     * 初始化
+     * WebSocket constructor.
+     */
     public function __construct()
     {
         //第一步: 创建一个socket
@@ -33,6 +37,79 @@ class WebSocket{
         $this->socketBind();
         //第三步: 监听socket句柄的所有连接
         $this->socketListen();
+    }
+
+    /**
+     * 析构函数.释放所有的资源
+     */
+    public function __destruct()
+    {
+        $this->socketClose();
+    }
+
+    /**
+     * 启动WebSocket
+     * @return bool
+     */
+    public function run(){
+        do {
+            $selectList = array_merge([$this->socket], $this->clientList);
+            //监听
+            if($this->socketSelect($selectList, $write, $except) < 1) {
+                Log::write('socketSelect() failed: reason: ' . $this->socketError());
+                continue;
+            }
+            //新增客户端
+            if (in_array($this->socket, $selectList)) {
+                $connect = $this->addContent();
+                if($connect === false){
+                    Log::write('addContent() failed: reason: ' . $this->socketError());
+                }
+                //将socket_create返回的资源删掉
+                unset($selectList[0]);
+            }
+            //遍历客户端
+            if($this->readClientList($selectList) === false){
+                Log::write('readClientList() failed: reason: ' . $this->socketError());
+                continue;
+            }
+        } while (true);
+        $this->socketClose();
+    }
+
+    /**
+     * 向指定的连接发送消息
+     * @param $connect resource 指定的连接资源,由socket_accept()返回
+     * @param $msg string 消息内容
+     * @param $length int 消息长度
+     * @return int 已发送的消息长度
+     */
+    public function socketWrite($connect, $msg, $length=null){
+        if(is_null($length)){
+            $length = strlen($msg);
+        }
+        if(!$msg){
+            return false;
+        }
+        return socket_write($connect, $msg, $length);
+    }
+
+    /**
+     * 关闭指定的链接
+     * @param $connect resource 指定的连接资源,由socket_accept()返回
+     */
+    public function connectClose($connect){
+        if(($key = array_search($connect, $this->clientList)) !== false) {
+            unset($this->clientList[$key]);
+        }
+        socket_close($connect);
+    }
+
+    /**
+     * 关闭Socket,会出发析构函数.
+     */
+    public function close(){
+        die('FastWS has been closed');
     }
 
     /**
@@ -77,35 +154,36 @@ class WebSocket{
     }
 
     /**
-     * 向指定的连接发送消息
+     * 读取指定链接中的数据
      * @param $connect resource 指定的连接资源,由socket_accept()返回
-     * @param $msg string 消息内容
-     * @param $length int 消息长度
-     * @return int 已发送的消息长度
+     * @param int $type
+     * @param int $length int 一次读取的长度
+     * @return bool|string
      */
-    public function socketWrite($connect, $msg, $length=null){
+    private function socketRead($connect, $type=PHP_BINARY_READ, $length=null){
         if(is_null($length)){
-            $length = strlen($msg);
+            $length = $this->msgLength;
         }
-        if(!$msg){
+        $buf = socket_read($connect, $length, $type);
+        if ($buf === false) {
             return false;
         }
-        return socket_write($connect, $msg, $length);
+        return $buf;
     }
 
     /**
      * 读取指定链接中的数据
      * @param $connect resource 指定的连接资源,由socket_accept()返回
-     * @param int $length int 一次读取的长度
      * @param int $type
-     * @return bool|string
+     * @param int $length int 一次读取的长度
+     * @return int
      */
-    public function socketRead($connect, $type=PHP_BINARY_READ){
-        $buf = socket_read($connect, $this->msgLength, $type);
-        if ($buf === false) {
-            return false;
+    private function socketRecv($connect, &$buffer, $type=MSG_DONTWAIT, $length=null){
+        if(is_null($length)){
+            $length = $this->msgLength;
         }
-        return $buf;
+        $byte = socket_recv($connect, $buffer, $length, $type);
+        return $byte;
     }
 
     /**
@@ -117,30 +195,24 @@ class WebSocket{
     }
 
     /**
-     * 关闭指定的链接
-     * @param $connect resource 指定的连接资源,由socket_accept()返回
+     * 关闭所有资源
      */
-    private function connectClose($connect){
-        socket_close($connect);
-    }
-
-    /**
-     * 关闭指定的链接
-     * @param $connect resource 指定的连接资源,由socket_create()或返回
-     */
-    public function socketClose(){
+    private function socketClose(){
         foreach($this->clientList as $client){
             socket_close($client);
         }
         socket_close($this->socket);
+        unset($this->clientList);
+        unset($this->socket);
     }
 
     /**
      * 获取上一次的错误信息
      * @return array errno是错误码,error是错误提示
      */
-    private function socketError(){
-        return ['errno' => socket_last_error(), 'error'=>socket_strerror(socket_last_error())];
+    private function socketError($isJson=true){
+        $ret = ['errno' => socket_last_error(), 'error'=>socket_strerror(socket_last_error())];
+        return $isJson ? json_encode($ret) : $ret;
     }
 
     /**
@@ -180,88 +252,20 @@ class WebSocket{
      * @return bool|resource
      */
     private function readClientList($selectList){
-var_dump($selectList);var_dump($this->clientList);
-echo 'a';
-        foreach ($this->clientList as $key => $client) {
-echo 'b';
-            if (in_array($client, $selectList)) {
-		$msg =  socket_read($client, $this->msgLength, PHP_NORMAL_READ);
-/*
-echo 'c';
-                $msg = '';
-                while(true){
-                    //$buf = $this->socketRead($client, PHP_NORMAL_READ);
-$buf = socket_read($client, $this->msgLength, PHP_NORMAL_READ);
-echo "buf2:\r\n";var_dump($buf);
-                    if($buf === false){
-echo 'i';
-                        break;
-                    }
-
-echo 'h';
-                    $msg .= $buf;
-echo "msg:\r\n";var_dump($msg);
+        foreach ($selectList as $select) {
+            $msg = '';
+            do {
+                $num = $this->socketRecv($select, $buf);
+                if($num < 1){
+                    break;
                 }
-*/
-echo "\n";var_dump($msg);echo "\n";
-echo 'd';
-                if($msg === false){
-                    return false;
-                }
-echo 'e';
-                $msg = trim($msg);
-                if (!$msg) {
-                    continue;
-                }
-echo 'f';
-                if ($msg === 'quit') {
-                    unset($this->clientList[$key]);
-                    $this->connectClose($client);
-                    continue;
-                }
-                if ($msg === 'shutdown') {
-                    socket_close($client);
-                    $this->socketClose();
-                }
-		echo $msg;
-                $this->callFunction($this->callFunc['read_data'], array($client, $msg), true);
-            }
-echo 'g';
-        }
-    }
-
-    /**
-     * 启动WebSocket
-     * @return bool
-     */
-    public function run(){
-        do {
-            $selectList = $this->clientList;
-            $selectList[] = $this->socket;
-            //监听
-echo 1;
-            if($this->socketSelect($selectList, $write, $except) < 1) {
-echo '*';
-                Log::write('socketSelect() failed: reason: ' . $this->socketError());
+                $msg .= $buf;
+            }while(PRIORITY_ONE_QUERY);
+            $msg = trim($msg);
+            if (!$msg) {
                 continue;
             }
-echo 2;
-            //新增客户端
-            if (in_array($this->socket, $selectList)) {
-echo 3;
-                if($this->addContent() === false){
-echo 4;
-                    Log::write('addContent() failed: reason: ' . $this->socketError());
-                }
-            }
-echo 5;
-            //遍历客户端
-            if($this->readClientList($selectList) === false){
-echo 6;
-                Log::write('readClientList() failed: reason: ' . $this->socketError());
-            }
-echo 7;
-        } while (true);
-        $this->socketClose();
+            $this->callFunction($this->callFunc['read_data'], array($select, $msg), true);
+        }
     }
 }
