@@ -8,23 +8,22 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+namespace FastWS\Core;
+
 class Signal{
 
-    public static function setSignal(){
+    public static $fastWS;
 
+    public static function setSignal(&$fastWS){
+        self::$fastWS = $fastWS;
         // uninstall stop signal handler
-        pcntl_signal(SIGINT,  SIG_IGN, false);
+        pcntl_signal(SIGINT, array('self', 'signalHandler'));
         // uninstall reload signal handler
-        pcntl_signal(SIGUSR1, SIG_IGN, false);
+        pcntl_signal(SIGUSR1, array('self', 'signalHandler'));
         // uninstall  status signal handler
-        pcntl_signal(SIGUSR2, SIG_IGN, false);
-        // reinstall stop signal handler
-        self::$globalEvent->add(SIGINT, EventInterface::EV_SIGNAL, array('\Workerman\Worker', 'signalHandler'));
-        //  uninstall  reload signal handler
-        self::$globalEvent->add(SIGUSR1, EventInterface::EV_SIGNAL,array('\Workerman\Worker', 'signalHandler'));
-        // uninstall  status signal handler
-        self::$globalEvent->add(SIGUSR2, EventInterface::EV_SIGNAL, array('\Workerman\Worker', 'signalHandler'));
-
+        pcntl_signal(SIGUSR2, array('self', 'signalHandler'));
+        //
+        pcntl_signal_dispatch();
     }
 
     /**
@@ -33,20 +32,22 @@ class Signal{
      */
     public static function signalHandler($signal)
     {
+        Log::write('signalHandler - 1');
+        self::$fastWS->close();
+        error_log(1);
         switch($signal)
         {
             // stop
             case SIGINT:
-                self::stopAll();
+                error_log(2);
                 break;
             // reload
             case SIGUSR1:
-                self::$_pidsToRestart = self::getAllWorkerPids();
-                self::reload();
+                error_log(3);
                 break;
             // show status
             case SIGUSR2:
-                self::writeStatisticsToStatusFile();
+                error_log(4);
                 break;
         }
     }

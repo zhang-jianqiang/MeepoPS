@@ -37,6 +37,8 @@ class WebSocket{
         $this->socketBind();
         //第三步: 监听socket句柄的所有连接
         $this->socketListen();
+        //信号监听
+        Signal::setSignal($this);
     }
 
     /**
@@ -55,7 +57,8 @@ class WebSocket{
         do {
             $selectList = array_merge([$this->socket], $this->clientList);
             //监听
-            if($this->socketSelect($selectList, $write, $except) < 1) {
+            $selectNum = $this->socketSelect($selectList, $write, $except);
+            if($selectNum < 1) {
                 Log::write('socketSelect() failed: reason: ' . $this->socketError());
                 continue;
             }

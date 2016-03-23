@@ -1,6 +1,8 @@
 <?php
 /**
  * 服务器程序Demo
+ *
+ * 命令行输入 php demp-server.php 启动
  */
 namespace Test;
 class Test{
@@ -25,6 +27,7 @@ class Test{
 
     public function callFuncReadData($connect, $data){
         $msg = '服务器收到了你发送的信息: ' . $data . "\n";
+
         $this->fastWS->socketWrite($connect, $msg);
         if ($data === 'quit') {
             $this->fastWS->connectClose($connect);

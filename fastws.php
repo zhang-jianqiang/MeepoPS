@@ -33,5 +33,9 @@ define('PRIORITY_ONE_QUERY', false);
 //Log路径
 define('FAST_WS_LOG_PATH', '/tmp/fast_ws_'.date('Y-m-d').'.log');
 
+/**
+ * -------从这里开始,以下流程的代码请勿修改,除非你有把握-------------------------------
+ */
+
 //载入FastWS核心文件
 return require_once './Core/fastws.php';
