@@ -1,31 +1,35 @@
 package main
-import(
-	."fmt"
+
+import (
+	"fmt"
 	"net"
-	"os"
-//	"io/ioutil"
-	"bufio"
 )
-func checkOk(ok error){
-	if ok != nil {
-		Println("Error", ok)
-		os.Exit(1)
-	}
-}
+
 func main(){
-	ipString := "127.0.0.1:19910"
-	data := "go - test"
-	tcpAddr, ok := net.ResolveTCPAddr("tcp", ipString)
-	checkOk(ok)
-	conn, ok := net.DialTCP("tcp", nil, tcpAddr)
-	checkOk(ok)
-	defer conn.Close()
-	Println("123")
-	conn.Write([]byte(data))
-	Println("456")
-	res, ok := bufio.NewReader(conn).ReadString('\n')
-//	res, ok := ioutil.ReadAll(conn)
-	checkOk(ok)
-	Println(res)
-//	os.Exit(0)
+	client, err := net.Dial("tcp","127.0.0.1:19910");
+	if err!=nil {
+		fmt.Println("服务端连接失败");
+		return;
+	}
+	defer client.Close();
+	buf := make([]byte,1024);
+	strlen, err := client.Read(buf);
+	if err!=nil || strlen <= 0{
+		fmt.Println(err.Error());
+		return;
+	}
+	fmt.Println("收到响应:" + string(buf));
+
+	client.Write([]byte("你好,服务端!"));
+	buf = make([]byte,1024);
+	strlen, err = client.Read(buf);
+	if err!=nil {
+		fmt.Println(err.Error());
+		return;
+	}
+	if strlen <= 0 {
+		fmt.Println("没有收到数据");
+		return;
+	}
+	fmt.Println("收到响应:" + string(buf));
 }

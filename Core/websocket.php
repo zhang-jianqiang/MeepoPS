@@ -37,8 +37,9 @@ class WebSocket{
         $this->socketBind();
         //第三步: 监听socket句柄的所有连接
         $this->socketListen();
+        register_shutdown_function(array($this, 'close'));
         //信号监听
-        Signal::setSignal($this);
+//        Signal::setSignal($this);
     }
 
     /**
