@@ -37,6 +37,11 @@ if(!extension_loaded('posix')) {
     $fatalErrorList[] = "Fatal error: FastWS must require php-posix extension. Because send a signal to a process, get the real user ID of the current process needs php-posix\nPHP manual: http://php.net/manual/zh/intro.posix.php";
 }
 
+//启动参数是否正确
+if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status', 'kill'))){
+    $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill\n\"";
+}
+
 //日志路径是否已经配置
 if(!defined('FASTWS_LOG_PATH')){
     $warningErrorList[] = "Warning error: Log file path is not defined. Please define FASTWS_LOG_PATH in Config.php";

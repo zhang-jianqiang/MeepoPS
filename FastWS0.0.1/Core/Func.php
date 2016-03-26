@@ -68,4 +68,9 @@ class Func{
             @setproctitle($title);
         }
     }
+
+    public static function getCurrentUser(){
+        $userInfo = posix_getpwuid(posix_getuid());
+        return $userInfo['name'];
+    }
 }

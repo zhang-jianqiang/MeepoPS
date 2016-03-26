@@ -41,3 +41,6 @@ define('FASTWS_MASTER_PID_PATH', '/var/run/fast_ws/fast_ws_master.pid');
 
 //统计信息存储文件路径
 define('FASTWS_STATISTICS_PATH', '/var/run/fast_ws/fast_ws_statistics');
+
+//结束正在运行的多个进程时,间隔时间,单位秒
+define('FASTWS_KILL_WORKER_TIME_INTERVAL', '2');
