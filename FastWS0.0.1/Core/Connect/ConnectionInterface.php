@@ -12,4 +12,21 @@ namespace FastWS\Core\Connect;
 
 interface ConnectInterface{
 
+    /**
+     * 关闭客户端链接
+     * @return mixed
+     */
+    public static function close();
+
+    /**
+     * 获取客户端IP
+     * @return mixed
+     */
+    public static function getIp();
+
+    /**
+     * 获取客户端端口
+     * @return mixed
+     */
+    public static function getPort();
 }
