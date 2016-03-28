@@ -10,12 +10,19 @@
 namespace FastWS\Core;
 
 class Log{
-    public static function write($msg)
+    public static function write($msg, $type='INFO')
     {
+        $type = strtoupper($type);
+        if(!in_array($type, array('INFO', 'ERROR', 'FATAL', 'WARNING'))){
+            exit('Log type no match');
+        }
+        $msg = '[' . $type . '][' . date('Y-m-d H:i:s') . ']['.getmypid().']' . $msg . "\n";
         if(FASTWS_DEBUG){
             echo $msg;
         }
-        $msg = '[' . date('Y-m-d H:i:s') . ']['.getmypid().']' . $msg . "\n";
         file_put_contents(FASTWS_LOG_PATH, $msg, FILE_APPEND | LOCK_EX);
+        if($type === 'FATAL'){
+            exit;
+        }
     }
 }

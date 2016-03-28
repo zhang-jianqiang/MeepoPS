@@ -24,5 +24,6 @@ foreach(glob(FASTWS_ROOT_PATH.'/App/*/fastws_start_*.php') as $appStartFile)
 {
     require_once $appStartFile;
 }
+
 // 运行所有服务
 FastWS::runAll();

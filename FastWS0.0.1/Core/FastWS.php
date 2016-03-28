@@ -16,11 +16,14 @@ class FastWS{
      */
     //主进程名称.即FastWS实例名称
     public $name;
+    //绑定的IP\端口\协议.如http://127.0.0.1:80
+    private $_bind = '';
     //所有的worker列表
     protected static $_workerList = array();
     //每个Worker的Pid
     private static $_workerPid;
-    //Worker和Pid的对应关系列表
+    //Worker和Pid的对应关系列表.一个Worker有多个Pid(多进程).一个FastWS有多个Worker
+    //array('worker1'=>array(1001, 1002, 1003), worker2'=>array(1004, 1005, 1006))
     private static $_workerPidMapList;
     //WorkerId和Pid的对应关系列表
     private static $_idMap;
@@ -62,6 +65,16 @@ class FastWS{
     private $_protocolTransfer = 'tcp';
     //应用层协议
     private $_protocolApplication = 'webscoket';
+    //传输层协议
+    private static $_protocolTransferList = array(
+        'tcp'   => 'tcp',
+        'udp'   => 'udp',
+        'ssl'   => 'tcp',
+        'tsl'   => 'tcp',
+        'sslv2' => 'tcp',
+        'sslv3' => 'tcp',
+        'tls'   => 'tcp'
+    );
 
     /**
      * 客户端相关
@@ -84,11 +97,11 @@ class FastWS{
     //主进程PID
     private static $_masterPid;
     //主进程Socket资源.由stream_socket_server()返回
-    private static $_masterSocket;
+    private $_masterSocket;
     //主进程Socket属性,包括协议/IP/端口.new FastWS()时传入,格式为http://127.0.0.1:19910
     private static $_masterSocketAttribute;
     //Socket上下文资源,由stream_context_create()返回
-    private static $_stramContext;
+    private $_streamContext;
 
     /**
      * 其他
@@ -98,6 +111,43 @@ class FastWS{
     //统计信息
     private static $_statistics;
 
+    /**
+     * 初始化.
+     * FastWS constructor.
+     * @param string $host
+     * @param array $contextOptionList
+     */
+    public function __construct($host='', $contextOptionList = array())
+    {
+        //将本对象唯一hash后作为本workId
+        $this->_workerId = spl_object_hash($this);
+        self::$_workerList[$this->_workerId] = $this;
+        self::$_workerPidMapList[$this->_workerId] = array();
+        $this->_bind = $host ? $host : '';
+        if(!$contextOptionList['socket']['backlog']){
+            $contextOptionList['socket']['backlog'] = FASTWS_BACKLOG;
+        }
+        //创建资源流上下文
+        $this->_streamContext = stream_context_create($contextOptionList);
+    }
+
+    /**
+     * 运行一个Worker实例
+     */
+    public function run(){
+        //设置状态
+        self::$_currentStatus = FASTWS_STATUS_RUNING;
+        //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
+        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkErrors'));
+        //创建一个全局的循环事件
+    }
+    
+    
+    
+    
+    
+    
+    
 
     public static function runAll(){
         self::_init();
@@ -105,8 +155,8 @@ class FastWS{
         self::_daemon();
         self::_createWorkers();
         self::_signalInstalls();
-//        self::saveMasterPid();
-//        self::forkWorkers();
+        self::_saveMasterPid();
+        self::_checkWorkerListProcess();
 //        self::displayUI();
 //        self::resetStd();
 //        self::monitorWorkers();
@@ -124,7 +174,7 @@ class FastWS{
         //设置ID
         foreach(self::$_workerList as $workerId=>$worker)
         {
-            self::$_idMap[$workerId] = array_fill(0, $worker->count, 0);
+            self::$_idMap[$workerId] = array_fill(0, $worker->workerCount, 0);
         }
         //初始化定时器
         Timer::init();
@@ -278,6 +328,49 @@ class FastWS{
     }
 
     /**
+     * 监听
+     */
+    public function listen()
+    {
+        if(!$this->_bind || !$this->_masterSocket){
+            return;
+        }
+        $host = $this->_bind;
+        list($protocol, $address) = explode(':', $this->_bind, 2);
+        if(!isset(self::$_protocolTransferList[$protocol])){
+            $this->_protocolApplication = '\FastWS\Protocols\\' . $protocol;
+            if(!class_exists($this->_protocolApplication)){
+                Log::write('Application layer protocol calss not exists.', 'FATAL');
+            }
+            $host = $this->_protocolTransfer.":".$address;
+        }else{
+            $this->_protocolTransfer = self::$_protocolTransferList[$protocol];
+        }
+        $errno = $errmsg = '';
+        $flags =  $this->_protocolTransfer === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+        $this->_masterSocket = stream_socket_server($host, $errno, $errmsg, $flags, $this->_streamContext);
+        if(!$this->_masterSocket){
+            Log::write('stream_socket_server() throw exception. error msg: ' . $errmsg, 'FATAL');
+        }
+        //如果是TCP协议,打开长链接,并且禁用Nagle算法
+        if($this->_protocolTransfer === 'tcp' && function_exists('socket_import_stream')){
+            $socket = socket_import_stream($this->_masterSocket);
+            @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
+            @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
+        }
+        //使用非阻塞
+        stream_set_blocking($this->_masterSocket, 0);
+        //创建一个监听事件
+        if(self::$_globalEvent){
+            if($this->_protocolTransfer !== 'udp'){
+                self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, 'acceptConnect'));
+            }else{
+                self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, 'acceptUdpConnect'));
+            }
+        }
+    }
+
+    /**
      * 注册信号,给信号添加回调函数
      */
     private static function _signalInstalls(){
@@ -303,6 +396,86 @@ class FastWS{
                 break;
         }
     }
+
+    /**
+     * Save pid.
+     * @throws Exception
+     */
+    private static function _saveMasterPid()
+    {
+        self::$_masterPid = posix_getpid();
+        if(false === @file_put_contents(FASTWS_MASTER_PID_PATH, self::$_masterPid))
+        {
+            Log::write('Can\'t write pid to '.FASTWS_MASTER_PID_PATH, 'FATAL');
+        }
+    }
+
+    /**
+     * 检测每个Worker的子进程是否都已启动
+     * @return void
+     */
+    private static function _checkWorkerListProcess()
+    {
+        foreach(self::$_workerList as $worker){
+            if(self::$_currentStatus === FASTWS_STATUS_STARTING){
+                $worker->name = $worker->name ? $worker->name : $worker->_getSocketName();
+            }
+            while(count(self::$_workerPidMapList[$worker->workerId]) < $worker->count)
+            {
+                self::_forkWorker($worker);
+            }
+        }
+    }
+
+    /**
+     * 创建子进程
+     * @param $worker
+     */
+    private static function _forkWorker($worker)
+    {
+        //创建子进程
+        $pid = pcntl_fork();
+
+        $id = self::getId($worker->workerId, 0);
+        // For master process.
+        if($pid > 0)
+        {
+            self::$_pidMap[$worker->workerId][$pid] = $pid;
+            self::$_idMap[$worker->workerId][$id] = $pid;
+        }
+        // For child processes.
+        elseif(0 === $pid)
+        {
+            if($worker->reusePort)
+            {
+                $worker->listen();
+            }
+            if(self::$_status === self::STATUS_STARTING)
+            {
+                self::resetStd();
+            }
+            self::$_pidMap = array();
+            self::$_workers = array($worker->workerId => $worker);
+            Timer::delAll();
+            self::setProcessTitle('WorkerMan: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
+            $worker->setUserAndGroup();
+            $worker->id = $id;
+            $worker->run();
+            exit(250);
+        }
+        else
+        {
+            throw new Exception("forkOneWorker fail");
+        }
+    }
+
+
+
+
+
+
+
+
 
     /**
      * 终止FastWS所有进程
@@ -394,6 +567,15 @@ class FastWS{
             }
         }
         return $pid_array;
+    }
+
+    /**
+     * 获取SocketName
+     * @return string
+     */
+    private function _getSocketName()
+    {
+        return $this->_bind ? lcfirst($this->_bind) : 'none';
     }
 
     private static function getPollWay()
