@@ -124,7 +124,7 @@ class FastWS{
         self::$_workerList[$this->_workerId] = $this;
         self::$_workerPidMapList[$this->_workerId] = array();
         $this->_bind = $host ? $host : '';
-        if(!$contextOptionList['socket']['backlog']){
+        if(!isset($contextOptionList['socket']['backlog'])){
             $contextOptionList['socket']['backlog'] = FASTWS_BACKLOG;
         }
         //创建资源流上下文
@@ -132,7 +132,7 @@ class FastWS{
     }
 
     /**
-     * 运行一个Worker实例
+     * 运行一个Worker进程
      */
     public function run(){
         //设置状态
@@ -191,11 +191,9 @@ class FastWS{
         $masterPid = @file_get_contents(FASTWS_MASTER_PID_PATH);
         //主进程当前是否正在运行
         $masterIsAlive = false;
-        if($masterPid){
-            //给FastWS主进程发送一个信号, 信号为SIG_DFL, 表示采用默认信号处理程序.如果发送信号成功则该进程正常
-            if(@posix_kill($masterPid, SIG_DFL)){
-                $masterIsAlive = true;
-            }
+        //给FastWS主进程发送一个信号, 信号为SIG_DFL, 表示采用默认信号处理程序.如果发送信号成功则该进程正常
+        if($masterPid && @posix_kill($masterPid, SIG_DFL)){
+            $masterIsAlive = true;
         }
         //不能重复启动
         if($masterIsAlive && $operation === 'start'){
@@ -313,14 +311,14 @@ class FastWS{
      */
     private static function _createWorkers()
     {
-        foreach (self::$_workerList as $worker) {
+        foreach (self::$_workerList as &$worker) {
             //给每个Worker起名字
-            $worker->name = $worker->name ? $worker->name : 'not_set';
+            $worker->name = $worker->name ? $worker->name : 'not_set_name';
             //获取每个Worker的用户
-            if (!empty($worker->user)) {
+            if (empty($worker->user)) {
                 $worker->user = Func::getCurrentUser();
             } else if (posix_getuid() && $worker->user != Func::getCurrentUser()) {
-                Log::write('Warning: You must have the root permission to change uid and gid.');
+                Log::write('You must have the root permission to change uid and gid.', 'FATAL');
             }
             //每个Worker开始监听端口
             $worker->listen();
@@ -375,11 +373,11 @@ class FastWS{
      */
     private static function _signalInstalls(){
         //SIGINT为停止FastWS的信号
-        pcntl_signal(SIGINT, array('\FastWS\Core\Worker', 'signalHandler'), false);
+        pcntl_signal(SIGINT, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGUSR1 尚未使用.计划为载入文件,即nginx的reload
-        pcntl_signal(SIGUSR1, array('\FastWS\Core\Worker', 'signalHandler'), false);
+        pcntl_signal(SIGUSR1, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGUSR2 为查看FastWS所有状态的信号
-        pcntl_signal(SIGUSR2, array('\FastWS\Core\Worker', 'signalHandler'), false);
+        pcntl_signal(SIGUSR2, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGPIPE 信号会导致Linux下Socket进程终止.我们忽略他
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
@@ -420,7 +418,7 @@ class FastWS{
             if(self::$_currentStatus === FASTWS_STATUS_STARTING){
                 $worker->name = $worker->name ? $worker->name : $worker->_getSocketName();
             }
-            while(count(self::$_workerPidMapList[$worker->workerId]) < $worker->count)
+            while(count(self::$_workerPidMapList[$worker->_workerId]) < $worker->workerCount)
             {
                 self::_forkWorker($worker);
             }
@@ -435,42 +433,88 @@ class FastWS{
     {
         //创建子进程
         $pid = pcntl_fork();
-
-        $id = self::getId($worker->workerId, 0);
-        // For master process.
-        if($pid > 0)
-        {
-            self::$_pidMap[$worker->workerId][$pid] = $pid;
-            self::$_idMap[$worker->workerId][$id] = $pid;
-        }
-        // For child processes.
-        elseif(0 === $pid)
-        {
-            if($worker->reusePort)
-            {
-                $worker->listen();
+        //初始化的时候$_idMap是用0来填充的.这次就是查找到0的位置并且替换它
+        $id = array_search(0, self::$_idMap[$worker->_workerId]);
+        //如果是主进程
+        if($pid > 0){
+            self::$_idMap[$worker->_workerId][$id] = $pid;
+            self::$_workerPidMapList[$worker->_workerId][$pid] = $pid;
+        //如果是子进程
+        }elseif(0 === $pid){
+            //启动时重置状态
+            if(self::$_currentStatus === FASTWS_STATUS_STARTING){
+                self::_redirectStdinAndStdout();
             }
-            if(self::$_status === self::STATUS_STARTING)
-            {
-                self::resetStd();
-            }
-            self::$_pidMap = array();
-            self::$_workers = array($worker->workerId => $worker);
+            self::$_workerPidMapList = array();
+            self::$_workerList = array($worker->_workerId => $worker);
             Timer::delAll();
-            self::setProcessTitle('WorkerMan: worker process  ' . $worker->name . ' ' . $worker->getSocketName());
-            $worker->setUserAndGroup();
+            Func::setProcessTitle('FastWS: worker process  ' . $worker->name . ' ' . $worker->_getSocketName());
+            $worker->_setUserAndGroup();
             $worker->id = $id;
             $worker->run();
             exit(250);
-        }
-        else
-        {
-            throw new Exception("forkOneWorker fail");
+        //创建进程失败
+        }else{
+            Log::write('fork child process failed', 'FATAL');
         }
     }
 
+    /**
+     * Redirect standard input and output.
+     */
+    private static function _redirectStdinAndStdout()
+    {
+        if(!self::$isDaemon){
+            return false;
+        }
+        global $STDOUT, $STDERR;
+        $handle = fopen(FASTWS_STDOUT_PATH, 'a');
+        if($handle){
+            unset($handle);
+            @fclose(STDOUT);
+            @fclose(STDERR);
+            $STDOUT = fopen(FASTWS_STDOUT_PATH, 'a');
+            $STDERR = fopen(FASTWS_STDOUT_PATH, 'a');
+        }else{
+            Log::write('fopen STDIN AND STDOUT file failed. ' . FASTWS_STDOUT_PATH, 'WARNING');
+        }
+        return true;
+    }
 
+    /**
+     * 设置用户和用户组
+     * @return mixed
+     */
+    private function _setUserAndGroup()
+    {
+        //获取用户的uid.如果$this->user为空则为当前用户.$this是$_workerList中存储的对象
+        $userInfo = posix_getpwnam($this->user);
+        if(!$userInfo || !$userInfo['uid']){
+            Log::write('User ' . $this->user . ' not exsits.', 'WARNING');
+            return false;
+        }
+        $uid = $userInfo['uid'];
+        //获取用户组的gid
+        if($this->group){
+            $groupInfo = posix_getgrnam($this->group);
+            if(!$groupInfo || !$groupInfo['gid']){
+                Log::write('Group ' . $this->group . ' not exsits.', 'WARNING');
+                return false;
+            }
+            $gid = $groupInfo['gid'];
+        }else{
+            $gid = $userInfo['gid'];
+        }
 
+        //设置用户和用户组
+        if($uid != posix_getuid() || $gid != posix_getgid()){
+            //设置当前进程的uid,gid.并
+            if(!posix_setuid($uid) || !posix_setgid($gid) || !posix_initgroups($userInfo['name'], $gid)){
+                Log::write('Change user ' . $this->user . ' or group ' . $this->group . ' failed.', 'WARNING');
+            }
+        }
+        return true;
+    }
 
 
 
@@ -547,7 +591,7 @@ class FastWS{
 
         // For child processes.
         $worker = current(self::$_workers);
-        $wrker_status_str = posix_getpid()."\t".str_pad(round(memory_get_usage(true)/(1024*1024),2)."M", 7)." " .str_pad($worker->getSocketName(), self::$_maxSocketNameLength) ." ".str_pad(($worker->name === $worker->getSocketName() ? 'none' : $worker->name), self::$_maxWorkerNameLength)." ";
+        $wrker_status_str = posix_getpid()."\t".str_pad(round(memory_get_usage(true)/(1024*1024),2)."M", 7)." " .str_pad($worker->_getSocketName(), self::$_maxSocketNameLength) ." ".str_pad(($worker->name === $worker->_getSocketName() ? 'none' : $worker->name), self::$_maxWorkerNameLength)." ";
         $wrker_status_str .= str_pad(ConnectionInterface::$statistics['connection_count'], 11)." ".str_pad(ConnectionInterface::$statistics['total_request'], 14)." ".str_pad(ConnectionInterface::$statistics['send_fail'],9)." ".str_pad(ConnectionInterface::$statistics['throw_exception'],15)."\n";
         file_put_contents(FASTWS_STATISTICS_PATH, $wrker_status_str, FILE_APPEND);
     }

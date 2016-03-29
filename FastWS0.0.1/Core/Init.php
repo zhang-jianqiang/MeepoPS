@@ -41,7 +41,3 @@ if(FASTWS_IMPLICIT_FLUSH){
 
 //设置脚本执行时间为永不超时
 set_time_limit(0);
-
-//初始化WebSocket类
-$fastWS = new WebSocket();
-return $fastWS;

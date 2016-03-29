@@ -28,7 +28,7 @@ class WebServer extends FastWS{
         }
         $host = 'http:' . $host[1];
         parent::__construct($host, $contextOptionList);
-        $this->name = 'FastWS - WebService';
+
     }
 
     /**
