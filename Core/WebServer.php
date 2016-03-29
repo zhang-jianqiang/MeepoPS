@@ -35,7 +35,6 @@ class WebServer extends FastWS{
      * 运行一个WebService实例
      */
     public function run(){
-        echo 123;
         $this->callbackConnect = array($this, 'callbackConnect');
         $this->callbackNewData = array($this, 'callbackNewData');
         parent::run();

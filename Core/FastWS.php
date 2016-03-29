@@ -10,6 +10,8 @@
  */
 namespace FastWS\Core;
 
+use FastWS\Core\Event\EventInterface;
+
 class FastWS{
     /**
      * Worker相关.每个Worker是一个子进程.可类比Nginx的Worker概念和PHP-FPM的child_processes
@@ -25,7 +27,7 @@ class FastWS{
     //Worker和Pid的对应关系列表.一个Worker有多个Pid(多进程).一个FastWS有多个Worker
     //array('worker1'=>array(1001, 1002, 1003), worker2'=>array(1004, 1005, 1006))
     private static $_workerPidMapList;
-    //WorkerId和Pid的对应关系列表
+    //在FastWS主进程中,WorkerId和Pid的对应关系列表. 如:array('worker1'=> array(10199, 0), 'worker2'=> array(19211, 19212))
     private static $_idMap;
     //workerId
     private $_workerId;
@@ -134,14 +136,41 @@ class FastWS{
     /**
      * 运行一个Worker进程
      */
-    public function run(){
+    protected function run(){
         //设置状态
         self::$_currentStatus = FASTWS_STATUS_RUNING;
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
-        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkErrors'));
+//        register_shutdown_function(array('\FastWS\Core\FastWS', '_checkShutdownErrors'));
         //创建一个全局的循环事件
+        if(!self::$_globalEvent){
+                $eventPollClass = '\FastWS\Core\Event\\'. ucfirst(self::_chooseEventPoll());
+            if(class_exists($eventPollClass, false)){
+                self::$_globalEvent = new $eventPollClass();
+            }else{
+                Log::write('Event loop class ' . $eventPollClass . ' not exists.', 'FATAL');
+            }
+            //注册一个读事件的监听.当服务器端的Socket准备读取的时候触发这个事件.
+            if($this->_bind){
+                $callbackMethod = $this->_protocolTransfer !== 'udp' ? 'acceptConnect' : 'acceptUdpConnect';
+                self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, $callbackMethod));
+            }
+        }
     }
-    
+
+    /**
+     * 检测退出的错误
+     */
+    private static function _checkShutdownErrors(){
+        if(self::$_currentStatus != FASTWS_STATUS_SHUTDOWN){
+            $errno = error_get_last();
+            if(is_null($errno)){
+                return;
+            }
+            $errmsg = 'FASTWS EXIT UNEXPECTED: ' . json_encode($errno);
+            Log::write($errmsg, 'ERROR');
+        }
+    }
+
     
     
     
@@ -360,11 +389,8 @@ class FastWS{
         stream_set_blocking($this->_masterSocket, 0);
         //创建一个监听事件
         if(self::$_globalEvent){
-            if($this->_protocolTransfer !== 'udp'){
-                self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, 'acceptConnect'));
-            }else{
-                self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, 'acceptUdpConnect'));
-            }
+            $callbackMethod = $this->_protocolTransfer !== 'udp' ? 'acceptConnect' : 'acceptUdpConnect';
+            self::$_globalEvent->add($this->_masterSocket, EventInterface::EVENT_TYPE_READ, array($this, $callbackMethod));
         }
     }
 
@@ -624,6 +650,22 @@ class FastWS{
 
     private static function getPollWay()
     {
-        array('libevent', 'select');
+
+    }
+
+    /**
+     * 获取事件轮询机制
+     * @return string 可用的事件轮询机制
+     */
+    private static function _chooseEventPoll()
+    {
+        if(extension_loaded('libevent')){
+            self::$_currentPoll = 'libevent';
+        }else if(extension_loaded('ev')){
+            self::$_currentPoll = 'ev';
+        }else{
+            self::$_currentPoll = 'select';
+        }
+        return self::$_currentPoll;
     }
 }

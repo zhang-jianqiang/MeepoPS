@@ -16,6 +16,9 @@ $web->workerCount = 2;
 $web->setRoot('www.lanecn.com', __DIR__.'/Web');
 $web->name = 'FastWS - WebService';
 
+$web->user = 'lane';
+$web->group = 'staff';
+
 // 如果不是在根目录启动，则运行runAll方法
 //if(!defined('GLOBAL_START'))
 //{

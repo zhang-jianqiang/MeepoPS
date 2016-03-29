@@ -8,7 +8,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace FastWS\Core;
+namespace FastWS\Core\Event;
 
 interface EventInterface{
     //读事件
@@ -21,6 +21,12 @@ interface EventInterface{
     const EVENT_TYPE_TIMER_ONCE = 8;
     //信号事件
     const EVENT_TYPE_SIGNAL = 16;
+
+    /**
+     * 初始化
+     * EventInterface constructor.
+     */
+    public function __construct();
 
     /**
      * 添加事件

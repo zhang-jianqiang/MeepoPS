@@ -11,6 +11,8 @@
  * WebSite: http://www.lanecn.com
  */
 namespace FastWS\Core;
+use FastWS\Core\Event\EventInterface;
+
 class Timer{
     //事件
     private static $_event = null;
@@ -24,7 +26,7 @@ class Timer{
     public static function init($event=array())
     {
         //如果没有事件,则安装一个alarm信号处理器
-        $event ? (self::$_event = $event) : (pcntl_signal(SIGALRM, array('FastWS\Core\Timer', 'sigHandler'), false));
+        $event ? (self::$_event = $event) : (pcntl_signal(SIGALRM, array('\FastWS\Core\Timer', 'sigHandler'), false));
     }
 
     /**
