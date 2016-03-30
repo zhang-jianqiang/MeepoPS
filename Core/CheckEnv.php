@@ -38,8 +38,8 @@ if(!extension_loaded('posix')) {
 }
 
 //启动参数是否正确
-if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status', 'kill'))){
-    $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill\n\"";
+if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status', 'kill', 'reload'))){
+    $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill|reload\n\"";
 }
 
 //日志路径是否已经配置

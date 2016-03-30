@@ -9,9 +9,9 @@
  */
 
 // WebServer
-$web = new \FastWS\Core\WebServer("http://0.0.0.0:55151");
+$web = new \FastWS\Core\WebServer("text://0.0.0.0:55151");
 // WebServer数量
-$web->workerCount = 2;
+$web->workerCount = 1;
 // 设置站点根目录
 $web->setRoot('www.lanecn.com', __DIR__.'/Web');
 $web->name = 'FastWS - WebService';

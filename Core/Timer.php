@@ -117,7 +117,7 @@ class Timer{
         self::$_taskList = array();
         pcntl_alarm(0);
         if(self::$_event){
-            self::$_event->delAll();
+            self::$_event->delAllTimer();
         }
     }
 }

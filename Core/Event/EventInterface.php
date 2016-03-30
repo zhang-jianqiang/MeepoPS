@@ -32,11 +32,11 @@ interface EventInterface{
      * 添加事件
      * @param $callback string|array 回调函数
      * @param $args array 回调函数的参数
-     * @param $intervalSecond int 间隔
+     * @param $resource resource 资源
      * @param $type int 类型
      * @return mixed
      */
-    public function add($callback, array $args, $intervalSecond, $type);
+    public function add($callback, array $args, $resource, $type);
 
     /**
      * 删除指定的事件
@@ -47,10 +47,10 @@ interface EventInterface{
     public function delOne($timerId, $type);
 
     /**
-     * 清除所有的事件
+     * 清除所有的计时器事件
      * @return mixed
      */
-    public function delAll();
+    public function delAllTimer();
 
     /**
      * 循环事件

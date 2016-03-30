@@ -32,7 +32,7 @@ class Http implements ProtocolInterface{
             return 0;
         }
         //将数据按照\r\n\r\n分割为两部分.第一部分是http头,第二部分是http body
-        list($header, $body) = explode("\r\n\r\n", $data, 2);
+        list($header, ) = explode("\r\n\r\n", $data, 2);
         //POST请求
         if (strpos($data, "POST") === 0) {
             $match = array();
