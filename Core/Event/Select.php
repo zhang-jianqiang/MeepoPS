@@ -206,7 +206,6 @@ class Select implements EventInterface
             //已添加的写事件 - 每个元素都是soucket资源
             $writeList = $this->_writeEventList;
             //监听读写事件列表,如果哪个有变化则发回变化数量.同时引用传入的两个列表将会变化
-            print_r($readList);continue;
             $selectNum = stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
             //执行定时器队列
             if(!$this->_splPriorityQueue->isEmpty()){

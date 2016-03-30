@@ -148,9 +148,9 @@ class FastWS{
         self::_installSignal();
         self::_saveMasterPid();
         self::_checkWorkerListProcess();
-        self::_displayUI();
-        self::_redirectStdinAndStdout();
-        self::_monitorChildProcess();
+//        self::_displayUI();
+//        self::_redirectStdinAndStdout();
+//        self::_monitorChildProcess();
     }
 
     /**
@@ -322,9 +322,10 @@ class FastWS{
      */
     private function _listen()
     {
-        if(!$this->_bind || !$this->_masterSocket){
+        if(!$this->_bind || $this->_masterSocket){
             return;
         }
+        //todo 未测试
         $host = $this->_bind;
         list($protocol, $address) = explode(':', $this->_bind, 2);
         //判断是否是传输层协议
@@ -436,7 +437,6 @@ class FastWS{
         }
     }
 
-
     /**
      * 运行一个Worker进程
      */
@@ -476,7 +476,7 @@ class FastWS{
     }
 
     /**
-     * 重新安装信号处理函数
+     * 重新安装信号处理函数 - 子进程重新安装
      */
     private static function _reinstallSignalHandler(){
         //设置之前设置的信号处理方式为忽略信号.并且系统调用被打断时不可重启系统调用
