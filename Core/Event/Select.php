@@ -61,17 +61,17 @@ class Select implements EventInterface
         switch($type){
             case EventInterface::EVENT_TYPE_READ:
                 $uniqueResourceId = intval($resource);
-                $this->_eventList[$uniqueResourceId][$type] = array($callback, $args);
+                $this->_eventList[$uniqueResourceId][$type] = array($callback, $resource);
                 $this->_readEventList[$uniqueResourceId] = $resource;
                 break;
             case EventInterface::EVENT_TYPE_WRITE:
                 $uniqueResourceId = intval($resource);
-                $this->_eventList[$uniqueResourceId][$type] = array($callback, $args);
+                $this->_eventList[$uniqueResourceId][$type] = array($callback, $resource);
                 $this->_writeEventList[$uniqueResourceId] = $resource;
                 break;
             case EventInterface::EVENT_TYPE_SIGNAL:
                 $uniqueResourceId = intval($resource);
-                $this->_signalEventList[$uniqueResourceId][$type] = array($callback, $args);
+                $this->_signalEventList[$uniqueResourceId][$type] = array($callback, $resource);
                 pcntl_signal($resource, array($this, 'signalHandler'));
                 break;
             case EventInterface::EVENT_TYPE_TIMER:

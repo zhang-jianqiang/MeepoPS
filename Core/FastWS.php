@@ -10,6 +10,7 @@
  */
 namespace FastWS\Core;
 
+use FastWS\Core\Connect\Tcp;
 use FastWS\Core\Event\EventInterface;
 
 class FastWS{
@@ -88,7 +89,7 @@ class FastWS{
      * 事件相关
      */
     //全局事件
-    private static $_globalEvent;
+    public static $globalEvent;
     //当前的事件轮询方式,默认为select.但是不推荐select,建议使用ngxin所采用的epoll方式.需要安装libevent
     private static $_currentPoll = 'select';
 
@@ -148,9 +149,9 @@ class FastWS{
         self::_installSignal();
         self::_saveMasterPid();
         self::_checkWorkerListProcess();
-//        self::_displayUI();
+        self::_displayUI();
 //        self::_redirectStdinAndStdout();
-//        self::_monitorChildProcess();
+        self::_monitorChildProcess();
     }
 
     /**
@@ -325,7 +326,6 @@ class FastWS{
         if(!$this->_bind || $this->_masterSocket){
             return;
         }
-        //todo 未测试
         $host = $this->_bind;
         list($protocol, $address) = explode(':', $this->_bind, 2);
         //判断是否是传输层协议
@@ -339,13 +339,15 @@ class FastWS{
             }
             $host = $this->protocolTransfer . ":" . $address;
         }
-        $errno = $errmsg = '';
+        $errno = 0;
+        $errmsg = '';
         $flags =  $this->protocolTransfer === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
         $this->_masterSocket = stream_socket_server($host, $errno, $errmsg, $flags, $this->_streamContext);
         if(!$this->_masterSocket){
             Log::write('stream_socket_server() throw exception. error msg: ' . $errmsg, 'FATAL');
         }
-        //如果是TCP协议,打开长链接,并且禁用Nagle算法
+        //如果是TCP协议,打开长链接,并且禁用Nagle算法,默认为开启Nagle
+        //Nagle是收集多个数据包一起发送.再实时交互场景(比如游戏)中,追求高实时性,要求一个包,哪怕再小,也要立即发送给服务端.因此我们禁用Nagle
         if($this->protocolTransfer === 'tcp' && function_exists('socket_import_stream')){
             $socket = socket_import_stream($this->_masterSocket);
             @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
@@ -354,9 +356,9 @@ class FastWS{
         //使用非阻塞
         stream_set_blocking($this->_masterSocket, 0);
         //创建一个监听事件
-        if(self::$_globalEvent){
+        if(self::$globalEvent){
             $callbackMethod = $this->protocolTransfer !== 'udp' ? 'acceptConnect' : 'acceptUdpConnect';
-            self::$_globalEvent->add(array($this, $callbackMethod), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
+            self::$globalEvent->add(array($this, $callbackMethod), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
         }
     }
 
@@ -438,7 +440,7 @@ class FastWS{
     }
 
     /**
-     * 运行一个Worker进程
+     * 运行一个Worker进程 - 子进程
      */
     protected function run(){
         //设置状态
@@ -446,21 +448,21 @@ class FastWS{
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
 //        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
         //创建一个全局的循环事件
-        if(!self::$_globalEvent){
+        if(!self::$globalEvent){
             $eventPollClass = '\FastWS\Core\Event\\'. ucfirst(self::_chooseEventPoll());
             if(!class_exists($eventPollClass)){
                 Log::write('Event class not exists: ' . $eventPollClass, 'FATAL');
             }
-            self::$_globalEvent = new $eventPollClass();
+            self::$globalEvent = new $eventPollClass();
             //注册一个读事件的监听.当服务器端的Socket准备读取的时候触发这个事件.
             if($this->_bind){
                 $callbackMethod = $this->protocolTransfer !== 'udp' ? 'acceptConnect' : 'acceptUdpConnect';
-                self::$_globalEvent->add(array($this, $callbackMethod), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
+                self::$globalEvent->add(array($this, $callbackMethod), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
             }
             //重新安装信号处理函数
             self::_reinstallSignalHandler();
             //初始化计时器任务,用事件轮询的方式
-            Timer::init(self::$_globalEvent);
+            Timer::init(self::$globalEvent);
             //执行系统开始启动工作时的回调函数
             if($this->callbackStart){
                 try{
@@ -471,7 +473,7 @@ class FastWS{
                 }
             }
             //开启事件轮询
-            self::$_globalEvent->loop();
+            self::$globalEvent->loop();
         }
     }
 
@@ -484,9 +486,9 @@ class FastWS{
         pcntl_signal(SIGUSR1, SIG_IGN, false);
         pcntl_signal(SIGUSR2, SIG_IGN, false);
         //安装新的信号的处理函数,采用事件轮询的方式
-        self::$_globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGINT, EventInterface::EVENT_TYPE_SIGNAL);
-        self::$_globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR1, EventInterface::EVENT_TYPE_SIGNAL);
-        self::$_globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR2, EventInterface::EVENT_TYPE_SIGNAL);
+        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGINT, EventInterface::EVENT_TYPE_SIGNAL);
+        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR1, EventInterface::EVENT_TYPE_SIGNAL);
+        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR2, EventInterface::EVENT_TYPE_SIGNAL);
     }
     /**
      * 检测退出的错误
@@ -729,7 +731,7 @@ class FastWS{
             }
         }
         //删除这个Worker相关的所有事件监听
-        self::$_globalEvent->delOne($this->_masterSocket, EventInterface::EVENT_TYPE_READ);
+        self::$globalEvent->delOne($this->_masterSocket, EventInterface::EVENT_TYPE_READ);
         //关闭资源
         @fclose($this->_masterSocket);
         unset($this->_masterSocket);
@@ -741,38 +743,23 @@ class FastWS{
      */
     public function acceptConnect($socket)
     {
-        echo 123;
-        exit;
         //接收一个链接
-        $connect = @stream_socket_accept($socket);
-        // Accept a connection on server socket.
-        $new_socket = @stream_socket_accept($socket, 0, $remote_address);
-        // Thundering herd.
-        if(false === $new_socket)
-        {
+        $connect = @stream_socket_accept($socket, 0, $peername);
+        //false可能是惊群问题.但是在较新(13年下半年开始)的Linux内核已经解决了此问题.
+        if($connect === false){
             return;
         }
-
-        // TcpConnection.
-        $connection = new TcpConnection($new_socket, $remote_address);
-        $this->connections[$connection->id] = $connection;
-        $connection->worker = $this;
-        $connection->protocol = $this->protocol;
-        $connection->onMessage = $this->onMessage;
-        $connection->onClose = $this->onClose;
-        $connection->onError = $this->onError;
-        $connection->onBufferDrain = $this->onBufferDrain;
-        $connection->onBufferFull = $this->onBufferFull;
-
-        // Try to emit onConnect callback.
-        if($this->onConnect)
-        {
-            try
-            {
-                call_user_func($this->onConnect, $connection);
-            }
-            catch(\Exception $e)
-            {
+        //TCP协议链接
+        $tcpConnect = new Tcp($connect, $peername);
+        //给Tcp链接对象的属性赋值
+        $this->clientList[$tcpConnect->id] = $tcpConnect;
+        $tcpConnect->worker = $this;
+        $tcpConnect->applicationProtocol = $this->protocolApplication;
+        //触发有新链接时的回调函数
+        if($this->callbackConnect){
+            try{
+                call_user_func($this->callbackConnect, $tcpConnect);
+            }catch (\Exception $e){
                 echo $e;
                 exit(250);
             }
