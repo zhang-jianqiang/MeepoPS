@@ -40,9 +40,17 @@ class TelnetServer extends FastWS{
 
     public function callbackNewData($connect, $data){
         var_dump('UniqueId='.$connect->id.'说:'.$data);
+        $this->_broadcast($connect, $data);
     }
 
     public function callbackConnectClose($connect){
         var_dump('UniqueId='.$connect->id.'断开了');
+    }
+
+    private function _broadcast($connect, $data){
+        $userId = $connect->id;
+        foreach($connect->worker->clientList as $client){
+            $client->send('用户'.$userId.'说: '.$data);
+        }
     }
 }

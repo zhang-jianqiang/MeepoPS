@@ -26,7 +26,6 @@ class Text implements ProtocolInterface {
      */
     public static function input($data, ConnectInterface $connect)
     {
-        Log::write(__METHOD__, 'TEST');
         //如果数据量超过所能接受的最大限制,则关闭这个链接.结束本方法
         if(strlen($data) > FASTWS_TCP_CONNECT_MAX_PACKAGE_SIZE){
             $connect->close();
