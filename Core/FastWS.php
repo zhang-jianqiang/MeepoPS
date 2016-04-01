@@ -10,6 +10,7 @@
  */
 namespace FastWS\Core;
 
+use FastWS\Core\Connect\ConnectInterface;
 use FastWS\Core\Connect\Tcp;
 use FastWS\Core\Event\EventInterface;
 
@@ -115,7 +116,10 @@ class FastWS
     //是否启动守护进程
     public static $isDaemon = false;
     //统计信息
-    private static $_statistics;
+    private static $_statistics = array(
+        'start_time' => '',
+        'worker_exit_info' => array(),
+    );
 
     /**
      * 初始化.
@@ -125,7 +129,7 @@ class FastWS
      */
     public function __construct($host = '', $contextOptionList = array())
     {
-                //将本对象唯一hash后作为本workId
+        //将本对象唯一hash后作为本workId
         $this->_workerId = spl_object_hash($this);
         self::$_workerList[$this->_workerId] = $this;
         self::$_workerPidMapList[$this->_workerId] = array();
@@ -163,7 +167,7 @@ class FastWS
      */
     private static function _init()
     {
-                //添加统计数据
+        //添加统计数据
         self::$_statistics['start_time'] = date('Y-m-d H:i:s');
         //给主进程起个名字
         Func::setProcessTitle('FastWS_master_process');
@@ -180,7 +184,7 @@ class FastWS
      */
     private static function _command()
     {
-                global $argv;
+        global $argv;
         $operation = trim($argv[1]);
         //获取主进程ID - 用来判断当前进程是否在运行
         $masterPid = @file_get_contents(FASTWS_MASTER_PID_PATH);
@@ -213,8 +217,29 @@ class FastWS
                     self::$isDaemon = true;
                 }
                 break;
-            //停止和重启
+            //停止
             case 'stop':
+                //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
+                if ($masterPid) {
+                    posix_kill($masterPid, SIGINT);
+                }
+                $nowTime = time();
+                $timeout = 5;
+                while (true) {
+                    //主进程是否在运行
+                    $masterIsAlive = $masterPid && posix_kill($masterPid, SIG_DFL);
+                    if ($masterIsAlive) {
+                        //如果超时
+                        if ((time() - $nowTime) > $timeout) {
+                            Log::write('FastWS stop master process failed: timeout ' . $timeout . 's', 'FATAL');
+                        }
+                        //等待10毫秒,再次判断是否终止.
+                        usleep(10000);
+                        continue;
+                    }
+                    exit();
+                }
+            //重启
             case 'restart':
                 //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
                 if ($masterPid) {
@@ -234,15 +259,11 @@ class FastWS
                         usleep(10000);
                         continue;
                     }
-                    if ($operation === 'stop') {
-                        exit();
-                    }
-                    if (trim($argv[2]) === '-d') {
+                    if (isset($argv[2]) && trim($argv[2]) === '-d') {
                         self::$isDaemon = true;
                     }
-                    break;
+                    break 2;
                 }
-                break;
             //状态
             case 'status':
                 //删除之前的统计文件.忽略可能发生的warning(文件不存在的时候)
@@ -252,7 +273,7 @@ class FastWS
                 //本进程sleep.目的是等待正在运行的FastWS的子进程完成写入状态文件的操作
                 sleep(1);
                 //输出状态
-                echo file_get_contents(FASTWS_STATISTICS_PATH);
+                echo @file_get_contents(FASTWS_STATISTICS_PATH);
                 exit();
             //停止所有的FastWS
             case 'kill':
@@ -273,7 +294,7 @@ class FastWS
      */
     private static function _daemon()
     {
-                if (!self::$isDaemon) {
+        if (!self::$isDaemon) {
             return;
         }
         //改变umask
@@ -307,7 +328,7 @@ class FastWS
      */
     private static function _createWorkers()
     {
-                foreach (self::$_workerList as &$worker) {
+        foreach (self::$_workerList as &$worker) {
             //给每个Worker起名字
             $worker->name = $worker->name ? $worker->name : 'FastWS Default Name';
             //如果没有设置Worker的启动用户,则设置为当前用户
@@ -327,7 +348,7 @@ class FastWS
      */
     private function _listen()
     {
-                if (!$this->_bind || $this->_masterSocket) {
+        if (!$this->_bind || $this->_masterSocket) {
             return;
         }
         $host = $this->_bind;
@@ -371,7 +392,7 @@ class FastWS
      */
     private static function _installSignal()
     {
-                //SIGINT为停止FastWS的信号
+        //SIGINT为停止FastWS的信号
         pcntl_signal(SIGINT, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGUSR1 尚未使用.计划为载入文件,即nginx的reload
         pcntl_signal(SIGUSR1, array('\FastWS\Core\FastWS', 'signalHandler'), false);
@@ -386,7 +407,7 @@ class FastWS
      */
     private static function _saveMasterPid()
     {
-                self::$_masterPid = posix_getpid();
+        self::$_masterPid = posix_getpid();
         if (false === @file_put_contents(FASTWS_MASTER_PID_PATH, self::$_masterPid)) {
             Log::write('Can\'t write pid to ' . FASTWS_MASTER_PID_PATH, 'FATAL');
         }
@@ -398,7 +419,7 @@ class FastWS
      */
     private static function _checkWorkerListProcess()
     {
-                foreach (self::$_workerList as $worker) {
+        foreach (self::$_workerList as $worker) {
             if (self::$_currentStatus === FASTWS_STATUS_STARTING) {
                 $worker->name = $worker->name ? $worker->name : $worker->_getBind();
             }
@@ -414,7 +435,7 @@ class FastWS
      */
     private static function _forkWorker($worker)
     {
-                //创建子进程
+        //创建子进程
         $pid = pcntl_fork();
         //初始化的时候$_idMap是用0来填充的.这次就是查找到0的位置并且替换它.0表示尚未启动的子进程
         $id = array_search(0, self::$_idMap[$worker->_workerId]);
@@ -447,7 +468,7 @@ class FastWS
      */
     protected function run()
     {
-                //设置状态
+        //设置状态
         self::$_currentStatus = FASTWS_STATUS_RUNING;
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
 //        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
@@ -486,7 +507,7 @@ class FastWS
      */
     private static function _reinstallSignalHandler()
     {
-                //设置之前设置的信号处理方式为忽略信号.并且系统调用被打断时不可重启系统调用
+        //设置之前设置的信号处理方式为忽略信号.并且系统调用被打断时不可重启系统调用
         pcntl_signal(SIGINT, SIG_IGN, false);
         pcntl_signal(SIGUSR1, SIG_IGN, false);
         pcntl_signal(SIGUSR2, SIG_IGN, false);
@@ -501,7 +522,7 @@ class FastWS
      */
     public static function checkShutdownErrors()
     {
-                if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
+        if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
             $errno = error_get_last();
             if (is_null($errno)) {
                 return;
@@ -517,7 +538,7 @@ class FastWS
      */
     public static function signalHandler($signal)
     {
-                switch ($signal) {
+        switch ($signal) {
             case SIGINT:
                 self::_stopAll();
                 break;
@@ -535,7 +556,7 @@ class FastWS
      */
     private static function _displayUI()
     {
-                echo "-------------------------- FastWS --------------------------\n";
+        echo "-------------------------- FastWS --------------------------\n";
         echo "FastWS Version: " . FASTWS_VERSION . "      PHP Version: " . PHP_VERSION . "\n";
         echo "-------------------------- Workers -------------------------\n";
         foreach (self::$_workerList as $worker) {
@@ -579,7 +600,7 @@ class FastWS
      */
     private static function _monitorChildProcess()
     {
-                self::$_currentStatus = FASTWS_STATUS_RUNING;
+        self::$_currentStatus = FASTWS_STATUS_RUNING;
         while (true) {
             //调用等待信号的处理器.即收到信号后执行通过pcntl_signal安装的信号处理函数
             pcntl_signal_dispatch();
@@ -624,7 +645,7 @@ class FastWS
      */
     private static function _exitAndClearAll()
     {
-                foreach (self::$_workerList as $worker) {
+        foreach (self::$_workerList as $worker) {
             $bind = $worker->_getBind();
             if ($bind) {
                 list(, $host) = explode(':', $bind, 2);
@@ -642,7 +663,7 @@ class FastWS
      */
     private function _setUserAndGroup()
     {
-                //获取用户的uid.如果$this->user为空则为当前用户.$this是$_workerList中存储的对象
+        //获取用户的uid.如果$this->user为空则为当前用户.$this是$_workerList中存储的对象
         $userInfo = posix_getpwnam($this->user);
         if (!$userInfo || !$userInfo['uid']) {
             Log::write('User ' . $this->user . ' not exsits.', 'WARNING');
@@ -676,7 +697,7 @@ class FastWS
      */
     private function _getBind()
     {
-                return $this->_bind ? lcfirst($this->_bind) : '';
+        return $this->_bind ? lcfirst($this->_bind) : '';
     }
 
     /**
@@ -685,7 +706,7 @@ class FastWS
      */
     private static function _chooseEventPoll()
     {
-                if (extension_loaded('libevent')) {
+        if (extension_loaded('libevent')) {
             self::$_currentPoll = 'libevent';
         } else if (extension_loaded('ev')) {
             self::$_currentPoll = 'ev';
@@ -701,7 +722,7 @@ class FastWS
      */
     private static function _getAllWorkerPidList()
     {
-                $pidList = array();
+        $pidList = array();
         foreach (self::$_workerPidMapList as $pidList) {
             foreach ($pidList as $pid) {
                 $pidList[$pid] = $pid;
@@ -715,7 +736,7 @@ class FastWS
      */
     private static function _stopAll()
     {
-                self::$_currentStatus = FASTWS_STATUS_CLOSING;
+        self::$_currentStatus = FASTWS_STATUS_CLOSING;
         if (self::$_masterPid === posix_getpid()) {
             $workerPidArray = self::_getAllWorkerPidList();
             foreach ($workerPidArray as $workerPid) {
@@ -732,7 +753,7 @@ class FastWS
 
     private function _stop()
     {
-                //执行关闭Worker的时候的回调
+        //执行关闭Worker的时候的回调
         if ($this->callbackWorkerStop) {
             try {
                 call_user_func($this->callbackWorkerStop, $this);
@@ -754,7 +775,7 @@ class FastWS
      */
     public function acceptConnect($socket)
     {
-                //接收一个链接
+        //接收一个链接
         $connect = @stream_socket_accept($socket, 0, $peerName);
         //false可能是惊群问题.但是在较新(13年下半年开始)的Linux内核已经解决了此问题.
         if ($connect === false) {
@@ -783,48 +804,56 @@ class FastWS
      */
     private static function _statisticsToFile()
     {
-        if (self::$_masterPid == posix_getpid()) ;
-    }
-
-    protected static function writeStatisticsToStatusFile()
-    {
-        // For master process.
-        if (self::$_masterPid === posix_getpid()) {
-            $loadavg = sys_getloadavg();
-
+        //如果是子进程来执行本方法. 讲统计信息以追加的方式写入文件.
+        if (self::$_masterPid === posix_getpid()){
+            //以下为主进程部分
+            $loadAvg = sys_getloadavg();
             file_put_contents(FASTWS_STATISTICS_PATH, "---------------------------------------GLOBAL STATUS--------------------------------------------\n");
-            file_put_contents(FASTWS_STATISTICS_PATH, 'Workerman version:' . Worker::VERSION . "          PHP version:" . PHP_VERSION . "\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, 'start time:' . date('Y-m-d H:i:s', self::$_globalStatistics['start_timestamp']) . '   run ' . floor((time() - self::$_globalStatistics['start_timestamp']) / (24 * 60 * 60)) . ' days ' . floor(((time() - self::$_globalStatistics['start_timestamp']) % (24 * 60 * 60)) / (60 * 60)) . " hours   \n", FILE_APPEND);
-            $load_str = 'load average: ' . implode(", ", $loadavg);
-            file_put_contents(FASTWS_STATISTICS_PATH, str_pad($load_str, 33) . 'event-loop:' . self::getEventLoopName() . "\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, count(self::$_pidMap) . ' workers       ' . count(self::_getAllWorkerPidList()) . " processes\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, str_pad('worker_name', self::$_maxWorkerNameLength) . " exit_status     exit_count\n", FILE_APPEND);
-            foreach (self::$_pidMap as $worker_id => $worker_pid_array) {
-                $worker = self::$_workers[$worker_id];
-                if (isset(self::$_globalStatistics['worker_exit_info'][$worker_id])) {
-                    foreach (self::$_globalStatistics['worker_exit_info'][$worker_id] as $worker_exit_status => $worker_exit_count) {
-                        file_put_contents(FASTWS_STATISTICS_PATH, str_pad($worker->name, self::$_maxWorkerNameLength) . " " . str_pad($worker_exit_status, 16) . " $worker_exit_count\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, 'FastWS Version: ' . FASTWS_VERSION . "          PHP version:".PHP_VERSION."\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, 'start time:'. self::$_statistics['start_time'] . '   run ' . floor((time() - self::$_statistics['start_time']) / 86400). ' days ' . floor(((time()-self::$_statistics['start_time']) % 86400) / 3600) . " hours\n", FILE_APPEND);
+            $loadStr = 'Load Average: ' . implode(', ', $loadAvg);
+            file_put_contents(FASTWS_STATISTICS_PATH, str_pad($loadStr, 33) . '      event_loop: ' . self::_chooseEventPoll() . "\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH,  count(self::$_workerPidMapList) . ' workers       ' . count(self::_getAllWorkerPidList())." processes\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, "worker_name      exit_status      exit_count\n", FILE_APPEND);
+            foreach(self::$_workerPidMapList as $workerId => $workerPidArray)
+            {
+                $worker = self::$_workerList[$workerId];
+                if(isset(self::$_statistics['worker_exit_info'][$workerId]))
+                {
+                    foreach(self::$_statistics['worker_exit_info'][$workerId] as $workerExitStatus => $workerExitCount)
+                    {
+                        file_put_contents(FASTWS_STATISTICS_PATH, $worker->name . '   ' . str_pad($workerExitStatus, 16) . $workerExitCount . "\n", FILE_APPEND);
                     }
-                } else {
-                    file_put_contents(FASTWS_STATISTICS_PATH, str_pad($worker->name, self::$_maxWorkerNameLength) . " " . str_pad(0, 16) . " 0\n", FILE_APPEND);
+                }else{
+                    file_put_contents(FASTWS_STATISTICS_PATH, $worker->name . '     ' . str_pad(0, 16). " 0\n", FILE_APPEND);
                 }
             }
-            file_put_contents(FASTWS_STATISTICS_PATH, "---------------------------------------PROCESS STATUS-------------------------------------------\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, "pid\tmemory  " . str_pad('listening', self::$_maxSocketNameLength) . " " . str_pad('worker_name', self::$_maxWorkerNameLength) . " connections " . str_pad('total_request', 13) . " " . str_pad('send_fail', 9) . " " . str_pad('throw_exception', 15) . "\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH,  "---------------------------------------PROCESS STATUS-------------------------------------------\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, "pid\tmemory  listening        worker_name connections ".str_pad('total_request', 13) . ' ' . str_pad('send_fail', 9) . ' ' . str_pad('throw_exception', 15)."\n", FILE_APPEND);
 
             chmod(FASTWS_STATISTICS_PATH, 0722);
 
-            foreach (self::_getAllWorkerPidList() as $worker_pid) {
+            //主进程做完统计后告诉所有子进程进行统计
+            foreach(self::_getAllWorkerPidList() as $worker_pid)
+            {
                 posix_kill($worker_pid, SIGUSR2);
             }
             return;
         }
 
-        // For child processes.
-        $worker = current(self::$_workers);
-        $wrker_status_str = posix_getpid() . "\t" . str_pad(round(memory_get_usage(true) / (1024 * 1024), 2) . "M", 7) . " " . str_pad($worker->_getBind(), self::$_maxSocketNameLength) . " " . str_pad(($worker->name === $worker->_getBind() ? 'none' : $worker->name), self::$_maxWorkerNameLength) . " ";
-        $wrker_status_str .= str_pad(ConnectionInterface::$statistics['connection_count'], 11) . " " . str_pad(ConnectionInterface::$statistics['total_request'], 14) . " " . str_pad(ConnectionInterface::$statistics['send_fail'], 9) . " " . str_pad(ConnectionInterface::$statistics['throw_exception'], 15) . "\n";
-        file_put_contents(FASTWS_STATISTICS_PATH, $wrker_status_str, FILE_APPEND);
+        //当前的Worker
+        $worker = current(self::$_workerList);
+        //获取系统分配给PHP的内存,四舍五入到两位小数,单位M
+        $statistics = posix_getpid() . "\t";
+        $statistics .= str_pad( round( memory_get_usage(true) / (1024*1024), 2) . 'M', 7) . ' ';
+        $statistics .= $worker->name . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['current_connect_count'], 11) . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['total_connect_count'], 11) . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['total_request_count'], 11) . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['total_send_count'], 14) . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['send_failed_count'], 9) . ' ';
+        $statistics .= str_pad(ConnectInterface::$statistics['exception_count'], 15) . "\n";
+        file_put_contents(FASTWS_STATISTICS_PATH, $statistics, FILE_APPEND);
     }
 
     private static function _reload()

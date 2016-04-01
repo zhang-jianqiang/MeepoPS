@@ -13,13 +13,13 @@ namespace FastWS\Core\Connect;
 abstract class ConnectInterface{
 
     //统计信息
-    protected static $statistics = array(
+    public static $statistics = array(
         //当前链接数
         'current_connect_count' => 0,
         //总链接数
         'total_connect_count' => 0,
         //当前处理的请求数
-        'current_request_count' => 0,
+//        'current_request_count' => 0,
         //总请求数
         'total_request_count' => 0,
         //总发送数

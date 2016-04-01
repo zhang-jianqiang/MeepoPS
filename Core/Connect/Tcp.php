@@ -149,6 +149,7 @@ class Tcp extends ConnectInterface
                     try{
                         call_user_func_array($this->worker->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
                     }catch (\Exception $e){
+                        self::$statistics['exception_count']++;
                         echo $e;
                         exit(250);
                     }
@@ -166,6 +167,7 @@ class Tcp extends ConnectInterface
                 try{
                     call_user_func_array($this->worker->callbackNewData, array($this, $this->_readDate));
                 }catch (\Exception $e){
+                    self::$statistics['exception_count']++;
                     echo $e;
                     exit(250);
                 }
@@ -199,6 +201,7 @@ class Tcp extends ConnectInterface
         }
         //如果待发送的缓冲区为空,直接发送本次需要发送的数据
         if(empty($this->_sendBuffer)){
+            self::$statistics['total_send_count']++;
             $length = @fwrite($this->_connect, $data);
             //全部发送成功
             if($length > 0 && $length === strlen($data)){
@@ -217,6 +220,7 @@ class Tcp extends ConnectInterface
                         try{
                             call_user_func($this->worker->callbackError, $this, 'FASTWS_ERROR_CODE_SEND_SOCKET_INVALID', 'Send data failed. Possible socket resource has disabled');
                         }catch (\Exception $e){
+                            self::$statistics['exception_count']++;
                             echo $e;
                             exit(250);
                         }
@@ -243,6 +247,7 @@ class Tcp extends ConnectInterface
                     try{
                         call_user_func($this->worker->callbackError, $this, FASTWS_ERROR_CODE_SEND_BUFFER_FULL, 'The send buffer is full. Data is discarded');
                     }catch (\Exception $e){
+                        self::$statistics['exception_count']++;
                         echo $e;
                         exit(250);
                     }
@@ -262,6 +267,7 @@ class Tcp extends ConnectInterface
     public function write()
     {
         //给socket资源中写入数据
+        self::$statistics['total_send_count']++;
         $length = @fwrite($this->_connect, $this->_sendBuffer);
         //写入失败
         if(!is_int($length) || intval($length) <= 0){
@@ -280,6 +286,7 @@ class Tcp extends ConnectInterface
                 try{
                     call_user_func($this->worker->callbackSendBufferEmpty, $this);
                 }catch (\Exception $e){
+                    self::$statistics['exception_count']++;
                     echo $e;
                     exit(250);
                 }
@@ -372,6 +379,7 @@ class Tcp extends ConnectInterface
             try {
                 call_user_func($this->worker->callbackConnectClose, $this);
             } catch (\Exception $e) {
+                self::$statistics['exception_count']++;
                 echo $e;
                 exit(250);
             }
@@ -390,6 +398,7 @@ class Tcp extends ConnectInterface
                 try{
                     call_user_func($this->worker->callbackSendBufferFull, $this);
                 }catch (\Exception $e){
+                    self::$statistics['exception_count']++;
                     echo $e;
                     exit(250);
                 }
