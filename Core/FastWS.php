@@ -146,7 +146,7 @@ class FastWS
      */
     public static function runAll()
     {
-                self::_init();
+        self::_init();
         self::_command();
         self::_daemon();
         self::_createWorkers();
@@ -154,7 +154,7 @@ class FastWS
         self::_saveMasterPid();
         self::_checkWorkerListProcess();
         self::_displayUI();
-//        self::_redirectStdinAndStdout();
+        self::_redirectStdinAndStdout();
         self::_monitorChildProcess();
     }
 
@@ -557,7 +557,7 @@ class FastWS
      */
     private static function _redirectStdinAndStdout()
     {
-                if (!self::$isDaemon) {
+        if (!self::$isDaemon) {
             return false;
         }
         global $STDOUT, $STDERR;
