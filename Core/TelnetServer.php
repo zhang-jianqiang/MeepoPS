@@ -9,24 +9,17 @@
  */
 namespace FastWS\Core;
 
-class WebServer extends FastWS{
-    //MIME TYPE
-    private static $_defaultMimeType = 'text/html; charset=utf-8';
-    //代码文件根目录
-    private $_documentRoot = array();
-    //MIME TYPE MAP
-    private static $mimeTypeMap = array();
+class TelnetServer extends FastWS{
 
     public function __construct($host, $contextOptionList=array())
     {
         if(!$host){
             return false;
         }
-        $host = explode(':', $host, 2);
-        if(!$host[1]){
+        $hostTmp = explode(':', $host, 2);
+        if(!$hostTmp[1]){
             return false;
         }
-        $host = 'http:' . $host[1];
         parent::__construct($host, $contextOptionList);
 
     }
@@ -39,28 +32,6 @@ class WebServer extends FastWS{
         $this->callbackNewData = array($this, 'callbackNewData');
         $this->callbackConnectClose = array($this, 'callbackConnectClose');
         parent::run();
-    }
-
-    /**
-     * 设置网站代码目录
-     * @param $domain string 域名
-     * @param $documentPath string 路径
-     */
-    public function setRoot($domain, $documentPath)
-    {
-        if(!$domain){
-            Log::write('domain incorrect');
-            return;
-        }
-        if(!$documentPath){
-            Log::write('documentPath incorrect');
-            return;
-        }
-        if(!file_exists($documentPath)){
-            Log::write($documentPath.' no exists');
-            return;
-        }
-        $this->_documentRoot[$domain] = $documentPath;
     }
 
     public function callbackConnect($connect){

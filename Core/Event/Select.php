@@ -98,7 +98,7 @@ class Select implements EventInterface
      */
     public function signalHandler($signal){
         $signal = intval($signal);
-        call_user_func_array($this->_signalEventList[$signal][EventInterface::EVENT_TYPE_SIGNAL][0], array($signal));
+        call_user_func($this->_signalEventList[$signal][EventInterface::EVENT_TYPE_SIGNAL][0], $signal);
     }
 
     /**
@@ -224,7 +224,7 @@ class Select implements EventInterface
                 foreach($select['data'] as $item){
                     $uniqueId = intval($item);
                     if(isset($this->_eventList[$uniqueId][$select['type']])){
-                        call_user_func_array($this->_eventList[$uniqueId][$select['type']][0], $this->_eventList[$uniqueId][$select['type']][1]);
+                        call_user_func($this->_eventList[$uniqueId][$select['type']][0], $this->_eventList[$uniqueId][$select['type']][1]);
                     }
                 }
             }

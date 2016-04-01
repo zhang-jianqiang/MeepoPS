@@ -20,7 +20,7 @@ class Tcp extends ConnectInterface
     const READ_BUFFER_SIZE = 65535;
     //状态 - 链接中
     const CONNECT_STATUS_CONNECTING = 1;
-    //状态 - 链接已经简历
+    //状态 - 链接已经建立
     const CONNECT_STATUS_ESTABLISH = 2;
     //状态 - 链接关闭中
     const CONNECT_STATUS_CLOSING = 4;
@@ -57,12 +57,13 @@ class Tcp extends ConnectInterface
 
     public function __construct($socket, $clientAddress)
     {
+        Log::write(__METHOD__, 'TEST');
         //更改统计信息
         self::$statistics['current_connect_count']++;
         self::$statistics['total_connect_count']++;
         $this->id = $this->_id = self::$_recorderId++;
         $this->_connect = $socket;
-        stream_set_blocking($this->_socket, 0);
+        stream_set_blocking($this->_connect, 0);
         FastWS::$globalEvent->add(array($this, 'read'), array(), $this->_connect, EventInterface::EVENT_TYPE_READ);
         $this->maxSendBufferSize = FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE;
         $this->_clientAddress = $clientAddress;
@@ -111,6 +112,7 @@ class Tcp extends ConnectInterface
      * @param $isCheckEof bool 是否检测链接断开
      */
     public function read($connect, $isCheckEof=true){
+        Log::write(__METHOD__, 'TEST');
         //是否读取到了数据
         $isAlreadyReaded = false;
         while(true){
@@ -130,7 +132,7 @@ class Tcp extends ConnectInterface
         if($this->applicationProtocol){
             $applicationProtocolClassName = ucfirst($this->applicationProtocol);
             //如果接收到的数据不为空,并且没有被暂停
-            while($this->_readDate && $this->_isPaused === true){
+            while($this->_readDate && $this->_isPaused === false){
                 //如果当前的包已经有长度(不是第一次读取,每次完整包后会重置为0)
                 if($this->_currentPackageSize){
                     if($this->_currentPackageSize > strlen($this->_readDate)){
@@ -147,7 +149,6 @@ class Tcp extends ConnectInterface
                         break;
                     //如果数据包在配置的最大TCP链接所接收的数据量之内,并且值>0
                     }else if($this->_currentPackageSize > 0 && $this->_currentPackageSize <= FASTWS_TCP_CONNECT_MAX_PACKAGE_SIZE){
-                        //本次得到的数据是后半部分,前半部分之前已经过来了.
                         if($this->_currentPackageSize > strlen($this->_readDate)) {
                             break;
                         }
@@ -179,24 +180,24 @@ class Tcp extends ConnectInterface
                     }
                 }
             }
-            return;
-        }
-        //如果读取到的数据是空,或者链接已经被暂停
-        if($this->_readDate === '' || $this->_isPaused){
-            return;
-        }
-        //
-        self::$statistics['total_request_count']++;
-        //触发接收到新数据的回调函数
-        if($this->worker->callbackNewData){
-            try{
-                call_user_func_array($this->worker->callbackNewData, array($this, $this->_readDate));
-            }catch (\Exception $e){
-                echo $e;
-                exit(250);
+        //只有没有设置应用层协议,执行下面的部分.
+        }else{
+            //如果读取到的数据是空,或者链接已经被暂停
+            if($this->_readDate === '' || $this->_isPaused){
+                return;
             }
+            self::$statistics['total_request_count']++;
+            //触发接收到新数据的回调函数
+            if($this->worker->callbackNewData){
+                try{
+                    call_user_func_array($this->worker->callbackNewData, array($this, $this->_readDate));
+                }catch (\Exception $e){
+                    echo $e;
+                    exit(250);
+                }
+            }
+            $this->_readDate = '';
         }
-        $this->_readDate = '';
     }
 
     /**
@@ -217,9 +218,9 @@ class Tcp extends ConnectInterface
         //变更状态为已经关闭
         $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
         //执行链接断开时的回调函数
-        if($this->worker->callbackWorkerStop) {
+        if($this->worker->callbackConnectClose) {
             try {
-                call_user_func($this->worker->callbackWorkerStop, $this);
+                call_user_func($this->worker->callbackConnectClose, $this);
             } catch (\Exception $e) {
                 echo $e;
                 exit(250);

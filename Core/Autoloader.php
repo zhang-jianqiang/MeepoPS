@@ -28,11 +28,11 @@ class Autoloader{
         $namespacePrefixStrlen = strlen(self::NAMESPACE_PREFIX);
         if(strncmp(self::NAMESPACE_PREFIX, $className, $namespacePrefixStrlen) === 0){
             $filePath = str_replace('\\', DIRECTORY_SEPARATOR, substr($className, $namespacePrefixStrlen));
-            $filePath = realpath(FASTWS_ROOT_PATH . (empty($filePath) ? '' : DIRECTORY_SEPARATOR) . $filePath . '.php');
-            if(file_exists($filePath)){
-                require_once $filePath;
+            $realpath = realpath(FASTWS_ROOT_PATH . (empty($filePath) ? '' : DIRECTORY_SEPARATOR) . $filePath . '.php');
+            if(file_exists($realpath)){
+                require_once $realpath;
             }else{
-                die('File Not Exists: ' . $filePath);
+                die('File Not Exists. filePath: ' . $filePath . ', realPath: ' . $realpath . ' ,class:' . $className . "\n");
             }
         }
     }

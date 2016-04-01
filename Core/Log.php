@@ -13,7 +13,7 @@ class Log{
     public static function write($msg, $type='INFO')
     {
         $type = strtoupper($type);
-        if(!in_array($type, array('INFO', 'ERROR', 'FATAL', 'WARNING'))){
+        if(!in_array($type, array('INFO', 'ERROR', 'FATAL', 'WARNING', "TEST"))){
             exit('Log type no match');
         }
         $msg = '[' . $type . '][' . date('Y-m-d H:i:s') . ']['.getmypid().']' . $msg . "\n";
