@@ -615,7 +615,7 @@ class FastWS
                 if (self::$_currentStatus === FASTWS_STATUS_SHUTDOWN && !self::_getAllWorkerPidList()) {
                     self::_exitAndClearAll();
                 }
-                return;
+                continue;
             }
             //查找是那个子进程退出
             foreach (self::$_workerPidMapList as $workerId => $pidList) {
@@ -633,8 +633,11 @@ class FastWS
                     break;
                 }
             }
+            //如果是正在关闭中, 并且所有的worker的所有进程都没有pid了.那么就退出所有.即所有的子进程都结束了,就退出主进程
+            if (self::$_currentStatus === FASTWS_STATUS_SHUTDOWN && !self::_getAllWorkerPidList()) {
+                self::_exitAndClearAll();
             //如果不是停止状态,则检测是否需要创建一个新的子进程
-            if (self::$_currentStatus !== FASTWS_STATUS_SHUTDOWN) {
+            }else{
                 self::_checkWorkerListProcess();
             }
         }
@@ -736,7 +739,7 @@ class FastWS
      */
     private static function _stopAll()
     {
-        self::$_currentStatus = FASTWS_STATUS_CLOSING;
+        self::$_currentStatus = FASTWS_STATUS_SHUTDOWN;
         if (self::$_masterPid === posix_getpid()) {
             $workerPidArray = self::_getAllWorkerPidList();
             foreach ($workerPidArray as $workerPid) {
@@ -854,6 +857,7 @@ class FastWS
         $statistics .= str_pad(ConnectInterface::$statistics['send_failed_count'], 9) . ' ';
         $statistics .= str_pad(ConnectInterface::$statistics['exception_count'], 15) . "\n";
         file_put_contents(FASTWS_STATISTICS_PATH, $statistics, FILE_APPEND);
+        return;
     }
 
     private static function _reload()
