@@ -471,7 +471,7 @@ class FastWS
         //设置状态
         self::$_currentStatus = FASTWS_STATUS_RUNING;
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
-//        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
+        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
         //创建一个全局的循环事件
         if (!self::$globalEvent) {
             $eventPollClass = '\FastWS\Core\Event\\' . ucfirst(self::_chooseEventPoll());
@@ -557,7 +557,7 @@ class FastWS
     private static function _displayUI()
     {
         echo "-------------------------- FastWS --------------------------\n";
-        echo "FastWS Version: " . FASTWS_VERSION . "      PHP Version: " . PHP_VERSION . "\n";
+        echo "FastWS Version: " . FASTWS_VERSION . "      PHP Version: " . PHP_VERSION . "      Pid:".self::$_masterPid . "\n";
         echo "-------------------------- Workers -------------------------\n";
         foreach (self::$_workerList as $worker) {
             echo $worker->user . '    ' . $worker->group . '    ' . $worker->name . '    ' . $worker->_bind . '    ' . $worker->workerCount . " processes\n";
