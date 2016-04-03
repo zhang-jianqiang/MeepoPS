@@ -813,7 +813,7 @@ class FastWS
             $loadAvg = sys_getloadavg();
             file_put_contents(FASTWS_STATISTICS_PATH, "---------------------------------------GLOBAL STATUS--------------------------------------------\n");
             file_put_contents(FASTWS_STATISTICS_PATH, 'FastWS Version: ' . FASTWS_VERSION . "          PHP version:".PHP_VERSION."\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, 'start time:'. self::$_statistics['start_time'] . '   run ' . floor((time() - self::$_statistics['start_time']) / 86400). ' days ' . floor(((time()-self::$_statistics['start_time']) % 86400) / 3600) . " hours\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, 'start time:'. self::$_statistics['start_time'] . '   run ' . floor((time() - strtotime(self::$_statistics['start_time'])) / 86400). ' days ' . floor(((time() - strtotime(self::$_statistics['start_time'])) % 86400) / 3600) . " hours\n", FILE_APPEND);
             $loadStr = 'Load Average: ' . implode(', ', $loadAvg);
             file_put_contents(FASTWS_STATISTICS_PATH, str_pad($loadStr, 33) . '      event_loop: ' . self::_chooseEventPoll() . "\n", FILE_APPEND);
             file_put_contents(FASTWS_STATISTICS_PATH,  count(self::$_workerPidMapList) . ' workers       ' . count(self::_getAllWorkerPidList())." processes\n", FILE_APPEND);
