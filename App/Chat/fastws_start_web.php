@@ -7,13 +7,13 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-
+//return ;
 // WebServer
-$web = new \FastWS\Core\WebServer("http://0.0.0.0:8080");
+$web = new \FastWS\Core\WebServer("text://0.0.0.0:8080");
 // WebServer数量
 $web->workerCount = 1;
 // 设置站点根目录
-//$web->setRoot('www.lanecn.com', __DIR__.'/Web');
+$web->setRoot('www.lanecn.com', __DIR__.'/Web');
 $web->name = 'FastWS - WebService';
 
 $web->user = 'lane';

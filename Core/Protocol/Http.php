@@ -112,7 +112,7 @@ class Http implements ProtocolInterface{
             'REMOTE_PORT' => '0',
         );
         //解析HTTP头
-        list($header, $body) = explode("\r\n\e\n", $data, 2);
+        list($header, $body) = explode("\r\n\r\n", $data, 2);
         $header = explode("\r\n", $header);
         list($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SERVER_PROTOCOL']) = explode(' ', $header[0]);
         unset($header[0]);
@@ -195,31 +195,52 @@ class Http implements ProtocolInterface{
         $_SERVER['QUERY_STRING'] = $_SERVER['QUERY_STRING'] ? parse_str($_SERVER['QUERY_STRING'], $_GET) : '';
         //REQUEST
         $_REQUEST = array_merge($_GET, $_POST);
-        //REMOTE_ADDR
-        $_SERVER['REMOTE_ADDR'] = $connect->getIp();
-        //REMOTE_PORT
-        $_SERVER['REMOTE_PORT'] = $connect->getPort();
+        //客户端IP和端口
+        $clientAddress = $connect->getClientAddress();
+        $_SERVER['REMOTE_ADDR'] = $clientAddress[0];
+        $_SERVER['REMOTE_PORT'] = $clientAddress[1];
         return array('get'=>$_GET, 'post'=>$_POST, 'cookie'=>$_COOKIE, 'server'=>$_SERVER, 'files'=>$_FILES);
     }
 
     /**
-     * 保存SESSION
+     * 设置http头
+     * @param string $string 头字符串
+     * @param bool $replace 是否用后面的头替换前面相同类型的头.即相同的多个头存在时,后来的会覆盖先来的.
+     * @param int $httpResponseCode 头字符串
+     * @return bool
      */
-    private static function _saveSession()
+    public static function setHeader($string, $replace = true, $httpResponseCode=0)
     {
-        //不是命令行模式则写入SESSION并关闭文件
         if(PHP_SAPI !== 'cli'){
-            session_write_close();
-            return '';
+            $httpResponseCode ? header($string, $replace, $httpResponseCode) : header($string, $replace);
+            return true;
         }
-        //如果SESSION已经开启,并且$_SESSION有值
-        if(HttpCache::$instance->sessionStarted && $_SESSION){
-            $session = session_encode();
-            if($session && HttpCache::$instance->sessionFile){
-                return file_put_contents(HttpCache::$instance->sessionFile, $session);
+        //第一种以“HTTP/”开头的 (case is not significant)，将会被用来计算出将要发送的HTTP状态码。
+        //第二种特殊情况是“Location:”的头信息。它不仅把报文发送给浏览器，而且还将返回给浏览器一个 REDIRECT（302）的状态码，除非状态码已经事先被设置为了201或者3xx。
+        if(strpos($string, 'HTTP') === 0){
+            $key = 'Http-Code';
+        }else{
+            $key = strstr($string, ':', true);
+            if(empty($key)){
+                return false;
             }
         }
-        return empty($_SESSION);
+        //如果是302跳转
+        if(strtolower($key) === 'location' && !$httpResponseCode){
+            return self::header($string, true, 302);
+        }
+        if(isset(HttpCache::$httpCodeList[$httpResponseCode])){
+            HttpCache::$header['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . HttpCache::$httpCodeList[$httpResponseCode];
+            if($key === 'Http-Code'){
+                return true;
+            }
+        }
+        if($key === 'Set-Cookie'){
+            HttpCache::$header[$key][] = $string;
+        }else{
+            HttpCache::$header[$key] = $string;
+        }
+        return true;
     }
 
     /**
@@ -305,17 +326,37 @@ class Http implements ProtocolInterface{
     }
 
     /**
-     * End, like call exit in php-fpm.
+     * 保存SESSION
+     */
+    private static function _saveSession()
+    {
+        //不是命令行模式则写入SESSION并关闭文件
+        if(PHP_SAPI !== 'cli'){
+            session_write_close();
+            return '';
+        }
+        //如果SESSION已经开启,并且$_SESSION有值
+        if(HttpCache::$instance->sessionStarted && $_SESSION){
+            $session = session_encode();
+            if($session && HttpCache::$instance->sessionFile){
+                return file_put_contents(HttpCache::$instance->sessionFile, $session);
+            }
+        }
+        return empty($_SESSION);
+    }
+
+    /**
+     * 退出.
      * @param string $msg
      * @throws \Exception
      */
     public static function end($msg = '')
     {
-        if(PHP_SAPI !== 'cli'){
-            exit($msg);
-        }
         if($msg){
             echo $msg;
+        }
+        if(PHP_SAPI !== 'cli'){
+            exit();
         }
         throw new \Exception('jump_exit');
     }
