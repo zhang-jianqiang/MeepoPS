@@ -90,7 +90,8 @@ class WebServer extends FastWS{
      * @param $data
      */
     public function callbackNewData($connect, $data){
-        var_dump('UniqueId='.$connect->id.'说:');
+//        var_dump('UniqueId='.$connect->id.'说:');
+//        var_dump($data);
         //解析来访的URL
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         if(!$requestUri){
@@ -122,7 +123,7 @@ class WebServer extends FastWS{
             $connect->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
             return;
         }
-        //安全性检测
+        //访问的路径是否是指定根目录的子目录
         $realPath = realpath($filename);
         $documentRootRealPath = realpath($documentRoot);
         if(!$realPath || !$documentRootRealPath || strpos($realPath, $documentRootRealPath) !== 0){
@@ -136,9 +137,6 @@ class WebServer extends FastWS{
             chdir($documentRoot);
             ob_start();
             try{
-                $clientAddress = $connect->getClientAddress();
-                $_SERVER['REMOTE_ADDR'] = $clientAddress[0];
-                $_SERVER['REMOTE_PORT'] = $clientAddress[1];
                 include $filename;
             }catch(\Exception $e){
                 if($e->getMessage() != 'jump_exit'){
@@ -152,23 +150,19 @@ class WebServer extends FastWS{
         }
         //静态文件
         if(isset(self::$mimeTypeMap[$urlExt])){
-            Http::header('Content-Type: '. self::$mimeTypeMap[$urlExt]);
+            Http::setHeader('Content-Type: '. self::$mimeTypeMap[$urlExt]);
         }else{
-            Http::header('Content-Type: '. self::$_defaultMimeType);
+            Http::setHeader('Content-Type: '. self::$_defaultMimeType);
         }
 
         //获取文件状态
         $info = stat($filename);
         $modifiedTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
-
-        if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info){
-            // Http 304.
-            if($modifiedTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']){
-                Http::setHeader('HTTP/1.1 304 Not Modified');
-                // Send nothing but http headers..
-                $connect->close();
-                return;
-            }
+        // Http 304.
+        if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info && $modifiedTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']){
+            Http::setHeader('HTTP/1.1 304 Not Modified');
+            $connect->close();
+            return;
         }
         if($modifiedTime){
             Http::setHeader('Last-Modified: ' . $modifiedTime);

@@ -302,13 +302,13 @@ class Tcp extends ConnectInterface
 
     /**
      * 关闭客户端链接
-     * @param $data string 关闭链接前发送的消息
+     * @param string $data 关闭前需要发送的数据
      */
-    public function close($data=''){
+    public function close($data=null){
         if($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED){
             return;
         }else{
-            if($data){
+            if(!is_null($data)){
                 $this->send($data);
             }
             $this->_currentStatus = self::CONNECT_STATUS_CLOSING;

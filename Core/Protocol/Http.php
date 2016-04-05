@@ -19,15 +19,11 @@ class Http implements ProtocolInterface{
     public static function input($data, ConnectInterface $connect)
     {
         $position = strpos($data, "\r\n\r\n");
-        //如果数据是两个\r\n开头,则不处理
-        if ($position === 0) {
-            return 0;
-            //如果数据没有找到两个\r\n,则数据未完
-        } else if ($position === false) {
+        //如果数据是两个\r\n开头,或者如果数据没有找到两个\r\n,表示数据未完.则不处理
+        if (!$position === 0) {
             //如果长度大于所能接收的Tcp所限制的最大数据量,则不处理,并且断开该链接
             if (strlen($data) >= FASTWS_TCP_CONNECT_MAX_PACKAGE_SIZE) {
                 $connect->close();
-                return 0;
             }
             return 0;
         }
@@ -35,7 +31,6 @@ class Http implements ProtocolInterface{
         list($header, ) = explode("\r\n\r\n", $data, 2);
         //POST请求
         if (strpos($data, "POST") === 0) {
-            $match = array();
             if (preg_match("/\r\nContent-Length: ?(\d+)/", $header, $match)) {
                 //返回数据长度+头长度+4(\r\n\r\n)
                 return $match + strlen($header) + 4;
@@ -58,11 +53,11 @@ class Http implements ProtocolInterface{
     public static function encode($data, ConnectInterface $connect)
     {
         //状态码
-        $header = HttpCache::$header['Http-Code'] ? HttpCache::$header['Http-Code'] : 'HTTP/1.1 200 OK';
+        $header = isset(HttpCache::$header['Http-Code']) ? HttpCache::$header['Http-Code'] : 'HTTP/1.1 200 OK';
         $header .= "\r\n";
         unset(HttpCache::$header['Http-Code']);
         //Content-Type
-        $header = HttpCache::$header['Content-Type'] ? HttpCache::$header['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
+        $header .= isset(HttpCache::$header['Content-Type']) ? HttpCache::$header['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
         $header .= "\r\n";
         //其他部分
         foreach(HttpCache::$header as $httpName => $value){
@@ -168,14 +163,11 @@ class Http implements ProtocolInterface{
                     $_SERVER['HTTP_IF_NONE_MATCH'] = $value;
                     break;
                 case 'content-type':
-                    if(!preg_match('/boundary="?(\S+)"?/', $value, $match))
-                    {
-                        $_SERVER['CONTENT_TYPE'] = $value;
-                    }
-                    else
-                    {
+                    if(preg_match('/boundary="?(\S+)"?/', $value, $match)){
                         $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
                         $httpPostBoundary = '--'.$match[1];
+                    }else{
+                        $_SERVER['CONTENT_TYPE'] = $value;
                     }
                     break;
             }
@@ -192,7 +184,11 @@ class Http implements ProtocolInterface{
         }
         //QUERY_STRING
         $_SERVER['QUERY_STRING'] = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
-        $_SERVER['QUERY_STRING'] = $_SERVER['QUERY_STRING'] ? parse_str($_SERVER['QUERY_STRING'], $_GET) : '';
+        if($_SERVER['QUERY_STRING']){
+            parse_str($_SERVER['QUERY_STRING'], $_GET);
+        }else{
+            $_SERVER['QUERY_STRING'] = '';
+        }
         //REQUEST
         $_REQUEST = array_merge($_GET, $_POST);
         //客户端IP和端口
@@ -227,7 +223,7 @@ class Http implements ProtocolInterface{
         }
         //如果是302跳转
         if(strtolower($key) === 'location' && !$httpResponseCode){
-            return self::header($string, true, 302);
+            return self::setHeader($string, true, 302);
         }
         if(isset(HttpCache::$httpCodeList[$httpResponseCode])){
             HttpCache::$header['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . HttpCache::$httpCodeList[$httpResponseCode];
@@ -251,12 +247,15 @@ class Http implements ProtocolInterface{
     {
         if(PHP_SAPI != 'cli'){
             header_remove();
+        }else{
+            unset(HttpCache::$header[$name]);
         }
-        unset(HttpCache::$header[$name]);
+
     }
 
     /**
      * 设置Cookie
+     * 参数意义请参考setcookie()
      * @param string $name
      * @param string $value
      * @param integer $maxage
@@ -269,7 +268,7 @@ class Http implements ProtocolInterface{
         if(PHP_SAPI != 'cli'){
             return setcookie($name, $value, $maxage, $path, $domain, $secure, $HTTPOnly);
         }
-        return self::header(
+        return self::setHeader(
             'Set-Cookie: ' . $name . '=' . rawurlencode($value)
             . (empty($domain) ? '' : '; Domain=' . $domain)
             . (empty($maxage) ? '' : '; Max-Age=' . $maxage)
@@ -287,11 +286,11 @@ class Http implements ProtocolInterface{
         if(PHP_SAPI != 'cli'){
             return session_start();
         }
-        if(HttpCache::$instance->sessionStarted){
+        if(HttpCache::$instance->isSessionStart){
             Log::write('Session already started');
             return true;
         }
-        HttpCache::$instance->sessionStarted = true;
+        HttpCache::$instance->isSessionStart = true;
         //生成SID
         if(!isset($_COOKIE[HttpCache::$sessionName]) || !is_file(HttpCache::$sessionPath . '/ses' . $_COOKIE[HttpCache::$sessionName]))
         {
@@ -336,7 +335,7 @@ class Http implements ProtocolInterface{
             return '';
         }
         //如果SESSION已经开启,并且$_SESSION有值
-        if(HttpCache::$instance->sessionStarted && $_SESSION){
+        if(HttpCache::$instance->isSessionStart && $_SESSION){
             $session = session_encode();
             if($session && HttpCache::$instance->sessionFile){
                 return file_put_contents(HttpCache::$instance->sessionFile, $session);

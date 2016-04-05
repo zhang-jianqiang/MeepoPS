@@ -9,7 +9,7 @@
  */
 //return ;
 // WebServer
-$web = new \FastWS\Core\WebServer("text://0.0.0.0:8080");
+$web = new \FastWS\Core\WebServer("http://0.0.0.0:8080");
 // WebServer数量
 $web->workerCount = 1;
 // 设置站点根目录

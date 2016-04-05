@@ -75,7 +75,7 @@ class HttpCache
     public static $sessionPath = '';
     //SESSION ID
     public static $sessionName = 'FastWS_SESSION_ID';
-    public $sessionStarted = false;
+    public $isSessionStart = false;
     public $sessionFile = '';
 
     /**
