@@ -9,7 +9,7 @@
  */
 //return;
 // WebServer
-$web = new \FastWS\Core\TelnetServer("text://0.0.0.0:55151");
+$web = new \FastWS\Core\TelnetServer("text://0.0.0.0:19910");
 // WebServer数量
 $web->workerCount = 2;
 // 设置站点根目录
