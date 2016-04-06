@@ -53,14 +53,14 @@ class Http implements ProtocolInterface{
     public static function encode($data, ConnectInterface $connect)
     {
         //状态码
-        $header = isset(HttpCache::$header['Http-Code']) ? HttpCache::$header['Http-Code'] : 'HTTP/1.1 200 OK';
+        $header = isset(Httpcache::$header['Http-Code']) ? Httpcache::$header['Http-Code'] : 'HTTP/1.1 200 OK';
         $header .= "\r\n";
-        unset(HttpCache::$header['Http-Code']);
+        unset(Httpcache::$header['Http-Code']);
         //Content-Type
-        $header .= isset(HttpCache::$header['Content-Type']) ? HttpCache::$header['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
+        $header .= isset(Httpcache::$header['Content-Type']) ? Httpcache::$header['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
         $header .= "\r\n";
         //其他部分
-        foreach(HttpCache::$header as $httpName => $value){
+        foreach(Httpcache::$header as $httpName => $value){
             if($httpName === 'Set-Cookie' && is_array($value)){
                 foreach($value as $v){
                     $header .= $v . "\r\n";
@@ -85,10 +85,10 @@ class Http implements ProtocolInterface{
      */
     public static function decode($data, ConnectInterface $connect)
     {
-        //将超全局变量设为空.初始化HttpCache
+        //将超全局变量设为空.初始化Httpcache
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = $GLOBALS['HTTP_RAW_POST_DATA'] = array();
-        HttpCache::$header = array('Connection' => 'Connection: keep-alive');
-        HttpCache::$instance = new HttpCache();
+        Httpcache::$header = array('Connection' => 'Connection: keep-alive');
+        Httpcache::$instance = new Httpcache();
         $_SERVER = array (
             'QUERY_STRING' => '',
             'REQUEST_METHOD' => '',
@@ -225,16 +225,16 @@ class Http implements ProtocolInterface{
         if(strtolower($key) === 'location' && !$httpResponseCode){
             return self::setHeader($string, true, 302);
         }
-        if(isset(HttpCache::$httpCodeList[$httpResponseCode])){
-            HttpCache::$header['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . HttpCache::$httpCodeList[$httpResponseCode];
+        if(isset(Httpcache::$httpCodeList[$httpResponseCode])){
+            Httpcache::$header['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . Httpcache::$httpCodeList[$httpResponseCode];
             if($key === 'Http-Code'){
                 return true;
             }
         }
         if($key === 'Set-Cookie'){
-            HttpCache::$header[$key][] = $string;
+            Httpcache::$header[$key][] = $string;
         }else{
-            HttpCache::$header[$key] = $string;
+            Httpcache::$header[$key] = $string;
         }
         return true;
     }
@@ -248,7 +248,7 @@ class Http implements ProtocolInterface{
         if(PHP_SAPI != 'cli'){
             header_remove();
         }else{
-            unset(HttpCache::$header[$name]);
+            unset(Httpcache::$header[$name]);
         }
 
     }
@@ -286,23 +286,23 @@ class Http implements ProtocolInterface{
         if(PHP_SAPI != 'cli'){
             return session_start();
         }
-        if(HttpCache::$instance->isSessionStart){
+        if(Httpcache::$instance->isSessionStart){
             Log::write('Session already started');
             return true;
         }
-        HttpCache::$instance->isSessionStart = true;
+        Httpcache::$instance->isSessionStart = true;
         //生成SID
-        if(!isset($_COOKIE[HttpCache::$sessionName]) || !is_file(HttpCache::$sessionPath . '/ses' . $_COOKIE[HttpCache::$sessionName]))
+        if(!isset($_COOKIE[Httpcache::$sessionName]) || !is_file(Httpcache::$sessionPath . '/ses' . $_COOKIE[Httpcache::$sessionName]))
         {
-            $file_name = tempnam(HttpCache::$sessionPath, 'ses');
+            $file_name = tempnam(Httpcache::$sessionPath, 'ses');
             if(!$file_name)
             {
                 return false;
             }
-            HttpCache::$instance->sessionFile = $file_name;
+            Httpcache::$instance->sessionFile = $file_name;
             $session_id = substr(basename($file_name), strlen('ses'));
             return self::setcookie(
-                HttpCache::$sessionName
+                Httpcache::$sessionName
                 , $session_id
                 , ini_get('session.cookie_lifetime')
                 , ini_get('session.cookie_path')
@@ -311,12 +311,12 @@ class Http implements ProtocolInterface{
                 , ini_get('session.cookie_httponly')
             );
         }
-        if(!HttpCache::$instance->sessionFile){
-            HttpCache::$instance->sessionFile = HttpCache::$sessionPath . '/ses' . $_COOKIE[HttpCache::$sessionName];
+        if(!Httpcache::$instance->sessionFile){
+            Httpcache::$instance->sessionFile = Httpcache::$sessionPath . '/ses' . $_COOKIE[Httpcache::$sessionName];
         }
         //读取SESSION文件,填充到$_SESSION中
-        if(HttpCache::$instance->sessionFile){
-            $raw = file_get_contents(HttpCache::$instance->sessionFile);
+        if(Httpcache::$instance->sessionFile){
+            $raw = file_get_contents(Httpcache::$instance->sessionFile);
             if($raw){
                 session_decode($raw);
             }
@@ -335,10 +335,10 @@ class Http implements ProtocolInterface{
             return '';
         }
         //如果SESSION已经开启,并且$_SESSION有值
-        if(HttpCache::$instance->isSessionStart && $_SESSION){
+        if(Httpcache::$instance->isSessionStart && $_SESSION){
             $session = session_encode();
-            if($session && HttpCache::$instance->sessionFile){
-                return file_put_contents(HttpCache::$instance->sessionFile, $session);
+            if($session && Httpcache::$instance->sessionFile){
+                return file_put_contents(Httpcache::$instance->sessionFile, $session);
             }
         }
         return empty($_SESSION);

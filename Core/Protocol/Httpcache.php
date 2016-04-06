@@ -1,6 +1,6 @@
 <?php
 /**
- * HTTP协议Cache相关,如SESSION等
+ * HTTP协议cache相关,如SESSION等
  * Created by lixuan-it@360.cn
  * User: lane
  * Date: 16/3/26
@@ -11,14 +11,14 @@
 namespace FastWS\Core\Protocol;
 
 /**
- * HTTP Cache
- * Class HttpCache
+ * HTTPcache
+ * Class Httpcache
  * Created By Lane
  * Mail: lixuan868686@163.com
  * Blog: http://www.lanecn.com
  * @package FastWS\Core\Protocol
  */
-class HttpCache
+class Httpcache
 {
     /**
      * HTTP协议状态码
