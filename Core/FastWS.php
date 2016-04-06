@@ -21,12 +21,10 @@ class FastWS
      */
     //主进程名称.即FastWS实例名称
     public $name;
-    //绑定的IP\端口\协议.如http://127.0.0.1:80
+    //绑定的IP\端口\协议.new FastWS()时传入.格式为http://127.0.0.1:19910
     private $_bind = '';
     //所有的worker列表
     protected static $_workerList = array();
-    //每个Worker的Pid
-    private static $_workerPid;
     //Worker所属所有子进程的Pid列表.一个Worker有多个Pid(多子进程).一个FastWS有多个Worker
     //array('worker1'=>array(1001, 1002, 1003), worker2'=>array(1004, 1005, 1006))
     private static $_workerPidMapList;
@@ -97,7 +95,6 @@ class FastWS
     //当前的事件轮询方式,默认为select.但是不推荐select,建议使用ngxin所采用的epoll方式.需要安装libevent
     private static $_currentPoll = 'select';
 
-
     /**
      * Socket相关
      */
@@ -105,8 +102,6 @@ class FastWS
     private static $_masterPid;
     //主进程Socket资源.由stream_socket_server()返回
     private $_masterSocket;
-    //主进程Socket属性,包括协议/IP/端口.new FastWS()时传入,格式为http://127.0.0.1:19910
-    private static $_masterSocketAttribute;
     //Socket上下文资源,由stream_context_create()返回
     private $_streamContext;
 
@@ -129,6 +124,7 @@ class FastWS
      */
     public function __construct($host = '', $contextOptionList = array())
     {
+        Log::write('FastWS::__construct start');
         //将本对象唯一hash后作为本workId
         $this->_workerId = spl_object_hash($this);
         self::$_workerList[$this->_workerId] = $this;
@@ -141,6 +137,7 @@ class FastWS
         if ($host) {
             $this->_streamContext = stream_context_create($contextOptionList);
         }
+        Log::write('FastWS::runAll end');
     }
 
     /**
@@ -150,6 +147,7 @@ class FastWS
      */
     public static function runAll()
     {
+        Log::write('FastWS::runAll start');
         self::_init();
         self::_command();
         self::_daemon();
@@ -160,6 +158,7 @@ class FastWS
         self::_displayUI();
         self::_redirectStdinAndStdout();
         self::_monitorChildProcess();
+        Log::write('FastWS::runAll end');
     }
 
     /**
@@ -167,6 +166,7 @@ class FastWS
      */
     private static function _init()
     {
+        Log::write('FastWS::_init start');
         //添加统计数据
         self::$_statistics['start_time'] = date('Y-m-d H:i:s');
         //给主进程起个名字
@@ -443,7 +443,7 @@ class FastWS
         if ($pid > 0) {
             self::$_idMap[$worker->_workerId][$id] = $pid;
             self::$_workerPidMapList[$worker->_workerId][$pid] = $pid;
-            //如果是子进程
+        //如果是子进程
         } elseif ($pid === 0) {
             //启动时重置输入输出
             if (self::$_currentStatus === FASTWS_STATUS_STARTING) {
@@ -457,7 +457,7 @@ class FastWS
             $worker->id = $id;
             $worker->run();
             exit(250);
-            //创建进程失败
+        //创建进程失败
         } else {
             Log::write('fork child process failed', 'FATAL');
         }
@@ -471,7 +471,7 @@ class FastWS
         //设置状态
         self::$_currentStatus = FASTWS_STATUS_RUNING;
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
-        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
+        register_shutdown_function(array('\FastWS\Core\FastWS', '_checkShutdownErrors'));
         //创建一个全局的循环事件
         if (!self::$globalEvent) {
             $eventPollClass = '\FastWS\Core\Event\\' . ucfirst(self::_chooseEventPoll());
@@ -520,7 +520,7 @@ class FastWS
     /**
      * 检测退出的错误
      */
-    public static function checkShutdownErrors()
+    private static function _checkShutdownErrors()
     {
         if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
             $errno = error_get_last();
@@ -609,7 +609,8 @@ class FastWS
             $pid = pcntl_wait($status, WUNTRACED);
             //再次调用等待信号的处理器.即收到信号后执行通过pcntl_signal安装的信号处理函数
             pcntl_signal_dispatch();
-            //如果没有子进程退出
+
+            //如果发生错误或者不是子进程
             if (!$pid || $pid <= 0) {
                 //如果是关闭状态 并且 已经没有子进程了 则主进程退出
                 if (self::$_currentStatus === FASTWS_STATUS_SHUTDOWN && !self::_getAllWorkerPidList()) {
@@ -617,6 +618,7 @@ class FastWS
                 }
                 continue;
             }
+
             //查找是那个子进程退出
             foreach (self::$_workerPidMapList as $workerId => $pidList) {
                 if (isset($pidList[$pid])) {
@@ -633,11 +635,12 @@ class FastWS
                     break;
                 }
             }
-            //如果是正在关闭中, 并且所有的worker的所有进程都没有pid了.那么就退出所有.即所有的子进程都结束了,就退出主进程
+
+            //如果是停止状态, 并且所有的worker的所有进程都没有pid了.那么就退出所有.即所有的子进程都结束了,就退出主进程
             if (self::$_currentStatus === FASTWS_STATUS_SHUTDOWN && !self::_getAllWorkerPidList()) {
                 self::_exitAndClearAll();
             //如果不是停止状态,则检测是否需要创建一个新的子进程
-            }else{
+            }else if(self::$_currentStatus !== FASTWS_STATUS_SHUTDOWN){
                 self::_checkWorkerListProcess();
             }
         }
@@ -741,6 +744,7 @@ class FastWS
     {
         self::$_currentStatus = FASTWS_STATUS_SHUTDOWN;
         if (self::$_masterPid === posix_getpid()) {
+            Log::write('FastWS is stopping...');
             $workerPidArray = self::_getAllWorkerPidList();
             foreach ($workerPidArray as $workerPid) {
                 posix_kill($workerPid, SIGINT);

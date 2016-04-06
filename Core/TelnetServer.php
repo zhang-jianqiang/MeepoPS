@@ -14,14 +14,13 @@ class TelnetServer extends FastWS{
     public function __construct($host, $contextOptionList=array())
     {
         if(!$host){
-            return false;
+            return;
         }
         $hostTmp = explode(':', $host, 2);
         if(!$hostTmp[1]){
-            return false;
+            return;
         }
         parent::__construct($host, $contextOptionList);
-
     }
 
     /**
