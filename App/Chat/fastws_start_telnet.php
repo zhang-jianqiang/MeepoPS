@@ -11,13 +11,13 @@
 // WebServer
 $web = new \FastWS\Core\TelnetServer("text://0.0.0.0:19910");
 // WebServer数量
-$web->workerCount = 2;
+$web->workerCount = 1;
 // 设置站点根目录
 //$web->setRoot('www.lanecn.com', __DIR__.'/Web');
-$web->name = 'FastWS - WebService';
+$web->name = 'FastWS-Text';
 
-$web->user = 'lane';
-$web->group = 'staff';
+//$web->user = 'lane';
+//$web->group = 'staff';
 
 // 如果不是在根目录启动，则运行runAll方法
 //if(!defined('GLOBAL_START'))

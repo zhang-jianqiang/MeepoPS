@@ -37,9 +37,9 @@ class FastWS
     //worker总数
     public $workerCount = 1;
     //启动Worker的用户
-    public $user = 'nobody';
+    public $user = '';
     //启动Worker的用户组
-    public $group = 'nobody';
+    public $group = '';
     //当前状态
     private static $_currentStatus = FASTWS_STATUS_STARTING;
 
@@ -187,7 +187,10 @@ class FastWS
         global $argv;
         $operation = trim($argv[1]);
         //获取主进程ID - 用来判断当前进程是否在运行
-        $masterPid = @file_get_contents(FASTWS_MASTER_PID_PATH);
+        $masterPid = false;
+        if(file_exists(FASTWS_MASTER_PID_PATH)){
+            $masterPid = @file_get_contents(FASTWS_MASTER_PID_PATH);
+        }
         //主进程当前是否正在运行
         $masterIsAlive = false;
         //给FastWS主进程发送一个信号, 信号为SIG_DFL, 表示采用默认信号处理程序.如果发送信号成功则该进程正常
@@ -471,7 +474,7 @@ class FastWS
         //设置状态
         self::$_currentStatus = FASTWS_STATUS_RUNING;
         //注册一个退出函数.在任何退出的情况下检测是否由于错误引发的.包括die,exit等都会触发
-        register_shutdown_function(array('\FastWS\Core\FastWS', '_checkShutdownErrors'));
+        register_shutdown_function(array('\FastWS\Core\FastWS', 'checkShutdownErrors'));
         //创建一个全局的循环事件
         if (!self::$globalEvent) {
             $eventPollClass = '\FastWS\Core\Event\\' . ucfirst(self::_chooseEventPoll());
@@ -520,7 +523,7 @@ class FastWS
     /**
      * 检测退出的错误
      */
-    private static function _checkShutdownErrors()
+    public static function checkShutdownErrors()
     {
         if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
             $errno = error_get_last();

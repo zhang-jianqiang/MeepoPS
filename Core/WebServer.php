@@ -10,7 +10,7 @@
 namespace FastWS\Core;
 
 use FastWS\Core\Protocol\Http;
-use FastWS\Core\Protocol\HttpCache;
+use FastWS\Core\Protocol\Httpcache;
 
 class WebServer extends FastWS{
     //MIME TYPE
@@ -74,8 +74,8 @@ class WebServer extends FastWS{
         if(empty($this->_documentRoot)){
             Log::write('not set document root.', 'FATAL');
         }
-        // Init HttpCache.
-        HttpCache::init();
+        // Init Httpcache.
+        Httpcache::init();
         // Init mimeMap.
         $this->_initMimeTypeMap();
     }

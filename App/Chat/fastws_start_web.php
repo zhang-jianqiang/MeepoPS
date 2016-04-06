@@ -13,10 +13,10 @@ $web = new \FastWS\Core\WebServer("http://0.0.0.0:8081");
 $web->workerCount = 1;
 // 设置站点根目录
 $web->setRoot('www.lanecn.com', __DIR__.'/Web');
-$web->name = 'FastWS - WebService';
+$web->name = 'FastWS-HTTP';
 
-$web->user = 'lane';
-$web->group = 'staff';
+//$web->user = 'lane';
+//$web->group = 'staff';
 
 // 如果不是在根目录启动，则运行runAll方法
 //if(!defined('GLOBAL_START'))
