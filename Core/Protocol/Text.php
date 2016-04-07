@@ -13,8 +13,6 @@
 namespace FastWS\Core\Protocol;
 
 use FastWS\Core\Connect\ConnectInterface;
-use FastWS\Core\Connect\Tcp;
-use FastWS\Core\Log;
 
 class Text implements ProtocolInterface {
     /**
@@ -42,8 +40,8 @@ class Text implements ProtocolInterface {
 
     /**
      * 数据编码.在发送数据前调用此方法.
-     * @param $data
-     * @param Tcp $connect
+     * @param string $data 给数据流中发送的数据
+     * @param ConnectInterface $connect
      * @return string
      */
     public static function encode($data, ConnectInterface $connect)
@@ -53,8 +51,9 @@ class Text implements ProtocolInterface {
 
     /**
      * 数据解码.在接收数据前调用此方法
-     * @param $data
-     * @param Tcp $connect
+     * @param string $data 从数据流中接收到的数据
+     * @param ConnectInterface $connect
+     * @return string
      */
     public static function decode($data, ConnectInterface $connect)
     {

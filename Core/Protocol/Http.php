@@ -11,7 +11,6 @@
 namespace FastWS\Core\Protocol;
 
 use FastWS\Core\Connect\ConnectInterface;
-use FastWS\Core\Connect\Tcp;
 use FastWS\Core\Log;
 
 class Http implements ProtocolInterface{
@@ -263,6 +262,7 @@ class Http implements ProtocolInterface{
      * @param string $domain
      * @param bool $secure
      * @param bool $HTTPOnly
+     * @return bool
      */
     public static function setcookie($name, $value = '', $maxage = 0, $path = '', $domain = '', $secure = false, $HTTPOnly = false) {
         if(PHP_SAPI != 'cli'){

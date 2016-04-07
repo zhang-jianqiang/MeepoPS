@@ -112,7 +112,7 @@ class Tcp extends ConnectInterface
                     if($this->_currentPackageSize > strlen($this->_readDate)){
                         break;
                     }
-                    //本包是第一次读取
+                //本包是第一次读取
                 }else{
                     if(!class_exists($applicationProtocolClassName)) {
                         Log::write('Application protocol class: '.$applicationProtocolClassName.' not exists', 'FATAL');
@@ -121,12 +121,12 @@ class Tcp extends ConnectInterface
                     //如果数据包未完\超过配置的最大TCP链接所接收的数据量
                     if($this->_currentPackageSize === 0){
                         break;
-                        //如果数据包在配置的最大TCP链接所接收的数据量之内,并且值>0
+                    //如果数据包在配置的最大TCP链接所接收的数据量之内,并且值>0
                     }else if($this->_currentPackageSize > 0 && $this->_currentPackageSize <= FASTWS_TCP_CONNECT_MAX_PACKAGE_SIZE){
                         if($this->_currentPackageSize > strlen($this->_readDate)) {
                             break;
                         }
-                        //数据包长度不正确,销毁链接
+                    //数据包长度不正确,销毁链接
                     }else{
                         Log::write('data package size incorrect. size='.$this->_currentPackageSize, 'WARNING');
                         $this->destroy();
@@ -378,6 +378,21 @@ class Tcp extends ConnectInterface
                 Log::write('FastWS: execution callback function callbackConnectClose-'.$this->worker->callbackConnectClose . ' throw exception', 'FATAL');
             }
         }
+    }
+
+    /**
+     * 截取消息的后部分. 扔掉前部分
+     * @param $start
+     * @param null $length
+     */
+    public function substrReadData($start, $length=null)
+    {
+        if(is_null($length)){
+            $this->_readDate = substr($this->_readDate, $start);
+        }else{
+            $this->_readDate = substr($this->_readDate, $start, $length);
+        }
+
     }
 
     /**
