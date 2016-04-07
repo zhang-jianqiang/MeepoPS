@@ -124,7 +124,6 @@ class FastWS
      */
     public function __construct($host = '', $contextOptionList = array())
     {
-        Log::write('FastWS::__construct start');
         //将本对象唯一hash后作为本workId
         $this->_workerId = spl_object_hash($this);
         self::$_workerList[$this->_workerId] = $this;
@@ -137,7 +136,6 @@ class FastWS
         if ($host) {
             $this->_streamContext = stream_context_create($contextOptionList);
         }
-        Log::write('FastWS::runAll end');
     }
 
     /**
@@ -147,18 +145,16 @@ class FastWS
      */
     public static function runAll()
     {
-        Log::write('FastWS::runAll start');
         self::_init();
         self::_command();
+        self::_saveMasterPid();
         self::_daemon();
         self::_createWorkers();
         self::_installSignal();
-        self::_saveMasterPid();
         self::_checkWorkerListProcess();
         self::_displayUI();
         self::_redirectStdinAndStdout();
         self::_monitorChildProcess();
-        Log::write('FastWS::runAll end');
     }
 
     /**
@@ -166,7 +162,6 @@ class FastWS
      */
     private static function _init()
     {
-        Log::write('FastWS::_init start');
         //添加统计数据
         self::$_statistics['start_time'] = date('Y-m-d H:i:s');
         //给主进程起个名字
@@ -199,18 +194,15 @@ class FastWS
         }
         //不能重复启动
         if ($masterIsAlive && $operation === 'start') {
-            Log::write('FastWS already running. file: ' . $argv[0]);
-            exit;
+            Log::write('FastWS already running. file: ' . $argv[0], 'FATAL');
         }
         //未启动不能查看状态
         if (!$masterIsAlive && $operation === 'status') {
-            Log::write('FastWS no running. file: ' . $argv[0]);
-            exit;
+            Log::write('FastWS no running. file: ' . $argv[0], 'FATAL');
         }
         //未启动不能终止
         if (!$masterIsAlive && $operation === 'stop') {
-            Log::write('FastWS no running. file: ' . $argv[0]);
-            exit;
+            Log::write('FastWS no running. file: ' . $argv[0], 'FATAL');
         }
         //根据不同的执行参数执行不同的动作
         switch ($operation) {
@@ -222,6 +214,7 @@ class FastWS
                 break;
             //停止
             case 'stop':
+                Log::write('FastWS receives the "stop" instruction, FastWS will graceful stop');
                 //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
                 if ($masterPid) {
                     posix_kill($masterPid, SIGINT);
@@ -244,6 +237,7 @@ class FastWS
                 }
             //重启
             case 'restart':
+                Log::write('FastWS receives the "restart" instruction, FastWS will graceful restart');
                 //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
                 if ($masterPid) {
                     posix_kill($masterPid, SIGINT);
@@ -280,6 +274,7 @@ class FastWS
                 exit();
             //停止所有的FastWS
             case 'kill':
+                Log::write('FastWS receives the "kill" instruction, FastWS will end the violence');
                 exec("ps aux | grep $argv[0] | grep -v grep | awk '{print $2}' |xargs kill -SIGINT");
                 exec("ps aux | grep $argv[0] | grep -v grep | awk '{print $2}' |xargs kill -SIGKILL");
                 exit();
@@ -289,6 +284,17 @@ class FastWS
             //参数不合法
             default:
                 Log::write('Parameter error. Usage: php index.php start|stop|restart|status|kill', 'FATAL');
+        }
+    }
+
+    /**
+     * 保存FastWS主进程的Pid
+     */
+    private static function _saveMasterPid()
+    {
+        self::$_masterPid = posix_getpid();
+        if (false === @file_put_contents(FASTWS_MASTER_PID_PATH, self::$_masterPid)) {
+            Log::write('Can\'t write pid to ' . FASTWS_MASTER_PID_PATH, 'FATAL');
         }
     }
 
@@ -307,7 +313,7 @@ class FastWS
         //fork失败
         if ($pid === -1) {
             Log::write('FastWS _daemon: fork failed', 'FATAL');
-            //父进程
+        //父进程
         } else if ($pid > 0) {
             exit();
         }
@@ -320,7 +326,7 @@ class FastWS
         $pid = pcntl_fork();
         if ($pid === -1) {
             Log::write('FastWS _daemon: fork2 failed', 'FATAL');
-            //将父进程退出
+        //将父进程退出
         } else if ($pid !== 0) {
             exit();
         }
@@ -363,7 +369,7 @@ class FastWS
         } else {
             $this->protocolApplication = '\FastWS\Core\Protocol\\' . ucfirst($protocol);
             if (!class_exists($this->protocolApplication)) {
-                Log::write('Application layer protocol calss not exists.', 'FATAL');
+                Log::write('Application layer protocol calss not found.', 'FATAL');
             }
             $host = $this->protocolTransfer . ":" . $address;
         }
@@ -372,7 +378,7 @@ class FastWS
         $flags = $this->protocolTransfer === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
         $this->_masterSocket = stream_socket_server($host, $errno, $errmsg, $flags, $this->_streamContext);
         if (!$this->_masterSocket) {
-            Log::write('stream_socket_server() throw exception. error msg: ' . $errmsg, 'FATAL');
+            Log::write('stream_socket_server() error: errno=' . $errno . ' errmsg=' . $errmsg, 'FATAL');
         }
         //如果是TCP协议,打开长链接,并且禁用Nagle算法,默认为开启Nagle
         //Nagle是收集多个数据包一起发送.再实时交互场景(比如游戏)中,追求高实时性,要求一个包,哪怕再小,也要立即发送给服务端.因此我们禁用Nagle
@@ -403,17 +409,6 @@ class FastWS
         pcntl_signal(SIGUSR2, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGPIPE 信号会导致Linux下Socket进程终止.我们忽略他
         pcntl_signal(SIGPIPE, SIG_IGN, false);
-    }
-
-    /**
-     * 保存FastWS主进程的Pid
-     */
-    private static function _saveMasterPid()
-    {
-        self::$_masterPid = posix_getpid();
-        if (false === @file_put_contents(FASTWS_MASTER_PID_PATH, self::$_masterPid)) {
-            Log::write('Can\'t write pid to ' . FASTWS_MASTER_PID_PATH, 'FATAL');
-        }
     }
 
     /**
@@ -462,7 +457,7 @@ class FastWS
             exit(250);
         //创建进程失败
         } else {
-            Log::write('fork child process failed', 'FATAL');
+            Log::write('fork child process failed', 'ERROR');
         }
     }
 
@@ -496,8 +491,7 @@ class FastWS
                 try {
                     call_user_func($this->callbackStart, $this);
                 } catch (\Exception $e) {
-                    echo $e;
-                    exit(250);
+                    Log::write('FastWS: execution callback function callbackStart-'.$this->callbackStart . ' throw exception', 'FATAL');
                 }
             }
             //开启事件轮询
@@ -525,13 +519,14 @@ class FastWS
      */
     public static function checkShutdownErrors()
     {
+        Log::write('FastWS check shutdown errors');
         if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
             $errno = error_get_last();
             if (is_null($errno)) {
+                Log::write('FastWS normal exit');
                 return;
             }
-            $errmsg = 'FASTWS EXIT UNEXPECTED: ' . json_encode($errno);
-            Log::write($errmsg, 'ERROR');
+            Log::write('FastWS unexpectedly quits. last error: ' . json_encode($errno), 'ERROR');
         }
     }
 
@@ -626,9 +621,7 @@ class FastWS
             foreach (self::$_workerPidMapList as $workerId => $pidList) {
                 if (isset($pidList[$pid])) {
                     $worker = self::$_workerList[$workerId];
-                    if ($status !== 0) {
-                        Log::write('FastWS worker(' . $worker->name . ':' . $pid . ') exit. Status: ' . $status);
-                    }
+                    Log::write('FastWS worker(' . $worker->name . ':' . $pid . ') exit. Status: ' . $status, 'WARNING');
                     //记录统计信息.
                     self::$_statistics['worker_exit_info'][$workerId][$status] = !isset(self::$_statistics['worker_exit_info'][$workerId][$status]) ? 0 : (self::$_statistics['worker_exit_info'][$workerId][$status]++);
                     //清除数据
@@ -662,7 +655,7 @@ class FastWS
             }
         }
         @unlink(FASTWS_MASTER_PID_PATH);
-        Log::write('FastWS has been pulled out');
+        Log::write('FastWS has been pulled out', 'WARNING');
         exit();
     }
 
@@ -675,7 +668,7 @@ class FastWS
         //获取用户的uid.如果$this->user为空则为当前用户.$this是$_workerList中存储的对象
         $userInfo = posix_getpwnam($this->user);
         if (!$userInfo || !$userInfo['uid']) {
-            Log::write('User ' . $this->user . ' not exsits.', 'WARNING');
+            Log::write('User ' . $this->user . ' not exsits.', 'ERROR');
             return false;
         }
         $uid = $userInfo['uid'];
@@ -683,7 +676,7 @@ class FastWS
         if ($this->group) {
             $groupInfo = posix_getgrnam($this->group);
             if (!$groupInfo || !$groupInfo['gid']) {
-                Log::write('Group ' . $this->group . ' not exsits.', 'WARNING');
+                Log::write('Group ' . $this->group . ' not exsits.', 'ERROR');
                 return false;
             }
             $gid = $groupInfo['gid'];
@@ -694,7 +687,7 @@ class FastWS
         if ($uid != posix_getuid() || $gid != posix_getgid()) {
             //设置当前进程的uid,gid.并计算用户指定的组访问列表
             if (!posix_initgroups($userInfo['name'], $gid) || !posix_setuid($uid) || !posix_setgid($gid)) {
-                Log::write('Change user ' . $this->user . ' or group ' . $this->group . ' failed.', 'WARNING');
+                Log::write('Change user ' . $this->user . ' or group ' . $this->group . ' failed.', 'ERROR');
             }
         }
         return true;
@@ -747,7 +740,7 @@ class FastWS
     {
         self::$_currentStatus = FASTWS_STATUS_SHUTDOWN;
         if (self::$_masterPid === posix_getpid()) {
-            Log::write('FastWS is stopping...');
+            Log::write('FastWS is stopping...', 'WARNING');
             $workerPidArray = self::_getAllWorkerPidList();
             foreach ($workerPidArray as $workerPid) {
                 posix_kill($workerPid, SIGINT);
@@ -768,8 +761,7 @@ class FastWS
             try {
                 call_user_func($this->callbackWorkerStop, $this);
             } catch (\Exception $e) {
-                echo $e;
-                exit(250);
+                Log::write('FastWS: execution callback function callbackWorkerStop-'.$this->callbackWorkerStop . ' throw exception', 'FATAL');
             }
         }
         //删除这个Worker相关的所有事件监听
@@ -802,10 +794,18 @@ class FastWS
             try {
                 call_user_func($this->callbackConnect, $tcpConnect);
             } catch (\Exception $e) {
-                echo $e;
-                exit(250);
+                Log::write('FastWS: execution callback function callbackConnect-'.$this->callbackConnect . ' throw exception', 'FATAL');
             }
         }
+    }
+
+    /**
+     * 接收链接
+     * @param resource $socket Socket资源
+     */
+    public function acceptUdpConnect($socket)
+    {
+        Log::write('FastWS currently does not support UDP protocol', 'FATAL');
     }
 
 

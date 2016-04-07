@@ -35,12 +35,12 @@ abstract class ConnectInterface{
      * @param $socket resource 由stream_socket_accept()返回
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
      */
-    abstract public  function __construct($socket, $clientAddress);
+    abstract public function __construct($socket, $clientAddress);
 
     /**
      * 析构函数
      */
-    abstract public  function __destruct();
+    abstract public function __destruct();
 
     /**
      * 读取数据

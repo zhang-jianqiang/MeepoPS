@@ -10,6 +10,8 @@
  */
 namespace FastWS\Core\Event;
 
+use FastWS\Core\Log;
+
 class Select implements EventInterface
 {
 
@@ -87,6 +89,7 @@ class Select implements EventInterface
                 $this->_runTimerEvent();
                 break;
             default:
+                Log::write('FastWS: Event library Select adds an unknown type: ' . $type, 'ERROR');
                 return false;
         }
         return true;
@@ -144,7 +147,7 @@ class Select implements EventInterface
 
     /**
      * 删除指定的事件
-     * @param $timerId int 标识
+     * @param $resource int 标识
      * @param $type int 类型
      * @return bool
      */
@@ -175,6 +178,7 @@ class Select implements EventInterface
                 unset($this->_timerEventList[$uniqueId]);
                 break;
             default:
+                Log::write('FastWS: Event library Select delete an unknown type: ' . $type, 'ERROR');
                 return false;
         }
         return true;

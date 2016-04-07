@@ -150,12 +150,11 @@ class Tcp extends ConnectInterface
                         call_user_func_array($this->worker->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
                     }catch (\Exception $e){
                         self::$statistics['exception_count']++;
-                        echo $e;
-                        exit(250);
+                        Log::write('FastWS: execution callback function callbackNewData-'.$this->worker->callbackNewData . ' throw exception', 'FATAL');
                     }
                 }
             }
-            //只有没有设置应用层协议,执行下面的部分.
+        //只有没有设置应用层协议,执行下面的部分.
         }else{
             //如果读取到的数据是空,或者链接已经被暂停
             if($this->_readDate === '' || $this->_isPauseRead){
@@ -168,8 +167,7 @@ class Tcp extends ConnectInterface
                     call_user_func_array($this->worker->callbackNewData, array($this, $this->_readDate));
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    echo $e;
-                    exit(250);
+                    Log::write('FastWS: execution callback function callbackNewData-'.$this->worker->callbackNewData . ' throw exception', 'FATAL');
                 }
             }
             $this->_readDate = '';
@@ -221,8 +219,7 @@ class Tcp extends ConnectInterface
                             call_user_func($this->worker->callbackError, $this, 'FASTWS_ERROR_CODE_SEND_SOCKET_INVALID', 'Send data failed. Possible socket resource has disabled');
                         }catch (\Exception $e){
                             self::$statistics['exception_count']++;
-                            echo $e;
-                            exit(250);
+                            Log::write('FastWS: execution callback function callbackError-'.$this->worker->callbackError . ' throw exception', 'FATAL');
                         }
                     }
                     $this->destroy();
@@ -248,8 +245,7 @@ class Tcp extends ConnectInterface
                         call_user_func($this->worker->callbackError, $this, FASTWS_ERROR_CODE_SEND_BUFFER_FULL, 'The send buffer is full. Data is discarded');
                     }catch (\Exception $e){
                         self::$statistics['exception_count']++;
-                        echo $e;
-                        exit(250);
+                        Log::write('FastWS: execution callback function callbackError-'.$this->worker->callbackError . ' throw exception', 'FATAL');
                     }
                 }
                 return false;
@@ -287,8 +283,7 @@ class Tcp extends ConnectInterface
                     call_user_func($this->worker->callbackSendBufferEmpty, $this);
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    echo $e;
-                    exit(250);
+                    Log::write('FastWS: execution callback function callbackSendBufferEmpty-'.$this->worker->callbackSendBufferEmpty . ' throw exception', 'FATAL');
                 }
             }
             //如果是正在关闭中的状态(平滑断开链接会发送完待发送缓冲区的所有数据后再销毁资源)
@@ -380,8 +375,7 @@ class Tcp extends ConnectInterface
                 call_user_func($this->worker->callbackConnectClose, $this);
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                echo $e;
-                exit(250);
+                Log::write('FastWS: execution callback function callbackConnectClose-'.$this->worker->callbackConnectClose . ' throw exception', 'FATAL');
             }
         }
     }
@@ -399,8 +393,7 @@ class Tcp extends ConnectInterface
                     call_user_func($this->worker->callbackSendBufferFull, $this);
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    echo $e;
-                    exit(250);
+                    Log::write('FastWS: execution callback function callbackSendBufferFull-'.$this->worker->callbackSendBufferFull . ' throw exception', 'FATAL');
                 }
                 return true;
             }
