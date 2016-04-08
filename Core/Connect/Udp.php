@@ -43,7 +43,7 @@ class Udp implements ConnectInterface{
      * @param $isEncode bool 发送前是否根据应用层协议转码
      */
     public function send($data, $isEncode=true){
-
+        return false;
     }
 
     /**
@@ -52,7 +52,7 @@ class Udp implements ConnectInterface{
      * @return mixed
      */
     public function close($data=''){
-
+        return array();
     }
 
     /**
@@ -60,6 +60,6 @@ class Udp implements ConnectInterface{
      * @return array|int 成功返回array[0]是ip,array[1]是端口. 失败返回false
      */
     public function getClientAddress(){
-
+        return array();
     }
 }
