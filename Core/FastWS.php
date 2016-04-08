@@ -62,6 +62,10 @@ class FastWS
     public $callbackSendBufferFull;
     //缓冲区没有积压时触发该回调函数
     public $callbackSendBufferEmpty;
+    //接收到Ping时触发回调函数
+    public $callbackPing;
+    //接收到Pong时触发回调函数
+    public $callbackPong;
 
     /**
      * 协议相关

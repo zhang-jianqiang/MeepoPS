@@ -97,6 +97,7 @@ class Tcp extends ConnectInterface
             $isAlreadyReaded = true;
             $this->_readDate .= $buffer;
         }
+        var_dump($this->_readDate);
         //检测连接是否关闭
         if($isAlreadyReaded===false && $isCheckEof){
             $this->destroy();

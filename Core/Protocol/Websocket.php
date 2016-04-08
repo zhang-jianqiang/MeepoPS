@@ -11,6 +11,7 @@
 namespace FastWS\Core\Protocol;
 
 use FastWS\Core\Connect\ConnectInterface;
+use FastWS\Core\Log;
 
 class Websocket implements ProtocolInterface {
 
@@ -30,14 +31,18 @@ class Websocket implements ProtocolInterface {
      */
     public static function input($data, ConnectInterface $connect)
     {
+        //数据长度
         $dataLength = strlen($data);
-        //数据长度小于规定的最小长度
-        if($dataLength < self::MIN_HEAD_LENGTH){
+        //头部分的长度
+        $headerLength = self::MIN_HEAD_LENGTH;
+        //数据长度小于规定的最小长度(最小是头的长度)
+        if($dataLength < $headerLength){
             return 0;
         }
         //是否已经握手 - websocket底层仍旧是HTTP协议.首次建立链接仍旧需要握手
-        if(empty($connect->isHandshake)){
-            return self::_handshake($data, $connect);
+        if(!isset($connect->isHandshake) || !$connect->isHandshake){
+            self::_handshake($data, $connect);
+            return 0;
         }
         if($connect->websocketCurrentFrameLength){
             //如果帧长度大于本次数据长度.返回0,等待更多的数据.因为数据长度不明确
@@ -45,150 +50,97 @@ class Websocket implements ProtocolInterface {
                 return 0;
             }
         }else{
-            $data_len = ord($data[1]) & 127;
-            $firstbyte = ord($data[0]);
-            $is_fin_frame = $firstbyte>>7;
-            $opcode = $firstbyte & 0xf;
-            switch($opcode)
-            {
+            $firstByte = ord($data[0]);
+            $messageLength = ord($data[1]) & 127;
+            $isFinFrame = $firstByte >> 7;
+            $opcode = $firstByte & 0xf;
+            switch($opcode){
                 case 0x0:
-                    break;
-                // Blob type.
+                //Blob
                 case 0x1:
-                    break;
-                // Arraybuffer type.
+                //Arraybuffer
                 case 0x2:
                     break;
-                // Close package.
+                //请求关闭链接
                 case 0x8:
-                    // Try to emit onWebSocketClose callback.
-                    if(isset($connect->onWebSocketClose))
-                    {
-                        try
-                        {
-                            call_user_func($connect->onWebSocketClose, $connect);
-                        }
-                        catch(\Exception $e)
-                        {
-                            echo $e;
-                            exit(250);
-                        }
-                    }
-                    // Close connection.
-                    else
-                    {
-                        $connect->close();
-                    }
+                    $connect->close();
                     return 0;
-                // Ping package.
+                //ping
                 case 0x9:
-                    // Try to emit onWebSocketPing callback.
-                    if(isset($connect->onWebSocketPing))
-                    {
-                        try
-                        {
-                            call_user_func($connect->onWebSocketPing, $connect);
+                    //执行Ping时的回调函数
+                    if($connect->worker->callbackPing) {
+                        try {
+                            call_user_func($connect->worker->callbackPing, $connect);
+                        } catch (\Exception $e) {
+                            Log::write('FastWS: execution callback function callbackPing-'.$connect->worker->callbackPing . ' throw exception', 'FATAL');
                         }
-                        catch(\Exception $e)
-                        {
-                            echo $e;
-                            exit(250);
-                        }
+                    }else{
+                        $connect->send(pack('H*', '8a00'));
                     }
-                    // Send pong package to client.
-                    else
-                    {
-                        $connect->send(pack('H*', '8a00'), true);
-                    }
-                    // Consume data from receive buffer.
-                    if(!$data_len)
-                    {
-                        $connect->consumeRecvBuffer(self::MIN_HEAD_LEN);
-                        return 0;
+                    //如果数据中消息的长度为假,则从接收数据缓冲区中删除规定的消息头部分.
+                    if(!$messageLength){
+                        $connect->substrReadData($headerLength);
                     }
                     break;
-                // Pong package.
+                //Pong
                 case 0xa:
-                    // Try to emit onWebSocketPong callback.
-                    if(isset($connect->onWebSocketPong))
-                    {
-                        try
-                        {
-                            call_user_func($connect->onWebSocketPong, $connect);
-                        }
-                        catch(\Exception $e)
-                        {
-                            echo $e;
-                            exit(250);
+                    //执行Pong时的回调函数
+                    if($connect->worker->callbackPong) {
+                        try {
+                            call_user_func($connect->worker->callbackPong, $connect);
+                        } catch (\Exception $e) {
+                            Log::write('FastWS: execution callback function callbackPong-'.$connect->worker->callbackPong . ' throw exception', 'FATAL');
                         }
                     }
-                    //  Consume data from receive buffer.
-                    if(!$data_len)
-                    {
-                        $connect->consumeRecvBuffer(self::MIN_HEAD_LEN);
-                        return 0;
+                    //如果数据中消息的长度为假,则从接收数据缓冲区中删除规定的消息头部分.
+                    if(!$messageLength){
+                        $connect->substrReadData($headerLength);
                     }
                     break;
-                // Wrong opcode.
                 default :
-                    echo "error opcode $opcode and close websocket connection\n";
+                    Log::write('opcode ' . $opcode . ' incorrect', 'WARNING');
                     $connect->close();
                     return 0;
             }
-
-            // Calculate packet length.
-            $head_len = self::MIN_HEAD_LEN;
-            if ($data_len === 126) {
-                $head_len = 8;
-                if($head_len > $recv_len)
-                {
+            //计算数据包的长度
+            if ($messageLength === 126){
+                $headerLength = 8;
+                if($headerLength > $dataLength){
                     return 0;
                 }
                 $pack = unpack('ntotal_len', substr($data, 2, 2));
-                $data_len = $pack['total_len'];
-            } else if ($data_len === 127) {
-                $head_len = 14;
-                if($head_len > $recv_len)
-                {
+                $messageLength = $pack['total_len'];
+            }else if($messageLength === 127){
+                $headerLength = 14;
+                if($headerLength > $dataLength){
                     return 0;
                 }
                 $arr = unpack('N2', substr($data, 2, 8));
-                $data_len = $arr[1]*4294967296 + $arr[2];
+                $messageLength = $arr[1]*4294967296 + $arr[2];
             }
-            $current_frame_length = $head_len + $data_len;
-            if($is_fin_frame)
-            {
-                return $current_frame_length;
-            }
-            else
-            {
-                $connect->websocketCurrentFrameLength = $current_frame_length;
+            $currentFrameLength = $headerLength + $messageLength;
+            if($isFinFrame){
+                return $currentFrameLength;
+            }else{
+                $connect->websocketCurrentFrameLength = $currentFrameLength;
             }
         }
-
-
-
-        // Received just a frame length data.
-        if($connect->websocketCurrentFrameLength == $recv_len)
-        {
+        //数据长度 = frame data
+        if($dataLength == $connect->websocketCurrentFrameLength) {
             self::decode($data, $connect);
-            $connect->consumeRecvBuffer($connect->websocketCurrentFrameLength);
+            $connect->substrReadData($connect->websocketCurrentFrameLength);
             $connect->websocketCurrentFrameLength = 0;
             return 0;
-        }
-        // The length of the received data is greater than the length of a frame.
-        elseif($connect->websocketCurrentFrameLength < $recv_len)
-        {
+        //接收到的数据长度 大于 frame data
+        }elseif($dataLength > $connect->websocketCurrentFrameLength){
             self::decode(substr($data, 0, $connect->websocketCurrentFrameLength), $connect);
-            $connect->consumeRecvBuffer($connect->websocketCurrentFrameLength);
-            $current_frame_length = $connect->websocketCurrentFrameLength;
+            $connect->substrReadData($connect->websocketCurrentFrameLength);
+            $currentFrameLength = $connect->websocketCurrentFrameLength;
             $connect->websocketCurrentFrameLength = 0;
-            // Continue to read next frame.
-            return self::input(substr($data, $current_frame_length), $connect);
-        }
-        // The length of the received data is less than the length of a frame.
-        else
-        {
+            //递归 继续解析
+            return self::input(substr($data, $currentFrameLength), $connect);
+        //接收到的数据长度 小于 frame data
+        }else{
             return 0;
         }
     }
@@ -201,7 +153,25 @@ class Websocket implements ProtocolInterface {
      */
     public static function encode($data, ConnectInterface $connect)
     {
-        return $data."\n";
+        $ret = '';
+        $dataLength = strlen($data);
+        if(empty($connect->websocketType)){
+            $connect->websocketType = self::BINARY_TYPE_BLOB;
+        }
+        $firstType = $connect->websocketType;
+        if($dataLength <= 125){
+            $ret = $firstType . chr($dataLength) . $data;
+        }else if($dataLength <= 65535){
+            $ret = $firstType . chr(126) . pack("n", $dataLength) . $data;
+        }else{
+            $ret = $firstType . chr(127).pack("xxxxN", $dataLength) . $data;
+        }
+        //如果握手没有完成.那么把数据加入到缓冲区中,暂缓发送
+        if(!isset($connect->isHandshake) || !$connect->isHandshake){
+            $connect->tmpWebsocketData .= empty($connect->tmpWebsocketData) ? '' : $ret;
+            return '';
+        }
+        return $ret;
     }
 
     /**
@@ -212,7 +182,29 @@ class Websocket implements ProtocolInterface {
      */
     public static function decode($data, ConnectInterface $connect)
     {
-        return trim($data);
+        $dataLength = ord($data[1]) & 127;
+        if($dataLength === 126){
+            $masks = substr($data, 4, 4);
+            $message = substr($data, 8);
+        }else if($dataLength === 127){
+            $masks = substr($data, 10, 4);
+            $message = substr($data, 14);
+        }else{
+            $masks = substr($data, 2, 4);
+            $message = substr($data, 6);
+        }
+        $decodeMessage = '';
+        for($i=0; $i<strlen($message); $i++) {
+            $decodeMessage .= $data[$i] ^ $masks[$i%4];
+        }
+        if($connect->websocketCurrentFrameLength){
+            $connect->websocketDataBuffer .= $decodeMessage;
+            return $connect->websocketDataBuffer;
+        }else{
+            $decodeMessage = $connect->websocketDataBuffer . $decodeMessage;
+            $connect->websocketDataBuffer = '';
+            return $decodeMessage;
+        }
     }
 
     /**
