@@ -8,15 +8,36 @@
  * WebSite: http://www.lanecn.com
  */
 // Websocket
-$web = new \FastWS\Core\TelnetServer("Websocket://0.0.0.0:19910");
+$webSocket = new \FastWS\Core\FastWS("Websocket://0.0.0.0:19910");
 // Websocket数量
-$web->workerCount = 1;
+$webSocket->workerCount = 1;
 // 设置站点根目录
-//$web->setRoot('www.lanecn.com', __DIR__.'/Web');
-$web->name = 'FastWS-Websocket';
+$webSocket->name = 'FastWS-Websocket';
 
-//$web->user = 'lane';
-//$web->group = 'staff';
+//当客户端连接上来时，设置连接的onWebSocketConnect，即在websocket握手时的回调
+$webSocket->callbackConnect = 'callbackConnect';
+$webSocket->callbackNewData = 'callbackNewData';
+$webSocket->callbackConnectClose = 'callbackConnectClose';
+
+function callbackConnect($connect){
+    var_dump('收到新链接. UniqueId='.$connect->id);
+}
+
+function callbackNewData($connect, $data){
+    var_dump('UniqueId='.$connect->id.'说:'.$data);
+//    _broadcast($connect, $data);
+}
+
+function callbackConnectClose($connect){
+    var_dump('UniqueId='.$connect->id.'断开了');
+}
+
+function _broadcast($connect, $data){
+    $userId = $connect->id;
+    foreach($connect->worker->clientList as $client){
+        $client->send('用户'.$userId.'说: '.$data);
+    }
+}
 
 // 如果不是在根目录启动，则运行runAll方法
 //if(!defined('GLOBAL_START'))

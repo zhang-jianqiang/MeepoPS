@@ -153,7 +153,6 @@ class Websocket implements ProtocolInterface {
      */
     public static function encode($data, ConnectInterface $connect)
     {
-        $ret = '';
         $dataLength = strlen($data);
         if(empty($connect->websocketType)){
             $connect->websocketType = self::BINARY_TYPE_BLOB;
