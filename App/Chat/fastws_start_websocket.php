@@ -8,7 +8,7 @@
  * WebSite: http://www.lanecn.com
  */
 // Websocket
-$webSocket = new \FastWS\Core\FastWS("Websocket://0.0.0.0:19910");
+$webSocket = new \FastWS\Core\FastWS("Websocket://0.0.0.0:8082");
 // Websocket数量
 $webSocket->workerCount = 1;
 // 设置站点根目录

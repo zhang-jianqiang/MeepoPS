@@ -31,10 +31,10 @@ define('FASTWS_IMPLICIT_FLUSH', true);
 //define('FASTWS_PRIORITY_ONE_QUERY', false);
 
 //Log路径
-define('FASTWS_LOG_PATH', '/tmp/fast_ws_'.date('Y-m-d').'.log');
+define('FASTWS_LOG_PATH', '/home/lane/fast_ws_'.date('Y-m-d').'.log');
 
 //标准输出路径
-define('FASTWS_STDOUT_PATH', '/dev/null');
+define('FASTWS_STDOUT_PATH', '/home/lane/fast_ws_'.date('Y-m-d').'.stdout');
 
 //Pid文件路径
 define('FASTWS_MASTER_PID_PATH', '/var/run/fast_ws/fast_ws_master.pid');

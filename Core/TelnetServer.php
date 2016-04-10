@@ -34,16 +34,17 @@ class TelnetServer extends FastWS{
     }
 
     public function callbackConnect($connect){
-        var_dump('收到新链接. UniqueId='.$connect->id);
+        //var_dump('收到新链接. UniqueId='.$connect->id);
     }
 
     public function callbackNewData($connect, $data){
-        var_dump('UniqueId='.$connect->id.'说:'.$data);
-        $this->_broadcast($connect, $data);
+        $connect->send('用户'.$connect->id.'说: '.$data);
+        //var_dump('UniqueId='.$connect->id.'说:'.$data);
+        //$this->_broadcast($connect, $data);
     }
 
     public function callbackConnectClose($connect){
-        var_dump('UniqueId='.$connect->id.'断开了');
+        //var_dump('UniqueId='.$connect->id.'断开了');
     }
 
     private function _broadcast($connect, $data){
