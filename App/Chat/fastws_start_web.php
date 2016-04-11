@@ -7,6 +7,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+return;
 // WebServer
 $web = new \FastWS\Core\WebServer("http://0.0.0.0:8081");
 // WebServer数量

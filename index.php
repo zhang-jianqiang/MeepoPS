@@ -5,10 +5,8 @@
  */
 namespace FastWS;
 
-// 标记是全局启动
 use FastWS\Core\FastWS;
 
-define('GLOBAL_START', 1);
 
 //载入FastWS配置文件
 require_once __DIR__ . '/Core/Config.php';

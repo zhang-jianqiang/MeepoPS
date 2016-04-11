@@ -7,6 +7,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+return;
 // Websocket
 $webSocket = new \FastWS\Core\FastWS("Websocket://0.0.0.0:8082");
 // Websocket数量

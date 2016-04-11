@@ -43,7 +43,7 @@ types {
     application/x-perl                    pl pm;
     application/x-pilot                   prc pdb;
     application/x-rar-compressed          rar;
-    application/x-redhat-package-manager  rpm;
+    application/x-redhat-packet-manager  rpm;
     application/x-sea                     sea;
     application/x-shockwave-flash         swf;
     application/x-stuffit                 sit;

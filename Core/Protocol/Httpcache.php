@@ -16,7 +16,7 @@ namespace FastWS\Core\Protocol;
  * Created By Lane
  * Mail: lixuan868686@163.com
  * Blog: http://www.lanecn.com
- * @package FastWS\Core\Protocol
+ * @packet FastWS\Core\Protocol
  */
 class Httpcache
 {

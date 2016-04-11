@@ -122,13 +122,13 @@ class Tcp extends ConnectInterface
                     if($this->_currentPackageSize === 0){
                         break;
                     //如果数据包在配置的最大TCP链接所接收的数据量之内,并且值>0
-                    }else if($this->_currentPackageSize > 0 && $this->_currentPackageSize <= FASTWS_TCP_CONNECT_MAX_PACKAGE_SIZE){
+                    }else if($this->_currentPackageSize > 0 && $this->_currentPackageSize <= FASTWS_TCP_CONNECT_MAX_PACKET_SIZE){
                         if($this->_currentPackageSize > strlen($this->_readDate)) {
                             break;
                         }
                     //数据包长度不正确,销毁链接
                     }else{
-                        Log::write('data package size incorrect. size='.$this->_currentPackageSize, 'WARNING');
+                        Log::write('data packet size incorrect. size='.$this->_currentPackageSize, 'WARNING');
                         $this->destroy();
                         return;
                     }
