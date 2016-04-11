@@ -62,17 +62,17 @@ class Select implements EventInterface
     public function add($callback, array $args, $resource, $type){
         switch($type){
             case EventInterface::EVENT_TYPE_READ:
-                $uniqueResourceId = intval($resource);
+                $uniqueResourceId = (int)($resource);
                 $this->_eventList[$uniqueResourceId][$type] = array($callback, $resource);
                 $this->_readEventList[$uniqueResourceId] = $resource;
                 break;
             case EventInterface::EVENT_TYPE_WRITE:
-                $uniqueResourceId = intval($resource);
+                $uniqueResourceId = (int)($resource);
                 $this->_eventList[$uniqueResourceId][$type] = array($callback, $resource);
                 $this->_writeEventList[$uniqueResourceId] = $resource;
                 break;
             case EventInterface::EVENT_TYPE_SIGNAL:
-                $uniqueResourceId = intval($resource);
+                $uniqueResourceId = (int)($resource);
                 $this->_signalEventList[$uniqueResourceId][$type] = array($callback, $resource);
                 pcntl_signal($resource, array($this, 'signalHandler'));
                 break;
@@ -100,7 +100,7 @@ class Select implements EventInterface
      * @param $signal int 信号
      */
     public function signalHandler($signal){
-        $signal = intval($signal);
+        $signal = (int)($signal);
         call_user_func($this->_signalEventList[$signal][EventInterface::EVENT_TYPE_SIGNAL][0], $signal);
     }
 
@@ -152,7 +152,7 @@ class Select implements EventInterface
      * @return bool
      */
     public function delOne($resource, $type){
-        $uniqueId = intval($resource);
+        $uniqueId = (int)($resource);
         switch($type){
             case EventInterface::EVENT_TYPE_READ:
                 unset($this->_eventList[$uniqueId][$type]);
@@ -226,7 +226,7 @@ class Select implements EventInterface
             );
             foreach($selectList as $select){
                 foreach($select['data'] as $item){
-                    $uniqueId = intval($item);
+                    $uniqueId = (int)($item);
                     if(isset($this->_eventList[$uniqueId][$select['type']])){
                         call_user_func($this->_eventList[$uniqueId][$select['type']][0], $this->_eventList[$uniqueId][$select['type']][1]);
                     }
