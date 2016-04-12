@@ -7,6 +7,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+return;
 $fastws = new \FastWS\Core\FastWS();
 // WebServer数量
 $fastws->workerCount = 1;

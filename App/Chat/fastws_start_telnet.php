@@ -7,7 +7,6 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-return;
 // TelnetServer
 $telnet = new \FastWS\Core\TelnetServer("text://0.0.0.0:19910");
 // TelnetServer数量

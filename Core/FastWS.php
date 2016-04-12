@@ -523,13 +523,6 @@ class FastWS
      */
     public static function checkShutdownErrors()
     {
-        $data = xhprof_disable();   //返回运行数据
-        include_once "/var/www/tools/xhprof/xhprof_lib/utils/xhprof_lib.php";
-        include_once "/var/www/tools/xhprof/xhprof_lib/utils/xhprof_runs.php";
-        $objXhprofRun = new \XHProfRuns_Default();
-        $run_id = $objXhprofRun->save_run($data, "myXhprof");
-        var_dump($run_id);
-
         Log::write('FastWS check shutdown errors');
         if (self::$_currentStatus != FASTWS_STATUS_SHUTDOWN) {
             $errno = error_get_last();

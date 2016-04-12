@@ -38,13 +38,13 @@ class Select implements EventInterface
      */
     public function __construct(){
         //创建一个管道, 加入到事件队列中,避免空轮询
-        $channel = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-        if($channel){
-            //设置资源流为非阻塞
-            stream_set_blocking($channel[0], 0);
-            //加入到读取事件列表
-            $this->_readEventList[] = $channel[0];
-        }
+        //$channel = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
+        //if($channel){
+        //    //设置资源流为非阻塞
+        //    stream_set_blocking($channel[0], 0);
+        //    //加入到读取事件列表
+        //    $this->_readEventList[] = $channel[0];
+        //}
         //初始化一个队列,
         $this->_splPriorityQueue = new \SplPriorityQueue();
         //设置队列为提取数组包含值和优先级
@@ -210,13 +210,7 @@ class Select implements EventInterface
             //已添加的写事件 - 每个元素都是socket资源
             $writeList = $this->_writeEventList;
             //监听读写事件列表,如果哪个有变化则发回变化数量.同时引用传入的两个列表将会变化
-            var_dump(123);
-            var_dump($readList);
             $selectNum = stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
-            var_dump($selectNum);
-            var_dump($readList);
-            var_dump(456);
-//            exit;
             //执行定时器队列
             if(!$this->_splPriorityQueue->isEmpty()){
                 $this->_runTimerEvent();

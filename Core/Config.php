@@ -16,10 +16,10 @@ $config = parse_ini_file('config.ini', true);
 date_default_timezone_set($config['system']['date_default_timezone_set']);
 
 //Debug true为开启Debug模式
-define('FASTWS_DEBUG', $config['system']['DEBUG']);
+define('FASTWS_DEBUG', $config['system']['debug']);
 
 //结束正在运行的多个进程时,间隔时间,单位秒
-define('FASTWS_KILL_WORKER_TIME_INTERVAL', '2');
+define('FASTWS_KILL_WORKER_TIME_INTERVAL', $config['system']['stop_multi_worker_time_interval']);
 
 //是否立即刷送输出.调用方若没有ob_系列函数则不需要修改此值
 define('FASTWS_IMPLICIT_FLUSH', $config['system']['implicit_flush']);
@@ -38,7 +38,7 @@ define('FASTWS_MASTER_PID_PATH', $config['file']['master_pid_path']);
 define('FASTWS_STATISTICS_PATH', $config['file']['statistics_path']);
 
 //TCP链接中默认最大的待发送缓冲区
-define('FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE', $config['file']['tcp_default_max_send_buffer_size']);
+define('FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE', $config['connection']['tcp_default_max_send_buffer_size']);
 
 //TCP链接中所能接收的最大的数据包
-define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['file']['tcp_max_max_packet_size']);
+define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['connection']['tcp_max_max_packet_size']);
