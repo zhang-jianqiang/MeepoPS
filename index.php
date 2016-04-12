@@ -7,6 +7,7 @@ namespace FastWS;
 
 use FastWS\Core\FastWS;
 
+xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
 
 //载入FastWS配置文件
 require_once __DIR__ . '/Core/Config.php';

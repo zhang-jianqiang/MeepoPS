@@ -527,7 +527,7 @@ class FastWS
         include_once "/var/www/tools/xhprof/xhprof_lib/utils/xhprof_lib.php";
         include_once "/var/www/tools/xhprof/xhprof_lib/utils/xhprof_runs.php";
         $objXhprofRun = new \XHProfRuns_Default();
-        $run_id = $objXhprofRun->save_run($data, "xhprof");
+        $run_id = $objXhprofRun->save_run($data, "myXhprof");
         var_dump($run_id);
 
         Log::write('FastWS check shutdown errors');

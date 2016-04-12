@@ -205,12 +205,18 @@ class Select implements EventInterface
         while(true){
             //调用等待信号的处理器.即收到信号后执行通过pcntl_signal安装的信号处理函数
             pcntl_signal_dispatch();
-            //已添加的读事件 - 每个元素都是soucket资源
+            //已添加的读事件 - 每个元素都是socket资源
             $readList = $this->_readEventList;
-            //已添加的写事件 - 每个元素都是soucket资源
+            //已添加的写事件 - 每个元素都是socket资源
             $writeList = $this->_writeEventList;
             //监听读写事件列表,如果哪个有变化则发回变化数量.同时引用传入的两个列表将会变化
+            var_dump(123);
+            var_dump($readList);
             $selectNum = stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
+            var_dump($selectNum);
+            var_dump($readList);
+            var_dump(456);
+//            exit;
             //执行定时器队列
             if(!$this->_splPriorityQueue->isEmpty()){
                 $this->_runTimerEvent();
