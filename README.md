@@ -3,6 +3,19 @@ FastWS是Fast WebSocke的缩写，志在提供稳定的WebSocket服务。本项�
 
 版本V0.0.1 开发中
 
+
+2016-04-13日测试结果：
+之前有一个BUG，FastWS启动时会直接将CPU打满。BUG修复后测试如下：
+
+使用Select轮训机制
+一个Worker，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
+测试时间共58008秒。
+两个进程模拟客户端，每个链接发送"hello world\n"100次。在测试期间内，每个进程分别链接了4977974次和5478783次。QPS为18026
+
+
+
+2016-04-09日测试结果：
+
 稳定性测试一：
 使用Select轮训机制
 三个Worker，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
