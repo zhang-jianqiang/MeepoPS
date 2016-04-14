@@ -10,7 +10,7 @@
 namespace FastWS\Core;
 
 //解析配置文件
-$config = parse_ini_file('config.ini', true);
+$config = parse_ini_file(FAST_WS_ROOT_PATH . 'config.ini', true);
 
 //时区设置
 date_default_timezone_set($config['system']['date_default_timezone_set']);
