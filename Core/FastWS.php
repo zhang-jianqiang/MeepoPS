@@ -151,8 +151,8 @@ class FastWS
     {
         self::_init();
         self::_command();
-        self::_saveMasterPid();
         self::_daemon();
+        self::_saveMasterPid();
         self::_createWorkers();
         self::_installSignal();
         self::_checkWorkerListProcess();
