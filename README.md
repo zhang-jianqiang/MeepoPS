@@ -8,7 +8,7 @@ FastWS是Fast WebSocke的缩写，志在提供稳定的WebSocket服务。本项�
 之前有一个BUG，FastWS启动时会直接将CPU打满。BUG修复后测试如下：
 
 使用Select轮训机制
-一个Worker，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
+一个实例，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
 测试时间共76314秒。
 两个进程模拟客户端，每个链接发送"hello world\n"100次。在测试期间内，每个进程分别链接了6555971次和7218005次。QPS为18049
 
@@ -18,13 +18,13 @@ FastWS是Fast WebSocke的缩写，志在提供稳定的WebSocket服务。本项�
 
 稳定性测试一：
 使用Select轮训机制
-三个Worker，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
+三个实例，都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
 2016-04-09 12:40 到 2016-04-09 13:13 共88380秒。
 两个进程模拟客户端，每个链接发送"hello world\n"100次。在测试期间内，每个进程分别链接了81632次和81298次。QPS为184.
 
 稳定性测试二：
 使用Select轮训机制
-三个Worker，其中Text协议的Worker为两个进程，其他两个Worker都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
+三个实例，其中Text协议的实例为两个进程，其他两个实例都是单进程。对Text协议进行测试。使用PHP模拟Telnet。
 2016-04-10 13:13 到 2016-04-11 13:30 共87300秒。
 两个进程模拟客户端，每个链接发送"hello world\n"100次。在测试期间内，每个测试进程分别链接了65348和65963次。QPS为150.
 

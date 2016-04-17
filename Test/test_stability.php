@@ -22,7 +22,10 @@ while(true){
             $errWrite++;
             continue;
         }
-        $data = fread($socket, 2000);
+        $data = '';
+        while(feof($socket)){
+            $data .= fread($socket, 2000);
+        }
         if(!$data || strlen($data)<10){
             $errRead++;
         }
