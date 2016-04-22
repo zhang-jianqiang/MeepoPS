@@ -38,8 +38,18 @@ if(!extension_loaded('posix')) {
 }
 
 //启动参数是否正确
-if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status', 'kill', 'reload'))){
-    $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill|reload\n\"";
+if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'status', 'kill'))){
+    $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill\n\"";
+}
+
+//是否设置了启动用户和用户组
+if(!FASTWS_START_USER || !FASTWS_START_GROUP){
+    $fatalErrorList[] = 'You must set up a startup user and user group.';
+}
+
+//如果设置的启动用户不是当前用户,则提示需要root权限
+if (FASTWS_START_USER != Func::getCurrentUser()) {
+    $fatalErrorList[] = 'You must have the root permission to change uid and gid.';
 }
 
 //日志路径是否已经配置

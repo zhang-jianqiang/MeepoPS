@@ -44,4 +44,10 @@ define('FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE', $config['connection'][
 define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['connection']['tcp_max_max_packet_size']);
 
 //事件轮询中的超时时间
-define('EVENT_POLL_TIMEOUT', $config['event']['event_poll_timeout']);
+define('FASTWS_EVENT_POLL_TIMEOUT', $config['event']['event_poll_timeout']);
+
+//启动用户
+define('FASTWS_START_USER', $config['user']['start_user']);
+
+//启动用户组
+define('FASTWS_START_GROUP', $config['user']['start_group']);

@@ -30,7 +30,7 @@ class Select implements EventInterface
     //计时器任务ID
     private $_timerId = 1;
     //select 超时时间 微妙 默认100秒
-    private $_selectTimeout = EVENT_POLL_TIMEOUT;
+    private $_selectTimeout = FASTWS_EVENT_POLL_TIMEOUT;
 
     /**
      * 初始化
@@ -134,7 +134,7 @@ class Select implements EventInterface
             call_user_func_array($task[0], $task[1]);
             continue;
         }
-        $this->_selectTimeout = EVENT_POLL_TIMEOUT;
+        $this->_selectTimeout = FASTWS_EVENT_POLL_TIMEOUT;
     }
 
     /**

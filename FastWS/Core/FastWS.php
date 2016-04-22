@@ -21,6 +21,8 @@ class FastWS
      */
     //实例名称
     public $instanceName;
+    //绑定需要解析的协议
+    private $_bindProtocol = '';
     //绑定需要监听的主机IP
     private $_bindHost = '';
     //绑定需要监听的端口
@@ -30,8 +32,6 @@ class FastWS
     //实例所属所有子进程的Pid列表.一个实例有多个Pid(多子进程).一个FastWS有多个实例
     //array('instance1'=>array(1001, 1002, 1003), 'instance2'=>array(1004, 1005, 1006))
     private static $_instancePidList;
-    //在FastWS主进程中,每个实例的和Pid的对应关系列表. 如:array('instance1'=> array(10199, 0), 'instance2'=> array(19211, 19212))
-    private static $_instanceIdList;
     //实例ID
     private $_instanceId;
     //这个实例有多少子进程
@@ -74,6 +74,8 @@ class FastWS
     public $protocolTransfer = 'tcp';
     //应用层协议
     public $protocolApplication = '';
+    //应用层协议处理类
+    public $protocolApplicationClassName = '';
     //传输层协议
     private static $_protocolTransferList = array(
         'tcp' => 'tcp',
@@ -130,11 +132,8 @@ class FastWS
      */
     public function __construct($protocol='', $host = '', $port='', $contextOptionList = array())
     {
-        //---全局共享信息---
-        $this->_instanceId = spl_object_hash($this);
-        self::$_instanceList[$this->_instanceId] = $this;
-        self::$_instancePidList[$this->_instanceId] = array();
         //---每一个实例的属性---
+        $this->_bindProtocol = $protocol;
         $this->_bindHost = $host;
         $this->_bindPort = $port;
         //传入的协议是应用层协议还是传输层协议
@@ -143,12 +142,22 @@ class FastWS
         //不是传输层协议,则认为是应用层协议.直接new应用层协议类
         } else {
             $this->protocolApplication = $protocol;
+            $this->protocolApplicationClassName = '\FastWS\Core\Protocol\\' . ucfirst($this->protocolApplication);
+            if (!class_exists($this->protocolApplicationClassName)) {
+                Log::write('Application layer protocol calss not found.', 'FATAL');
+            }
         }
+        //给实例起名
+        $this->instanceName = $this->instanceName ? $this->instanceName : $this->_getBind();
         //创建资源流上下文
         $contextOptionList['socket']['backlog'] = !isset($contextOptionList['socket']['backlog']) ? FASTWS_BACKLOG : $contextOptionList['socket']['backlog'];
-        if ($this->_bindHost && $this->_bindPort) {
+        if ($this->_bindProtocol && $this->_bindHost && $this->_bindPort) {
             $this->_streamContext = stream_context_create($contextOptionList);
         }
+        //---全局共享信息---
+        $this->_instanceId = spl_object_hash($this);
+        self::$_instanceList[$this->_instanceId] = $this;
+        self::$_instancePidList[$this->_instanceId] = array();
     }
 
     /**
@@ -198,7 +207,9 @@ class FastWS
     private static function _command()
     {
         global $argv;
+        $startFilename = trim($argv[0]);
         $operation = trim($argv[1]);
+        $isDomain = isset($argv[2]) && trim($argv[2]) === '-d' ? true : false;
         //获取主进程ID - 用来判断当前进程是否在运行
         $masterPid = false;
         if(file_exists(FASTWS_MASTER_PID_PATH)){
@@ -212,131 +223,41 @@ class FastWS
         }
         //不能重复启动
         if ($masterIsAlive && $operation === 'start') {
-            Log::write('FastWS already running. file: ' . $argv[0], 'FATAL');
+            Log::write('FastWS already running. file: ' . $startFilename, 'FATAL');
         }
         //未启动不能查看状态
         if (!$masterIsAlive && $operation === 'status') {
-            Log::write('FastWS no running. file: ' . $argv[0], 'FATAL');
+            Log::write('FastWS no running. file: ' . $startFilename, 'FATAL');
         }
         //未启动不能终止
         if (!$masterIsAlive && $operation === 'stop') {
-            Log::write('FastWS no running. file: ' . $argv[0], 'FATAL');
+            Log::write('FastWS no running. file: ' . $startFilename, 'FATAL');
         }
         //根据不同的执行参数执行不同的动作
         switch ($operation) {
             //启动
             case 'start':
-                if (isset($argv[2]) && trim($argv[2]) === '-d') {
-                    self::$isDaemon = true;
-                    self::_daemon();
-                }
+                self::_commandStart($isDomain);
                 break;
             //停止
             case 'stop':
-                Log::write('FastWS receives the "stop" instruction, FastWS will graceful stop');
-                //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
-                if ($masterPid) {
-                    posix_kill($masterPid, SIGINT);
-                }
-                $nowTime = time();
-                $timeout = 5;
-                while (true) {
-                    //主进程是否在运行
-                    $masterIsAlive = $masterPid && posix_kill($masterPid, SIG_DFL);
-                    if ($masterIsAlive) {
-                        //如果超时
-                        if ((time() - $nowTime) > $timeout) {
-                            Log::write('FastWS stop master process failed: timeout ' . $timeout . 's', 'FATAL');
-                        }
-                        //等待10毫秒,再次判断是否终止.
-                        usleep(10000);
-                        continue;
-                    }
-                    break;
-                }
-                exit();
-
+                self::_commandStop($masterPid);
+                break;
             //重启
             case 'restart':
-                Log::write('FastWS receives the "restart" instruction, FastWS will graceful restart');
-                //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
-                if ($masterPid) {
-                    posix_kill($masterPid, SIGINT);
-                }
-                $nowTime = time();
-                $timeout = 5;
-                while (true) {
-                    //主进程是否在运行
-                    $masterIsAlive = $masterPid && posix_kill($masterPid, SIG_DFL);
-                    if ($masterIsAlive) {
-                        //如果超时
-                        if ((time() - $nowTime) > $timeout) {
-                            Log::write('FastWS stop master process failed: timeout ' . $timeout . 's', 'FATAL');
-                        }
-                        //等待10毫秒,再次判断是否终止.
-                        usleep(10000);
-                        continue;
-                    }
-                    if (isset($argv[2]) && trim($argv[2]) === '-d') {
-                        self::$isDaemon = true;
-                    }
-                    break 2;
-                }
+                self::_commandRestart($masterPid, $isDomain);
                 break;
             //状态
             case 'status':
-                //删除之前的统计文件.忽略可能发生的warning(文件不存在的时候)
-                @unlink(FASTWS_STATISTICS_PATH);
-                //给正在运行的FastWS的主进程发送SIGUSR2信号,此时主进程收到SIGUSR信号后会通知子进程将当前状态写入文件当中
-                posix_kill($masterPid, SIGUSR2);
-                //本进程sleep.目的是等待正在运行的FastWS的子进程完成写入状态文件的操作
-                sleep(1);
-                //输出状态
-                echo @file_get_contents(FASTWS_STATISTICS_PATH);
-                exit();
+                self::_commandStatus($masterPid);
+                break;
             //停止所有的FastWS
             case 'kill':
-                Log::write('FastWS receives the "kill" instruction, FastWS will end the violence');
-                exec("ps aux | grep $argv[0] | grep -v grep | awk '{print $2}' |xargs kill -SIGINT");
-                exec("ps aux | grep $argv[0] | grep -v grep | awk '{print $2}' |xargs kill -SIGKILL");
-                exit();
-            //动态加载
-            case 'reload':
-                exit('未开发...');
+                self::_commandKill($startFilename);
+                break;
             //参数不合法
             default:
                 Log::write('Parameter error. Usage: php index.php start|stop|restart|status|kill', 'FATAL');
-        }
-    }
-
-    /**
-     * 启动守护进程
-     */
-    private static function _daemon()
-    {
-        //改变umask
-        umask(0);
-        //创建一个子进程
-        $pid = pcntl_fork();
-        //fork失败
-        if ($pid === -1) {
-            Log::write('FastWS _daemon: fork failed', 'FATAL');
-        //父进程
-        } else if ($pid > 0) {
-            exit();
-        }
-        //设置子进程为Session leader, 可以脱离终端工作.这是实现daemon的基础
-        if (posix_setsid() === -1) {
-            Log::write('FastWS _daemon: setsid failed', 'FATAL');
-        }
-        //再次在开启一个子进程
-        //这不是必须的,但通常都这么做,防止获得控制终端.
-        $pid = pcntl_fork();
-        if ($pid === -1) {
-            Log::write('FastWS _daemon: fork2 failed', 'FATAL');
-        //将父进程退出
-        } else if ($pid !== 0) {
-            exit();
         }
     }
 
@@ -357,15 +278,6 @@ class FastWS
     private static function _createInstance()
     {
         foreach (self::$_instanceList as &$instance) {
-            //给每个实例起名字
-            $instance->instanceName = $instance->instanceName ? $instance->instanceName : 'FastWS Default Name';
-            //如果没有设置实例的启动用户,则设置为当前用户
-            if (empty($instance->user)) {
-                $instance->user = Func::getCurrentUser();
-            //如果设置了实例的启动用户,但是并不是当前用户,则提示需要root权限
-            } else if (posix_getuid() && $instance->user != Func::getCurrentUser()) {
-                Log::write('You must have the root permission to change uid and gid.', 'FATAL');
-            }
             //每个实例开始监听
             $instance->_listen();
         }
@@ -377,21 +289,14 @@ class FastWS
     private function _listen()
     {
         //如果没有监听的IP,端口,或者已经建立了socket链接.则不再继续监听
-        if (!$this->_bindHost || !$this->_bindPort || $this->_masterSocket) {
+        if (!$this->_bindProtocol || !$this->_bindHost || !$this->_bindPort || $this->_masterSocket) {
             return;
         }
-        //如果应用层协议不为空
-        if (!empty($this->protocolApplication)) {
-            $protocolApplicationClassname = '\FastWS\Core\Protocol\\' . ucfirst($this->protocolApplication);
-            if (!class_exists($protocolApplicationClassname)) {
-                Log::write('Application layer protocol calss not found.', 'FATAL');
-            }
-        }
-        $host = $this->protocolTransfer . '://' . $this->_bindHost . ':' . $this->_bindPort;
+        $listen = $this->protocolTransfer . '://' . $this->_bindHost . ':' . $this->_bindPort;
         $errno = 0;
         $errmsg = '';
-        $flags = $this->protocolTransfer === 'udp' ? STREAM_SERVER_BIND : STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
-        $this->_masterSocket = stream_socket_server($host, $errno, $errmsg, $flags, $this->_streamContext);
+        $flags = $this->protocolTransfer === 'tcp' ? STREAM_SERVER_BIND | STREAM_SERVER_LISTEN : STREAM_SERVER_BIND;
+        $this->_masterSocket = stream_socket_server($listen, $errno, $errmsg, $flags, $this->_streamContext);
         if (!$this->_masterSocket) {
             Log::write('stream_socket_server() error: errno=' . $errno . ' errmsg=' . $errmsg, 'FATAL');
         }
@@ -406,8 +311,7 @@ class FastWS
         stream_set_blocking($this->_masterSocket, 0);
         //创建一个监听事件
         if (self::$globalEvent) {
-            $callbackMethod = $this->protocolTransfer !== 'udp' ? 'acceptConnect' : 'acceptUdpConnect';
-            self::$globalEvent->add(array($this, $callbackMethod), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
+            self::$globalEvent->add(array($this, 'acceptTcpConnect'), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
         }
     }
 
@@ -418,10 +322,8 @@ class FastWS
     {
         //SIGINT为停止FastWS的信号
         pcntl_signal(SIGINT, array('\FastWS\Core\FastWS', 'signalHandler'), false);
-        //SIGUSR1 尚未使用.计划为载入文件,即nginx的reload
+        //SIGUSR1 为查看FastWS所有状态的信号
         pcntl_signal(SIGUSR1, array('\FastWS\Core\FastWS', 'signalHandler'), false);
-        //SIGUSR2 为查看FastWS所有状态的信号
-        pcntl_signal(SIGUSR2, array('\FastWS\Core\FastWS', 'signalHandler'), false);
         //SIGPIPE 信号会导致Linux下Socket进程终止.我们忽略他
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
@@ -433,9 +335,6 @@ class FastWS
     private static function _checkInstanceListProcess()
     {
         foreach (self::$_instanceList as $instance) {
-            if (self::$_currentStatus === FASTWS_STATUS_STARTING) {
-                $instance->instanceName = $instance->instanceName ? $instance->instanceName : $instance->_getBind();
-            }
             while (count(self::$_instancePidList[$instance->_instanceId]) < $instance->childProcessCount) {
                 self::_forkInstance($instance);
             }
@@ -522,11 +421,9 @@ class FastWS
         //设置之前设置的信号处理方式为忽略信号.并且系统调用被打断时不可重启系统调用
         pcntl_signal(SIGINT, SIG_IGN, false);
         pcntl_signal(SIGUSR1, SIG_IGN, false);
-        pcntl_signal(SIGUSR2, SIG_IGN, false);
         //安装新的信号的处理函数,采用事件轮询的方式
         self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGINT, EventInterface::EVENT_TYPE_SIGNAL);
         self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR1, EventInterface::EVENT_TYPE_SIGNAL);
-        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR2, EventInterface::EVENT_TYPE_SIGNAL);
     }
 
     /**
@@ -556,9 +453,6 @@ class FastWS
                 self::_stopAll();
                 break;
             case SIGUSR1:
-                self::_reload();
-                break;
-            case SIGUSR2:
                 self::_statisticsToFile();
                 break;
         }
@@ -702,20 +596,16 @@ class FastWS
     }
 
     /**
-     * 获取实例的协议\HOST\端口
+     * 获取实例的协议://HOST:端口
      * @return string
      */
     private function _getBind()
     {
-        $protocol = '';
-        if($this->_bindHost && $this->_bindPort){
-            if($this->protocolApplication){
-                $protocol = $this->protocolApplication;
-            }else{
-                $protocol = $this->protocolTransfer;
-            }
+        if($this->_bindProtocol && $this->_bindHost && $this->_bindPort){
+            $protocol = $this->protocolTransfer;
+            $bind = lcfirst($protocol.'://'.$this->_bindHost.':'.$this->_bindPort);
         }
-        return $protocol ? lcfirst($protocol.'://'.$this->_bindHost.':'.$this->_bindPort) : '';
+        return isset($bind) ? $bind : '';
     }
 
     /**
@@ -861,7 +751,7 @@ class FastWS
             //主进程做完统计后告诉所有子进程进行统计
             foreach(self::_getAllInstancePidList() as $pid)
             {
-                posix_kill($pid, SIGUSR2);
+                posix_kill($pid, SIGUSR1);
             }
             return;
         }
@@ -882,8 +772,127 @@ class FastWS
         return;
     }
 
-    private static function _reload()
+    /**
+     * 解析命令 - 启动
+     */
+    private static function _commandStart($isDomain){
+        if ($isDomain) {
+            self::$isDaemon = true;
+            self::_daemon();
+        }
+    }
+
+    /**
+     * 解析命令 - 停止
+     */
+    private static function _commandStop($masterPid){
+        Log::write('FastWS receives the "stop" instruction, FastWS will graceful stop');
+        //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
+        if ($masterPid) {
+            posix_kill($masterPid, SIGINT);
+        }
+        $nowTime = time();
+        $timeout = 5;
+        while (true) {
+            //主进程是否在运行
+            $masterIsAlive = $masterPid && posix_kill($masterPid, SIG_DFL);
+            if ($masterIsAlive) {
+                //如果超时
+                if ((time() - $nowTime) > $timeout) {
+                    Log::write('FastWS stop master process failed: timeout ' . $timeout . 's', 'FATAL');
+                }
+                //等待10毫秒,再次判断是否终止.
+                usleep(10000);
+                continue;
+            }
+            break;
+        }
+        exit();
+    }
+
+    /**
+     * 解析命令 - 重启
+     */
+    private static function _commandRestart($masterPid, $isDomain){
+        Log::write('FastWS receives the "restart" instruction, FastWS will graceful restart');
+        //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
+        if ($masterPid) {
+            posix_kill($masterPid, SIGINT);
+        }
+        $nowTime = time();
+        $timeout = 5;
+        while (true) {
+            //主进程是否在运行
+            $masterIsAlive = $masterPid && posix_kill($masterPid, SIG_DFL);
+            if ($masterIsAlive) {
+                //如果超时
+                if ((time() - $nowTime) > $timeout) {
+                    Log::write('FastWS stop master process failed: timeout ' . $timeout . 's', 'FATAL');
+                }
+                //等待10毫秒,再次判断是否终止.
+                usleep(10000);
+                continue;
+            }
+            if ($isDomain === true) {
+                self::$isDaemon = true;
+            }
+            break;
+        }
+    }
+
+    /**
+     * 解析命令 - 强行结束
+     */
+    private static function _commandKill($startFilename){
+        Log::write('FastWS receives the "kill" instruction, FastWS will end the violence');
+        exec("ps aux | grep $startFilename | grep -v grep | awk '{print $2}' |xargs kill -SIGINT");
+        exec("ps aux | grep $startFilename | grep -v grep | awk '{print $2}' |xargs kill -SIGKILL");
+        exit();
+    }
+
+    /**
+     * 解析命令 - 查看状态
+     */
+    private static function _commandStatus($masterPid){
+        //删除之前的统计文件.忽略可能发生的warning(文件不存在的时候)
+        @unlink(FASTWS_STATISTICS_PATH);
+        //给正在运行的FastWS的主进程发送SIGUSR1信号,此时主进程收到SIGUSR1信号后会通知子进程将当前状态写入文件当中
+        posix_kill($masterPid, SIGUSR1);
+        //本进程sleep.目的是等待正在运行的FastWS的子进程完成写入状态文件的操作
+        sleep(1);
+        //输出状态
+        echo @file_get_contents(FASTWS_STATISTICS_PATH);
+        exit();
+    }
+
+    /**
+     * 已守护进程的方式启动FastWS
+     */
+    private static function _daemon()
     {
-        exit('未开启');
+        //改变umask
+        umask(0);
+        //创建一个子进程
+        $pid = pcntl_fork();
+        //fork失败
+        if ($pid === -1) {
+            Log::write('FastWS _daemon: fork failed', 'FATAL');
+            //父进程
+        } else if ($pid > 0) {
+            exit();
+        }
+        //设置子进程为Session leader, 可以脱离终端工作.这是实现daemon的基础
+        if (posix_setsid() === -1) {
+            Log::write('FastWS _daemon: setsid failed', 'FATAL');
+        }
+        //再次在开启一个子进程
+        //这不是必须的,但通常都这么做,防止获得控制终端.
+        $pid = pcntl_fork();
+        if ($pid === -1) {
+            Log::write('FastWS _daemon: fork2 failed', 'FATAL');
+            //将父进程退出
+        } else if ($pid !== 0) {
+            exit();
+        }
     }
 }
