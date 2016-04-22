@@ -195,7 +195,7 @@ class FastWS
         Func::setProcessTitle('FastWS_Master_Process');
         //设置ID
         foreach (self::$_instanceList as $instanceId => $instance) {
-            self::$_instanceIdList[$instanceId] = array_fill(0, $instance->childProcessCount, 0);
+            self::$_instancePidList[$instanceId] = array_fill(0, $instance->childProcessCount, 0);
         }
         //初始化定时器
         Timer::init();
@@ -349,8 +349,8 @@ class FastWS
     {
         //创建子进程
         $pid = pcntl_fork();
-        //初始化的时候$_instanceIdList是用0来填充的.这次就是查找到0的位置并且替换它.0表示尚未启动的子进程
-        $id = array_search(0, self::$_instanceIdList[$instance->_instanceId]);
+        //初始化的时候$_instancePidList是用0来填充的.这次就是查找到0的位置并且替换它.0表示尚未启动的子进程
+        $id = array_search(0, self::$_instancePidList[$instance->_instanceId]);
         //如果是主进程
         if ($pid > 0) {
             self::$_instanceIdList[$instance->_instanceId][$id] = $pid;
