@@ -347,13 +347,15 @@ class FastWS
      */
     private static function _forkInstance($instance)
     {
+        var_dump(self::$_instancePidList);
+        exit;
         //创建子进程
         $pid = pcntl_fork();
-        //初始化的时候$_instancePidList是用0来填充的.这次就是查找到0的位置并且替换它.0表示尚未启动的子进程
+        //初始化的时候$_instancePidList是用0来填充的.这次就是查找到0的第一次出现的位置的索引,并且替换它.0表示尚未启动的子进程
         $id = array_search(0, self::$_instancePidList[$instance->_instanceId]);
         //如果是主进程
         if ($pid > 0) {
-            self::$_instanceIdList[$instance->_instanceId][$id] = $pid;
+            unset(self::$_instancePidList[$instance->_instanceId][$id]);
             self::$_instancePidList[$instance->_instanceId][$pid] = $pid;
         //如果是子进程
         } elseif ($pid === 0) {
