@@ -48,7 +48,8 @@ if(!FASTWS_START_USER || !FASTWS_START_GROUP){
 }
 
 //如果设置的启动用户不是当前用户,则提示需要root权限
-if (FASTWS_START_USER != Func::getCurrentUser()) {
+$currentUser = posix_getpwuid(posix_getuid());
+if (FASTWS_START_USER != $currentUser['name']) {
     $fatalErrorList[] = 'You must have the root permission to change uid and gid.';
 }
 

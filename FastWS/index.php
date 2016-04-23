@@ -19,13 +19,13 @@ use FastWS\Core\FastWS;
 define('FAST_WS_ROOT_PATH', dirname(__FILE__).'/');
 
 //载入FastWS配置文件
-require_once __DIR__ . '/Core/Config.php';
+require_once FAST_WS_ROOT_PATH . '/Core/Config.php';
 
 //环境检测
-require_once __DIR__ . '/Core/CheckEnv.php';
+require_once FAST_WS_ROOT_PATH . '/Core/CheckEnv.php';
 
 //载入FastWS核心文件
-require_once __DIR__ . '/Core/Init.php';
+require_once FAST_WS_ROOT_PATH . '/Core/Init.php';
 
 //启动FastWS
 function runFastWS(){
