@@ -48,10 +48,12 @@ if(!FASTWS_START_USER || !FASTWS_START_GROUP){
 }
 
 //如果设置的启动用户不是当前用户,则提示需要root权限
-$currentUser = posix_getpwuid(posix_getuid());
-if (FASTWS_START_USER != $currentUser['name']) {
-    $fatalErrorList[] = 'You must have the root permission to change uid and gid.';
-}
+//$currentUser = posix_getpwuid(posix_getuid());
+//var_dump($currentUser);
+//var_dump(FASTWS_START_USER);
+//if ($currentUser !== 'root' && FASTWS_START_USER != $currentUser['name']) {
+//    $fatalErrorList[] = 'You must have the root permission to change uid and gid.';
+//}
 
 //日志路径是否已经配置
 if(!defined('FASTWS_LOG_PATH')){
