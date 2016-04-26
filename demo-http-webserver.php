@@ -13,22 +13,25 @@
 include_once 'FastWS/index.php';
 
 //使用文本传输的Api类
-$telnet = new \FastWS\Api\Telnet('telnet', '0.0.0.0', '19910');
+$webServer = new \FastWS\Api\Webserver('http', '0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
-$telnet->childProcessCount = 1;
+$webServer->childProcessCount = 1;
 
 //设置FastWS实例名称
-$telnet->instanceName = 'FastWS-Telnet';
+$webServer->instanceName = 'FastWS-Http';
 
 //设置启动FastWS的用户和用户组
-$telnet->user = 'lane';
-$telnet->group = 'staff';
+$webServer->user = 'lane';
+$webServer->group = 'staff';
+
+//设置主
+$webServer->setRoot('www.lanecn.com', __DIR__.'/Test/Web');
 
 //设置回调函数 - 这是所有应用的业务代码入口
-$telnet->callbackConnect = 'callbackConnect';
-$telnet->callbackNewData = 'callbackNewData';
-$telnet->callbackConnectClose = 'callbackConnectClose';
+$webServer->callbackConnect = 'callbackConnect';
+$webServer->callbackNewData = 'callbackNewData';
+$webServer->callbackConnectClose = 'callbackConnectClose';
 
 //启动FastWS
 \FastWS\runFastWS();

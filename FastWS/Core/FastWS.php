@@ -598,8 +598,7 @@ class FastWS
     private function _getBind()
     {
         if($this->_bindProtocol && $this->_bindHost && $this->_bindPort){
-            $protocol = $this->protocolTransfer;
-            $bind = lcfirst($protocol.'://'.$this->_bindHost.':'.$this->_bindPort);
+            $bind = lcfirst($this->_bindProtocol.'://'.$this->_bindHost.':'.$this->_bindPort);
         }
         return isset($bind) ? $bind : '';
     }
@@ -846,13 +845,13 @@ class FastWS
         //如果是子进程来执行本方法. 讲统计信息以追加的方式写入文件.
         if (self::$_masterPid === posix_getpid()){
             //以下为主进程部分
-            file_put_contents(FASTWS_STATISTICS_PATH, "---------------------GLOBAL STATUS---------------------\n");
+            file_put_contents(FASTWS_STATISTICS_PATH, "-------------------------GLOBAL STATUS-------------------------\n");
             file_put_contents(FASTWS_STATISTICS_PATH, 'FastWS Version: ' . FASTWS_VERSION . '          PHP version:' . PHP_VERSION . '          event_loop: ' . self::_chooseEventPoll() . "\n", FILE_APPEND);
             file_put_contents(FASTWS_STATISTICS_PATH, 'start time:'. self::$_statistics['start_time'] . '   run ' . time() - strtotime(self::$_statistics['start_time']) . "seconds \n", FILE_APPEND);
             $loadAvg = sys_getloadavg();
             file_put_contents(FASTWS_STATISTICS_PATH, 'System load: 1 minutes ago:' . round($loadAvg[0], 2) .  '; 5 minutes ago:' . round($loadAvg[1], 2)  .  '; 15 minutes ago:' . round($loadAvg[2], 2) . "\n", FILE_APPEND);
             file_put_contents(FASTWS_STATISTICS_PATH, 'Total instance number: ' . count(self::$_instancePidList) . '    Total child process number: ' . count(self::_getAllEnablePidList()) . "\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, "--------------------INSTANCE STATUS--------------------\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, "------------------------INSTANCE STATUS------------------------\n", FILE_APPEND);
             file_put_contents(FASTWS_STATISTICS_PATH, "instance_name    exit_status    exit_count\n", FILE_APPEND);
             foreach(self::$_instancePidList as $instanceId => $pidList){
                 $instance = self::$_instanceList[$instanceId];
@@ -864,8 +863,9 @@ class FastWS
                     file_put_contents(FASTWS_STATISTICS_PATH, $instance->instanceName . "              0             0\n", FILE_APPEND);
                 }
             }
-            file_put_contents(FASTWS_STATISTICS_PATH,  "---------------------PROCESS STATUS---------------------\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, "pid    memory    host        instance_name    total_connect    current_connect    total_request    send_fail    throw_exception\n", FILE_APPEND);
+            $separate = '    ';
+            file_put_contents(FASTWS_STATISTICS_PATH,  "-------------------------PROCESS STATUS-------------------------\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, "pid{$separate}{$separate}memory{$separate}{$separate}host{$separate}{$separate}{$separate}{$separate}{$separate}{$separate}instance_name{$separate}{$separate}total_connect{$separate}current_connect{$separate}total_request{$separate}send_request{$separate}send_failed{$separate}throw_exception{$separate}\n", FILE_APPEND);
             //主进程做完统计后告诉所有子进程进行统计
             foreach(self::_getAllEnablePidList() as $pid){
                 posix_kill($pid, SIGUSR1);
@@ -873,22 +873,23 @@ class FastWS
             return;
         }
 
-        //-----以下为子进程的统计信息
+        //-----以下为子进程的统计信息---
 
         //当前的实例
         $instance = current(self::$_instanceList);
         //获取系统分配给PHP的内存,四舍五入到两位小数,单位M
-        $statistics = str_pad(posix_getpid(), 6);
-        $statistics .= str_pad(round(memory_get_usage(true) / (1024*1024), 2) . 'M', 9);
-        $statistics .= str_pad($instance->_getBind(), 11);
-        $statistics .= str_pad($instance->instanceName, 16);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_connect_count'], 16);
-        $statistics .= str_pad(ConnectInterface::$statistics['current_connect_count'], 18);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_request_count'], 16);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_send_count'], 12);
-        $statistics .= str_pad(ConnectInterface::$statistics['send_failed_count'], 13);
-        $statistics .= str_pad(ConnectInterface::$statistics['exception_count'], 14);
+        $statistics = str_pad(posix_getpid(), 11);
+        $statistics .= str_pad(round(memory_get_usage(true) / (1024*1024), 2) . 'M', 14);
+        $statistics .= str_pad($instance->_getBind(), 28);
+        $statistics .= str_pad($instance->instanceName, 21);
+        $statistics .= str_pad(ConnectInterface::$statistics['total_connect_count'], 17);
+        $statistics .= str_pad(ConnectInterface::$statistics['current_connect_count'], 19);
+        $statistics .= str_pad(ConnectInterface::$statistics['total_request_count'], 17);
+        $statistics .= str_pad(ConnectInterface::$statistics['total_send_count'], 16);
+        $statistics .= str_pad(ConnectInterface::$statistics['send_failed_count'], 15);
+        $statistics .= str_pad(ConnectInterface::$statistics['exception_count'], 15);
         $statistics .= "\n";
+
         file_put_contents(FASTWS_STATISTICS_PATH, $statistics, FILE_APPEND);
         return;
     }
