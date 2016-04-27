@@ -847,7 +847,7 @@ class FastWS
             //以下为主进程部分
             file_put_contents(FASTWS_STATISTICS_PATH, "-------------------------GLOBAL STATUS-------------------------\n");
             file_put_contents(FASTWS_STATISTICS_PATH, 'FastWS Version: ' . FASTWS_VERSION . '          PHP version:' . PHP_VERSION . '          event_loop: ' . self::_chooseEventPoll() . "\n", FILE_APPEND);
-            file_put_contents(FASTWS_STATISTICS_PATH, 'start time:'. self::$_statistics['start_time'] . '   run ' . time() - strtotime(self::$_statistics['start_time']) . "seconds \n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, 'Start time: '. self::$_statistics['start_time'] . '   run ' . ( time() - strtotime(self::$_statistics['start_time']) ) . " seconds \n", FILE_APPEND);
             $loadAvg = sys_getloadavg();
             file_put_contents(FASTWS_STATISTICS_PATH, 'System load: 1 minutes ago:' . round($loadAvg[0], 2) .  '; 5 minutes ago:' . round($loadAvg[1], 2)  .  '; 15 minutes ago:' . round($loadAvg[2], 2) . "\n", FILE_APPEND);
             file_put_contents(FASTWS_STATISTICS_PATH, 'Total instance number: ' . count(self::$_instancePidList) . '    Total child process number: ' . count(self::_getAllEnablePidList()) . "\n", FILE_APPEND);
