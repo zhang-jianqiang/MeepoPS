@@ -10,7 +10,7 @@
 
 namespace FastWS\Core;
 
-class Autoloader{
+class Autoload{
 
     const NAMESPACE_PREFIX = 'FastWS\\';
 
@@ -37,4 +37,4 @@ class Autoloader{
         }
     }
 }
-Autoloader::register();
+Autoload::register();

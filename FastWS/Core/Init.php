@@ -14,7 +14,7 @@ namespace FastWS\Core;
  */
 
 //自动载入函数
-require 'Autoloader.php';
+require 'Autoload.php';
 
 //载入常量定义
 require 'Constant.php';

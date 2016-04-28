@@ -24,7 +24,6 @@ define('FASTWS_KILL_INSTANCE_TIME_INTERVAL', $config['system']['stop_multi_insta
 //是否立即刷送输出.调用方若没有ob_系列函数则不需要修改此值
 define('FASTWS_IMPLICIT_FLUSH', $config['system']['implicit_flush']);
 
-
 //Log路径
 define('FASTWS_LOG_PATH', $config['file']['log_filename_prefix'] . date('Y-m-d').'.log');
 
@@ -45,6 +44,9 @@ define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['connection']['tcp_max_max_
 
 //事件轮询中的超时时间
 define('FASTWS_EVENT_POLL_TIMEOUT', $config['event']['event_poll_timeout']);
+
+//SELECT轮询事件最大监听资源数.此为PHP源码限制.默认为1024. FastWS最多接收1020. 如果要改变这个值,请重新编译PHP(--enable-fd-setsize=2048)
+define('MAX_STREAM_SELECT_SIZE', $config['event']['max_stream_select_size']);
 
 //启动用户
 define('FASTWS_START_USER', $config['user']['start_user']);

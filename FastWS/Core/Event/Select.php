@@ -57,6 +57,14 @@ class Select implements EventInterface
      * @return bool
      */
     public function add($callback, array $args, $resource, $type){
+        //如果是读写事件,则两者和不能超过MAX_STREAM_SELECT_SIZE限制.
+        if( ($type == EventInterface::EVENT_TYPE_READ || $type == EventInterface::EVENT_TYPE_WRITE)){
+            $total = (count($this->_readEventList) + count($this->_writeEventList));
+            if(MAX_STREAM_SELECT_SIZE < $total){
+                Log::write('Select maximum number of listening resources is set to ' . MAX_STREAM_SELECT_SIZE . ', but you have descriptors numbered at least as high as ' . $total . '. If you want to change this value, you must recompile PHP (--enable-fd-setsize=2048)', 'WARNING');
+            }
+        }
+
         switch($type){
             case EventInterface::EVENT_TYPE_READ:
                 $uniqueResourceId = (int)($resource);
@@ -212,6 +220,7 @@ class Select implements EventInterface
 //                continue;
 //            }
             //监听读写事件列表,如果哪个有变化则发回变化数量.同时引用传入的两个列表将会变化
+            //请注意:stream_select()最多只能接收1024个监听.其中stream_select()会加4个.即$readList最多只能接收1020个
             $selectNum = @stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
             //执行定时器队列
             if(!$this->_splPriorityQueue->isEmpty()){
