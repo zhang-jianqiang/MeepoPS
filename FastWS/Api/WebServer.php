@@ -13,9 +13,13 @@ namespace FastWS\Api;
 use FastWS\Core\FastWS;
 use FastWS\Core\Log;
 use FastWS\Core\Protocol\Http;
-use FastWS\Core\Protocol\Httpcache;
+use FastWS\Core\Protocol\HttpCache;
 
-class Webserver extends FastWS{
+class WebServer extends FastWS{
+
+    //默认页文件名
+    public $defaultIndex = array('index.html', 'index.php');
+
     //MIME TYPE
     private static $_defaultMimeType = 'text/html; charset=utf-8';
     //代码文件根目录
@@ -23,8 +27,11 @@ class Webserver extends FastWS{
     //后缀和MimeType的对应关系 array('ext1'=>'mime_type1', 'ext2'=>'mime_type2')
     private static $mimeTypeMap = array();
 
+    private $_callerCallbackStart = '';
+    private $_callerCallbackNewData = '';
+
     /**
-     * Webserver constructor.
+     * WebServer constructor.
      * @param string $protocol string 协议,默认为Telnet
      * @param string $host string 需要监听的地址
      * @param string $port string 需要监听的端口
@@ -42,10 +49,16 @@ class Webserver extends FastWS{
      * 运行一个WebService实例
      */
     public function run(){
+        if(empty($this->_documentRoot)){
+            Log::write('not set document root.', 'ERROR');
+        }
+        //调用者所设置的回调放置在_callerCallback系列的属性中
+        $this->_callerCallbackNewData = $this->callbackNewData;
+        $this->_callerCallbackStart = $this->callbackStart;
+        //设置FastWS的回调.
         $this->callbackStart = array($this, 'callbackStart');
-        $this->callbackConnect = array($this, 'callbackConnect');
         $this->callbackNewData = array($this, 'callbackNewData');
-        $this->callbackConnectClose = array($this, 'callbackConnectClose');
+        //运行FastWS
         parent::run();
     }
 
@@ -75,17 +88,10 @@ class Webserver extends FastWS{
      * 回调.开始运行时
      */
     public function callbackStart(){
-        if(empty($this->_documentRoot)){
-            Log::write('not set document root.', 'FATAL');
-        }
-        // Init Httpcache.
-        Httpcache::init();
+        // Init HttpCache.
+        HttpCache::init();
         // Init mimeMap.
         $this->_initMimeTypeMap();
-    }
-
-    public function callbackConnect($connect){
-        var_dump('收到新链接. UniqueId='.$connect->id);
     }
 
     /**
@@ -94,8 +100,6 @@ class Webserver extends FastWS{
      * @param $data
      */
     public function callbackNewData($connect, $data){
-//        var_dump('UniqueId='.$connect->id.'说:');
-//        var_dump($data);
         //解析来访的URL
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         if(!$requestUri){
@@ -103,66 +107,71 @@ class Webserver extends FastWS{
             $connect->close('HTTP 400 Bad Request');
             return;
         }
-
         $urlPath = $requestUri['path'];
-        $urlPathInfo = pathinfo($urlPath);
-        $urlExt = isset($urlPathInfo['extension']) ? $urlPathInfo['extension'] : '' ;
-        if($urlExt === ''){
-            $len = strlen($urlPath);
-            $urlPath = ( $len && $urlPath[$len-1] === '/' ) ? $urlPath.'index.php' : $urlPath . '/index.php';
-            $urlExt = 'php';
-        }
+        $urlPathLength = strlen($urlPath);
+        $urlPath = $urlPath[$urlPathLength-1] === '/' ? substr($urlPath, 0, -1) : $urlPath;
         $documentRoot = isset($this->_documentRoot[$_SERVER['HTTP_HOST']]) ? $this->_documentRoot[$_SERVER['HTTP_HOST']] : current($this->_documentRoot);
-        $filename = $documentRoot . '/' . $urlPath;
-        if($urlExt === 'php' && !is_file($filename)){
-            $filename = $documentRoot . '/index.php';
-            if(!is_file($filename)){
-                $filename = $documentRoot . '/index.html';
-                $urlExt = 'html';
+        $filename = $documentRoot . $urlPath;
+        //清楚文件状态缓存
+        clearstatcache();
+        //如果是目录
+        if(is_dir($filename)){
+            //如果缺省首页存在
+            if($this->defaultIndex){
+                foreach($this->defaultIndex as $index){
+                    $file = $filename . '/' . $index;
+                    if(is_file($file)){
+                        $filename = $file;
+                        break;
+                    }
+                }
+            }else{
+                Http::setHeader("HTTP/1.1 403 Forbidden");
+                $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>Not allowed access to the directory!</center></body></html>');
+                return;
             }
         }
-        //找不到文件,就404
+        //文件是否有效
         if(!is_file($filename)){
             Http::setHeader("HTTP/1.1 404 Not Found");
             $connect->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
             return;
         }
+        //文件是否可读
+        if(!is_readable($filename)){
+            Http::setHeader("HTTP/1.1 403 Forbidden");
+            $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>File not readable</center></body></html>');
+            return;
+        }
+        //获取文件后缀
+        $urlPathInfo = pathinfo($filename);
+        $urlExt = isset($urlPathInfo['extension']) ? $urlPathInfo['extension'] : '' ;
         //访问的路径是否是指定根目录的子目录
-        $realPath = realpath($filename);
-        $documentRootRealPath = realpath($documentRoot);
-        if(!$realPath || !$documentRootRealPath || strpos($realPath, $documentRootRealPath) !== 0){
-            Http::setHeader('HTTP/1.1 400 Bad Request');
-            $connect->close('<h1>400 Bad Request</h1>');
+        $realFilename = realpath($filename);
+        $documentRootRealPath = realpath($documentRoot) .'/';
+        if(!$realFilename || !$documentRootRealPath || strpos($realFilename, $documentRootRealPath) !== 0){
+            Http::setHeader("HTTP/1.1 403 Forbidden");
+            $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>The directory is not authorized!</center></body></html>');
             return ;
         }
         //如果请求的是PHP文件
         if($urlExt === 'php'){
-            $cwd = getcwd();
-            chdir($documentRoot);
             ob_start();
-            try{
-                include $filename;
-            }catch(\Exception $e){
-                if($e->getMessage() != 'jump_exit'){
-                    echo $e;
-                }
-            }
+            include $realFilename;
             $content = ob_get_clean();
             $connect->close($content);
-            chdir($cwd);
             return;
         }
         //静态文件
-        if(isset(self::$mimeTypeMap[$urlExt])){
+        if($urlExt && isset(self::$mimeTypeMap[$urlExt])){
             Http::setHeader('Content-Type: '. self::$mimeTypeMap[$urlExt]);
         }else{
             Http::setHeader('Content-Type: '. self::$_defaultMimeType);
         }
-
         //获取文件状态
         $info = stat($filename);
         $modifiedTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
-        // Http 304.
+        //静态文件未改变.则返回304
         if(!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info && $modifiedTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']){
             Http::setHeader('HTTP/1.1 304 Not Modified');
             $connect->close();
@@ -172,12 +181,8 @@ class Webserver extends FastWS{
             Http::setHeader('Last-Modified: ' . $modifiedTime);
         }
         //给客户端发送消息,并且断开连接.
-        $connect->close(file_get_contents($filename));
+        $connect->close(file_get_contents($realFilename));
         return;
-    }
-
-    public function callbackConnectClose($connect){
-        var_dump('UniqueId='.$connect->id.'断开了');
     }
 
     /**

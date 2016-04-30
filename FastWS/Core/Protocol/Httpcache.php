@@ -12,13 +12,13 @@ namespace FastWS\Core\Protocol;
 
 /**
  * HTTPcache
- * Class Httpcache
+ * Class HttpCache
  * Created By Lane
  * Mail: lixuan868686@163.com
  * Blog: http://www.lanecn.com
  * @packet FastWS\Core\Protocol
  */
-class Httpcache
+class HttpCache
 {
     /**
      * HTTP协议状态码

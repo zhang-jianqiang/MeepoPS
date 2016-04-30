@@ -13,7 +13,7 @@ namespace FastWS\Core\Protocol;
 use FastWS\Core\Connect\ConnectInterface;
 use FastWS\Core\Log;
 
-class Websocket implements ProtocolInterface {
+class WebSocket implements ProtocolInterface {
 
     //最小的头长度
     const MIN_HEAD_LENGTH = 6;
