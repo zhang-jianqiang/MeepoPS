@@ -13,7 +13,7 @@
 include_once 'FastWS/index.php';
 
 //使用文本传输的Api类
-$webServer = new \FastWS\Api\Webserver('http', '0.0.0.0', '19910');
+$webServer = new \FastWS\Api\WebServer('http', '0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
 $webServer->childProcessCount = 1;
@@ -29,9 +29,9 @@ $webServer->group = 'staff';
 $webServer->setRoot('www.lanecn.com', __DIR__.'/Test/Web');
 
 //设置回调函数 - 这是所有应用的业务代码入口
-$webServer->callbackConnect = 'callbackConnect';
-$webServer->callbackNewData = 'callbackNewData';
-$webServer->callbackConnectClose = 'callbackConnectClose';
+//$webServer->callbackConnect = 'callbackConnect';
+//$webServer->callbackNewData = 'callbackNewData';
+//$webServer->callbackConnectClose = 'callbackConnectClose';
 
 //启动FastWS
 \FastWS\runFastWS();
