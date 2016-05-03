@@ -23,10 +23,10 @@ class Select implements EventInterface
     private $_writeEventList = array();
     //信号事件
     private $_signalEventList = array();
-    //SPL_PRIORITY_QUEUE
-    private $_splPriorityQueue = array();
     //计时器事件监听者
     private $_timerEventList = array();
+    //SPL_PRIORITY_QUEUE
+    private $_splPriorityQueue = array();
     //计时器任务ID
     private $_timerId = 1;
     //select 超时时间 微妙 默认100秒
