@@ -1,6 +1,6 @@
 <?php
 /**
- * 使用Select方式进行事件轮询
+ * 使用Select方式进行轮询
  * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/3/29

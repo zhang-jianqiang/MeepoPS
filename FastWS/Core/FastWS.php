@@ -611,8 +611,6 @@ class FastWS
     {
         if (extension_loaded('libevent')) {
             self::$_currentPoll = 'libevent';
-        } else if (extension_loaded('ev')) {
-            self::$_currentPoll = 'ev';
         } else {
             self::$_currentPoll = 'select';
         }
