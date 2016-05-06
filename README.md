@@ -16,7 +16,7 @@
 3. Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行FastWS.<br>
 4. FastWS需要PHP的POSIX库. POSIX是默认安装的, 通常情况下你不需要手动安装. 如何安装: [This link](http://php.net/manual/zh/posix.installation.php) PHP手册-POSIX安装<br>
 5. 多进程及信号处理需要依赖PHP的PCNTL库. FastWS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的FastWS, 仍然需要安装PCNTL. 如何安装: [This link](http://php.net/manual/zh/pcntl.installation.php) PHP手册-PCNTL安装<br>
-6. 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [This link](http://php.net/manual/zh/libevent.installation.php) PHP手册-Libevent安装<br>
+6. 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [This link](http://php.net/manual/zh/libevent.installation.php) PHP手册-Libevent安装. 截止2016-05-06, Libevent官方扩展不支持PHP7, PHP7下的Libevent安装方法: [This link](https://github.com/expressif/pecl-event-libevent) PHP7的Libevent分支<br>
 
 #### 服务端使用方法:
 ###### 普通终端启动:
