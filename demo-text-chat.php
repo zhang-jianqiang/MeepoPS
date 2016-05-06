@@ -48,10 +48,10 @@ function callbackConnect($connect){
 }
 
 function callbackNewData($connect, $data){
-//    $connect->send('用户'.$connect->id.'说: '.$data."\n");
+    $connect->send('用户'.$connect->id.'说: '.$data."\n");
     var_dump('UniqueId='.$connect->id.'说:'.$data."\n");
-    var_dump($data);
-    _broadcast($connect, $data);
+//    var_dump($data);
+//    _broadcast($connect, $data);
 }
 
 function callbackConnectClose($connect){
