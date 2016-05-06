@@ -396,7 +396,6 @@ class FastWS
             if (!class_exists($eventPollClass)) {
                 Log::write('Event class not exists: ' . $eventPollClass, 'FATAL');
             }
-            $eventPollClass = '\FastWS\Core\Event\Select';
             self::$globalEvent = new $eventPollClass();
             //注册一个读事件的监听.当服务器端的Socket准备读取的时候触发这个事件.
             if ($this->_bindProtocol && $this->_bindHost && $this->_bindPort) {
