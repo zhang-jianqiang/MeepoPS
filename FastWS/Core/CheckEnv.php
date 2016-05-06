@@ -44,7 +44,7 @@ if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'st
 
 //是否设置了启动用户和用户组
 if(!FASTWS_START_USER || !FASTWS_START_GROUP){
-    $fatalErrorList[] = 'You must set up a startup user and user group.';
+    $fatalErrorList[] = 'Fatal error: You must set up a startup user and user group.';
 }
 
 //如果设置的启动用户不是当前用户,则提示需要root权限
@@ -57,17 +57,33 @@ if(!FASTWS_START_USER || !FASTWS_START_GROUP){
 
 //日志路径是否已经配置
 if(!defined('FASTWS_LOG_PATH')){
-    $warningErrorList[] = "Warning error: Log file path is not defined. Please define FASTWS_LOG_PATH in Config.php";
+    $fatalErrorList[] = "Fatal error: Log file path is not defined. Please define FASTWS_LOG_PATH in Config.php";
 }else{
     //日志目录是否存在
     if(!file_exists(dirname(FASTWS_LOG_PATH))){
         if(@!mkdir(dirname(FASTWS_LOG_PATH), 0777, true)){
-            $warningErrorList[] = "Warning error: Log file directory creation failed: " . dirname(FASTWS_LOG_PATH);
+            $fatalErrorList[] = "Fatal error: Log file directory creation failed: " . dirname(FASTWS_LOG_PATH);
         }
     }
     //日志目录是否可写
     if(!is_writable(dirname(FASTWS_LOG_PATH))){
-        $warningErrorList[] = "Warning error: Log file path not to be written: " . dirname(FASTWS_LOG_PATH);
+        $fatalErrorList[] = "Fatal error: Log file path not to be written: " . dirname(FASTWS_LOG_PATH);
+    }
+}
+
+//FastWS主进程Pid文件路径是否已经配置
+if(!defined('FASTWS_MASTER_PID_PATH')){
+    $fatalErrorList[] = "Fatal error: master pid file path is not defined. Please define FASTWS_MASTER_PID_PATH in Config.php";
+}else{
+    //FastWS主进程Pid文件目录是否存在
+    if(!file_exists(dirname(FASTWS_MASTER_PID_PATH))){
+        if(@!mkdir(dirname(FASTWS_MASTER_PID_PATH), 0777, true)){
+            $fatalErrorList[] = "Fatal error: master pid file directory creation failed: " . dirname(FASTWS_MASTER_PID_PATH);
+        }
+    }
+    //FastWS主进程Pid文件目录是否可写
+    if(!is_writable(dirname(FASTWS_MASTER_PID_PATH))){
+        $fatalErrorList[] = "Fatal error: master pid file path not to be written: " . dirname(FASTWS_MASTER_PID_PATH);
     }
 }
 
@@ -84,22 +100,6 @@ if(!defined('FASTWS_STDOUT_PATH')){
     //标准输出目录是否可写
     if(!is_writable(dirname(FASTWS_STDOUT_PATH))){
         $warningErrorList[] = "Warning error: standard output file path not to be written: " . dirname(FASTWS_STDOUT_PATH);
-    }
-}
-
-//FastWS主进程Pid文件路径是否已经配置
-if(!defined('FASTWS_MASTER_PID_PATH')){
-    $warningErrorList[] = "Warning error: master pid file path is not defined. Please define FASTWS_MASTER_PID_PATH in Config.php";
-}else{
-    //FastWS主进程Pid文件目录是否存在
-    if(!file_exists(dirname(FASTWS_MASTER_PID_PATH))){
-        if(@!mkdir(dirname(FASTWS_MASTER_PID_PATH), 0777, true)){
-            $warningErrorList[] = "Warning error: master pid file directory creation failed: " . dirname(FASTWS_MASTER_PID_PATH);
-        }
-    }
-    //FastWS主进程Pid文件目录是否可写
-    if(!is_writable(dirname(FASTWS_MASTER_PID_PATH))){
-        $warningErrorList[] = "Warning error: master pid file path not to be written: " . dirname(FASTWS_MASTER_PID_PATH);
     }
 }
 
