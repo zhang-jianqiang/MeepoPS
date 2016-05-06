@@ -20,7 +20,7 @@ require 'Autoload.php';
 require 'Constant.php';
 
 //定义版本号
-define('FASTWS_VERSION', '0.0.1');
+define('FASTWS_VERSION', '0.0.2');
 
 //FastWS项目目录
 define('FASTWS_ROOT_PATH', dirname(__DIR__));

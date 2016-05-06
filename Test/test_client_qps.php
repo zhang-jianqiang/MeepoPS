@@ -1,6 +1,6 @@
 <?php
 /**
- * 客户端演示
+ * 服务器端QPS测试
  * Created by lixuan-it@360.cn
  * User: lane
  * Date: 16/4/26
@@ -8,15 +8,18 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-$errno = $errmsg = '';
-$client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
-if(!$client){
-    var_dump($errno);
-    var_dump($errmsg);
-    exit;
+$clientList = array();
+for($i=1; $i<=100; $i++){
+    $errno = $errmsg = '';
+    $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
+    if(!$client){
+        continue;
+    }
+    $clientList[] = $client;
 }
+echo "创建成功\n";
 while(1){
-    $readList = array($client);
+    $readList = $clientList;
     $writeList = array();
     stream_select($readList, $writeList, $err, 10, 0);
     foreach($readList as $id=>$client){
@@ -24,7 +27,7 @@ while(1){
         $data = '';
         while(feof($client) === false && $d = fgetc($client)){
             if($d === "\n"){
-                break ;
+                break;
             }
             $data .= $d;
         }
