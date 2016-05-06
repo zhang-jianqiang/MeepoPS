@@ -33,9 +33,9 @@ class Libevent implements EventInterface{
      * 添加事件
      * @param $callback string|array 回调函数
      * @param $args array 回调函数的参数
-     * @param $resource resource 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
+     * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
      * @param $type int 类型
-     * @return bool
+     * @return int|false
      */
     public function add($callback, array $args, $resource, $type){
         $type = intval($type);
@@ -49,15 +49,15 @@ class Libevent implements EventInterface{
             case self::EVENT_TYPE_SIGNAL:
                 $libeventType = $type === self::EVENT_TYPE_READ ? (EV_READ | EV_PERSIST) :
                     ($type === self::EVENT_TYPE_WRITE ? (EV_WRITE | EV_PERSIST) : (EV_SIGNAL | EV_PERSIST));
-                $uniqueResourceId = (int)($resource);
+                $uniqueId = (int)($resource);
                 //2.准备想要在event_add中添加事件
                 if(event_set($event, $resource, $libeventType, $callback, $args)
                     //3.关联事件到事件base
                     && event_base_set($event, $this->_eventBase)
                     //4.向指定的设置中添加一个执行事件
                     && event_add($event)){
-                    $this->_eventList[$type][$uniqueResourceId] = $event;
-                    return true;
+                    $this->_eventList[$type][$uniqueId] = $event;
+                    return $uniqueId;
                 }
                 return false;
             //永久性定时任务/一次性定时任务
@@ -65,7 +65,7 @@ class Libevent implements EventInterface{
             case self::EVENT_TYPE_TIMER_ONCE:
                 $timerId = (int)$event;
                 $intervalMicrosecond = $resource * 1000000;
-                if(event_set($event, 0, EV_TIMEOUT, array($this, 'timerEventHandle'), $timerId)
+                if(event_set($event, 0, EV_TIMEOUT, array($this, 'timerCallback'), $timerId)
                     && event_base_set($event, $this->_eventBase)
                     && event_add($event, $intervalMicrosecond)) {
                     $this->_eventList[$type][$timerId] = array($callback, (array)$args, $event, $type, $intervalMicrosecond);
@@ -80,22 +80,22 @@ class Libevent implements EventInterface{
 
     /**
      * 删除指定的事件
-     * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示定时器任务ID(int),信号回调中表示信号(int)
+     * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
      * @param $type int 类型
      */
     public function delOne($resource, $type){
         $type = intval($type);
-        $uniqueResourceId = intval($resource);
+        $uniqueId = (int)($resource);
         switch($type)
         {
             case self::EVENT_TYPE_READ:
             case self::EVENT_TYPE_WRITE:
             case self::EVENT_TYPE_SIGNAL:
-                $event = !empty($this->_eventList[$type][$uniqueResourceId]) ? $this->_eventList[$type][$uniqueResourceId] : '';
+                $event = !empty($this->_eventList[$type][$uniqueId]) ? $this->_eventList[$type][$uniqueId] : '';
                 break;
             case self::EVENT_TYPE_TIMER:
             case self::EVENT_TYPE_TIMER_ONCE:
-                $event = !empty($this->_eventList[$type][$uniqueResourceId][2]) ? $this->_eventList[$type][$uniqueResourceId][2] : '';
+                $event = !empty($this->_eventList[$type][$uniqueId][2]) ? $this->_eventList[$type][$uniqueId][2] : '';
                 break;
             default:
                 Log::write('Libevent: del one failed. ' . $type . ' is unrecognized type', 'WARNING');
@@ -103,7 +103,7 @@ class Libevent implements EventInterface{
         }
         if(!empty($event)){
             event_del($event);
-            unset($this->_eventList[$type][$uniqueResourceId]);
+            unset($this->_eventList[$type][$uniqueId]);
         }
     }
 
@@ -140,7 +140,7 @@ class Libevent implements EventInterface{
      * @param mixed $_null 无用参数,抛弃
      * @param int $timerId 定时器ID
      */
-    public function timerEventHandle($_null, $_null, $timerId){
+    public function timerCallback($_null, $_null, $timerId){
         if(isset($this->_eventList[self::EVENT_TYPE_TIMER][$timerId])){
             $timer = $this->_eventList[self::EVENT_TYPE_TIMER][$timerId];
         }else if(isset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$timerId])){
@@ -161,7 +161,7 @@ class Libevent implements EventInterface{
         try{
             call_user_func_array($timer[0], $timer[1]);
         }catch (\Exception $e){
-            Log::write('FastWS: execution callback function timer event handle-'. $timer[0] . ' throw exception', 'ERROR');
+            Log::write('FastWS: execution callback function timer callback-'. $timer[0] . ' throw exception', 'ERROR');
         }
     }
 }

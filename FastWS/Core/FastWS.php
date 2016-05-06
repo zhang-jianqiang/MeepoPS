@@ -323,9 +323,9 @@ class FastWS
     private static function _installSignal()
     {
         //SIGINT为停止FastWS的信号
-        pcntl_signal(SIGINT, array('\FastWS\Core\FastWS', 'signalHandler'), false);
+        pcntl_signal(SIGINT, array('\FastWS\Core\FastWS', 'signalCallback'), false);
         //SIGUSR1 为查看FastWS所有状态的信号
-        pcntl_signal(SIGUSR1, array('\FastWS\Core\FastWS', 'signalHandler'), false);
+        pcntl_signal(SIGUSR1, array('\FastWS\Core\FastWS', 'signalCallback'), false);
         //SIGPIPE 信号会导致Linux下Socket进程终止.我们忽略他
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
@@ -396,13 +396,14 @@ class FastWS
             if (!class_exists($eventPollClass)) {
                 Log::write('Event class not exists: ' . $eventPollClass, 'FATAL');
             }
+            $eventPollClass = '\FastWS\Core\Event\Select';
             self::$globalEvent = new $eventPollClass();
             //注册一个读事件的监听.当服务器端的Socket准备读取的时候触发这个事件.
             if ($this->_bindProtocol && $this->_bindHost && $this->_bindPort) {
                 self::$globalEvent->add(array($this, 'acceptTcpConnect'), array(), $this->_masterSocket, EventInterface::EVENT_TYPE_READ);
             }
             //重新安装信号处理函数
-            self::_reinstallSignalHandler();
+            self::_reinstallSignalCallback();
             //初始化计时器任务,用事件轮询的方式
             Timer::init(self::$globalEvent);
             //执行系统开始启动工作时的回调函数
@@ -410,7 +411,7 @@ class FastWS
                 try {
                     call_user_func($this->callbackStart, $this);
                 } catch (\Exception $e) {
-                    Log::write('FastWS: execution callback function callbackStart-'.$this->callbackStart . ' throw exception', 'FATAL');
+                    Log::write('FastWS: execution callback function callbackStart-'.$this->callbackStart . ' throw exception', 'ERROR');
                 }
             }
             //开启事件轮询
@@ -421,14 +422,14 @@ class FastWS
     /**
      * 重新安装信号处理函数 - 子进程重新安装
      */
-    private static function _reinstallSignalHandler()
+    private static function _reinstallSignalCallback()
     {
         //设置之前设置的信号处理方式为忽略信号.并且系统调用被打断时不可重启系统调用
         pcntl_signal(SIGINT, SIG_IGN, false);
         pcntl_signal(SIGUSR1, SIG_IGN, false);
         //安装新的信号的处理函数,采用事件轮询的方式
-        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGINT, EventInterface::EVENT_TYPE_SIGNAL);
-        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalHandler'), array(), SIGUSR1, EventInterface::EVENT_TYPE_SIGNAL);
+        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalCallback'), array(), SIGINT, EventInterface::EVENT_TYPE_SIGNAL);
+        self::$globalEvent->add(array('\FastWS\Core\FastWS', 'signalCallback'), array(), SIGUSR1, EventInterface::EVENT_TYPE_SIGNAL);
     }
 
     /**
@@ -451,7 +452,7 @@ class FastWS
      * 信号处理函数
      * @param $signal
      */
-    public static function signalHandler($signal)
+    public static function signalCallback($signal)
     {
         switch ($signal) {
             case SIGINT:
@@ -664,7 +665,7 @@ class FastWS
             try {
                 call_user_func($this->callbackInstanceStop, $this);
             } catch (\Exception $e) {
-                Log::write('FastWS: execution callback function callbackInstanceStop-'.$this->callbackInstanceStop . ' throw exception', 'FATAL');
+                Log::write('FastWS: execution callback function callbackInstanceStop-'.$this->callbackInstanceStop . ' throw exception', 'ERROR');
             }
         }
         //删除这个实例相关的所有事件监听
@@ -697,7 +698,7 @@ class FastWS
             try {
                 call_user_func($this->callbackConnect, $tcpConnect);
             } catch (\Exception $e) {
-                Log::write('FastWS: execution callback function callbackConnect-'.$this->callbackConnect . ' throw exception', 'FATAL');
+                Log::write('FastWS: execution callback function callbackConnect-'.$this->callbackConnect . ' throw exception', 'ERROR');
             }
         }
     }

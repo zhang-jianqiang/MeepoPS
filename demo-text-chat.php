@@ -1,6 +1,6 @@
 <?php
 /**
- * DEMO文件. 展示本文聊天
+ * DEMO文件. 展示基于Telnet协议的数据传输
  * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/4/16
@@ -22,8 +22,8 @@ $telnet->childProcessCount = 1;
 $telnet->instanceName = 'FastWS-Telnet';
 
 //设置启动FastWS的用户和用户组
-$telnet->user = 'lane';
-$telnet->group = 'staff';
+//$telnet->user = 'lane';
+//$telnet->group = 'staff';
 
 //设置回调函数 - 这是所有应用的业务代码入口
 $telnet->callbackConnect = 'callbackConnect';
@@ -36,6 +36,14 @@ $telnet->callbackConnectClose = 'callbackConnectClose';
 
 //以下为回调函数, 业务相关.
 function callbackConnect($connect){
+    //信号定时器
+//    \FastWS\Core\Timer::add(function($conn){
+//        var_dump("hello\n");
+//        $conn->send("hello world\n");
+//    }, array($connect), 1, true);
+    //事件定时器
+//    \FastWS\Api\Telnet::$globalEvent->add(function(){var_dump("hello\n");}, array(), 1, \FastWS\Core\Event\EventInterface::EVENT_TYPE_TIMER);
+
     var_dump('收到新链接. UniqueId='.$connect->id."\n");
 }
 

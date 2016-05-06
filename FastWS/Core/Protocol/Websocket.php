@@ -72,7 +72,7 @@ class WebSocket implements ProtocolInterface {
                         try {
                             call_user_func($connect->instance->callbackPing, $connect);
                         } catch (\Exception $e) {
-                            Log::write('FastWS: execution callback function callbackPing-'.$connect->instance->callbackPing . ' throw exception', 'FATAL');
+                            Log::write('FastWS: execution callback function callbackPing-'.$connect->instance->callbackPing . ' throw exception', 'ERROR');
                         }
                     }else{
                         $connect->send(pack('H*', '8a00'));
@@ -89,7 +89,7 @@ class WebSocket implements ProtocolInterface {
                         try {
                             call_user_func($connect->instance->callbackPong, $connect);
                         } catch (\Exception $e) {
-                            Log::write('FastWS: execution callback function callbackPong-'.$connect->instance->callbackPong . ' throw exception', 'FATAL');
+                            Log::write('FastWS: execution callback function callbackPong-'.$connect->instance->callbackPong . ' throw exception', 'ERROR');
                         }
                     }
                     //如果数据中消息的长度为假,则从接收数据缓冲区中删除规定的消息头部分.

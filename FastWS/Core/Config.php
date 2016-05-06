@@ -42,11 +42,11 @@ define('FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE', $config['connection'][
 //TCP链接中所能接收的最大的数据包
 define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['connection']['tcp_max_max_packet_size']);
 
-//事件轮询中的超时时间
-define('FASTWS_EVENT_POLL_TIMEOUT', $config['event']['event_poll_timeout']);
+//SELECT事件轮询中的超时时间
+define('FASTWS_EVENT_SELECT_POLL_TIMEOUT', $config['event']['event_select_poll_timeout']);
 
 //SELECT轮询事件最大监听资源数.此为PHP源码限制.默认为1024. FastWS最多接收1020. 如果要改变这个值,请重新编译PHP(--enable-fd-setsize=2048)
-define('MAX_STREAM_SELECT_SIZE', $config['event']['max_stream_select_size']);
+define('FASTWS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size']);
 
 //启动用户
 define('FASTWS_START_USER', $config['user']['start_user']);

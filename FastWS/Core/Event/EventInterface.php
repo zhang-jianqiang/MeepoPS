@@ -32,29 +32,26 @@ interface EventInterface{
      * 添加事件
      * @param $callback string|array 回调函数
      * @param $args array 回调函数的参数
-     * @param $resource resource 资源
+     * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
      * @param $type int 类型
-     * @return mixed
+     * @return bool
      */
     public function add($callback, array $args, $resource, $type);
 
     /**
      * 删除指定的事件
-     * @param $timerId int 标识
+     * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
      * @param $type int 类型
-     * @return mixed
      */
-    public function delOne($timerId, $type);
+    public function delOne($resource, $type);
 
     /**
      * 清除所有的计时器事件
-     * @return mixed
      */
     public function delAllTimer();
 
     /**
      * 循环事件
-     * @return mixed
      */
     public function loop();
 }

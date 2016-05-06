@@ -150,7 +150,7 @@ class Tcp extends ConnectInterface
                         call_user_func_array($this->instance->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
                     }catch (\Exception $e){
                         self::$statistics['exception_count']++;
-                        Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'FATAL');
+                        Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'ERROR');
                     }
                 }
             }
@@ -167,7 +167,7 @@ class Tcp extends ConnectInterface
                     call_user_func_array($this->instance->callbackNewData, array($this, $this->_readDate));
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'FATAL');
+                    Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'ERROR');
                 }
             }
             $this->_readDate = '';
@@ -219,7 +219,7 @@ class Tcp extends ConnectInterface
                             call_user_func($this->instance->callbackError, $this, 'FASTWS_ERROR_CODE_SEND_SOCKET_INVALID', 'Send data failed. Possible socket resource has disabled');
                         }catch (\Exception $e){
                             self::$statistics['exception_count']++;
-                            Log::write('FastWS: execution callback function callbackError-'.$this->instance->callbackError . ' throw exception', 'FATAL');
+                            Log::write('FastWS: execution callback function callbackError-'.$this->instance->callbackError . ' throw exception', 'ERROR');
                         }
                     }
                     $this->destroy();
@@ -245,7 +245,7 @@ class Tcp extends ConnectInterface
                         call_user_func($this->instance->callbackError, $this, FASTWS_ERROR_CODE_SEND_BUFFER_FULL, 'The send buffer is full. Data is discarded');
                     }catch (\Exception $e){
                         self::$statistics['exception_count']++;
-                        Log::write('FastWS: execution callback function callbackError-'.$this->instance->callbackError . ' throw exception', 'FATAL');
+                        Log::write('FastWS: execution callback function callbackError-'.$this->instance->callbackError . ' throw exception', 'ERROR');
                     }
                 }
                 return false;
@@ -283,7 +283,7 @@ class Tcp extends ConnectInterface
                     call_user_func($this->instance->callbackSendBufferEmpty, $this);
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackSendBufferEmpty-'.$this->instance->callbackSendBufferEmpty . ' throw exception', 'FATAL');
+                    Log::write('FastWS: execution callback function callbackSendBufferEmpty-'.$this->instance->callbackSendBufferEmpty . ' throw exception', 'ERROR');
                 }
             }
             //如果是正在关闭中的状态(平滑断开链接会发送完待发送缓冲区的所有数据后再销毁资源)
@@ -375,7 +375,7 @@ class Tcp extends ConnectInterface
                 call_user_func($this->instance->callbackConnectClose, $this);
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                Log::write('FastWS: execution callback function callbackConnectClose-'.$this->instance->callbackConnectClose . ' throw exception', 'FATAL');
+                Log::write('FastWS: execution callback function callbackConnectClose-'.$this->instance->callbackConnectClose . ' throw exception', 'ERROR');
             }
         }
     }
@@ -408,7 +408,7 @@ class Tcp extends ConnectInterface
                     call_user_func($this->instance->callbackSendBufferFull, $this);
                 }catch (\Exception $e){
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackSendBufferFull-'.$this->instance->callbackSendBufferFull . ' throw exception', 'FATAL');
+                    Log::write('FastWS: execution callback function callbackSendBufferFull-'.$this->instance->callbackSendBufferFull . ' throw exception', 'ERROR');
                 }
                 return true;
             }
