@@ -25,7 +25,7 @@ while(1){
     foreach($readList as $id=>$client){
         fwrite($client, 'hello world');
         $data = '';
-        while(feof($client) === false && $d = fgetc($client)){
+        while(feof($client) !== true && $d = fgetc($client)){
             if($d === "\n"){
                 break;
             }

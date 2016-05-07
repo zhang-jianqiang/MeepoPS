@@ -23,8 +23,11 @@ while(true){
             continue;
         }
         $data = '';
-        while(feof($socket)){
+        while(feof($socket) !== true){
             $data .= fread($socket, 2000);
+            if($data[strlen($data)-1] === "\n"){
+                break;
+            }
         }
         if(!$data || strlen($data)<10){
             $errRead++;
