@@ -8,8 +8,13 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+
 $clientList = array();
-for($i=1; $i<=5000; $i++){
+$clientCount = 20000;
+while(true){
+    if(count($clientList) >= $clientCount){
+        break;
+    }
     $errno = $errmsg = '';
     $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
     if(!$client){

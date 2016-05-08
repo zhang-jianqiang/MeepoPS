@@ -8,29 +8,35 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+
 $clientList = array();
-for($i=1; $i<=100; $i++){
+$clientCount = 1000;
+while(true){
+    if(count($clientList) >= $clientCount){
+        break;
+    }
     $errno = $errmsg = '';
     $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
     if(!$client){
+        var_dump($errno);
+        var_dump($errmsg);
         continue;
     }
     $clientList[] = $client;
 }
 echo "创建成功\n";
 while(1){
-    $readList = $clientList;
-    $writeList = array();
-    stream_select($readList, $writeList, $err, 10, 0);
-    foreach($readList as $id=>$client){
-        fwrite($client, 'hello world');
+    foreach($clientList as $id=>$client){
+        fwrite($client, "hello world\n");
         $data = '';
-        while(feof($client) !== true && $d = fgetc($client)){
-            if($d === "\n"){
+        while(feof($client) !== true){
+            $data .= fread($client, 2000);
+            if($data[strlen($data)-1] === "\n"){
                 break;
             }
-            $data .= $d;
+            if(!$data){
+                echo "获取消息为空";
+            }
         }
-        var_dump('客户端用户' . $id . '号收到消息: "' . $data . '"');
     }
 }
