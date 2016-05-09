@@ -20,7 +20,7 @@ while(1){
     $writeList = array();
     stream_select($readList, $writeList, $err, 10, 0);
     foreach($readList as $id=>$client){
-        fwrite($client, 'hello world');
+        fwrite($client, "hello world\n");
         $data = '';
         while(feof($client) === false && $d = fgetc($client)){
             if($d === "\n"){
