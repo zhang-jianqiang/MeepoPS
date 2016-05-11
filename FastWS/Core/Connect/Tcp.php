@@ -274,7 +274,7 @@ class Tcp extends ConnectInterface
         }
         //全部发送成功
         if($length === strlen($this->_sendBuffer)){
-            //全部发送成功后不再轮训这个事件
+            //全部发送成功后不再轮询这个事件
             FastWS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_WRITE);
             $this->_sendBuffer = '';
             //出发待发送缓冲区为空的队列

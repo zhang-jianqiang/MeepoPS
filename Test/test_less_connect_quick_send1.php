@@ -14,7 +14,7 @@ $totalCount = 0;
 $errConnect = 0;
 $errWrite = 0;
 $errRead = 0;
-$f = fopen('/home/lane/test_less_connect_quick_send_err1', 'w+');
+$f = fopen('/home/lixuan-it/test_less_connect_quick_send_err1', 'w+');
 while(true){
     $totalCount++;
     $socket = fsockopen('127.0.0.1', '19910', $errno, $errmsg);
@@ -41,6 +41,6 @@ while(true){
         }
     }
     fclose($socket);
-    file_put_contents('/home/lane/test_less_connect_quick_send_result1', json_encode(array('total_count'=>$totalCount, 'err_connect'=>$errConnect, 'err_write'=>$errWrite, 'err_read'=>$errRead)));
+    file_put_contents('/home/lixuan-it/test_less_connect_quick_send_result1', json_encode(array('total_count'=>$totalCount, 'err_connect'=>$errConnect, 'err_write'=>$errWrite, 'err_read'=>$errRead)));
 }
 fclose($f);
