@@ -30,8 +30,8 @@
 #### 服务端使用方法:
 
 ###### 普通终端启动:
-`echo 123;`
-    1. 启动: 命令行输入`php demo-text-chat.php start`.
+
+    1. 启动: 命令行输入"php demo-text-chat.php start".
     2. 状态: 命令行输入"php demo-text-chat.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
     4. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
@@ -74,7 +74,7 @@
   3. 所有的接口文件都可以设置FastWS/Core/FastWS.php所提供的可设置的属性
 
 ##### 接口类的通用属性
-  所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
+  所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置/调用这些通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以拥有这些通用属性.
 
 ###### 1. 通用属性: childProcessCount
     名称: childProcessCount.
@@ -90,7 +90,30 @@
     示例: $telnetApi->instanceName = 'FastWS-Telnet'.
     提示: 设置后在查看运行状态时会比较方便. 比如实例一监听19910端口用来接收游戏聊天数据, 实例二监听19911端口用来接收服务器负载信息, 那么在查看状态的时候我们可能会混淆不同实例的作用.
 
-###### 3. 通用属性之回调函数: callbackStartInstance
+###### 3. 通用属性: clientList
+    名称: clientList.
+    类型: array.
+    描述: clientList用来获取当前实例下的当前进程中的所有的客户端链接对象的列表. 数组中每个元素都是一个对象, 是传输层协议类的对象. 例如一个TCP协议类的对象.
+    示例:
+            global $telnetApi;
+            foreach($telnetApi->clientList as $client){
+                $client->send('hi');
+            }
+    提示: 设置后在查看运行状态时会比较方便. 比如实例一监听19910端口用来接收游戏聊天数据, 实例二监听19911端口用来接收服务器负载信息, 那么在查看状态的时候我们可能会混淆不同实例的作用.
+
+###### 4. 通用属性: globalEvent
+    名称: globalEvent.
+    类型: object.
+    描述: globalEvent是事件监听所需要的对象, 默认为Select轮询机制的对象, 如果安装了Libevent, 则是Libevent事件机制的对象.
+    示例: 添加一个定时任务, 每一秒打印一个"hello world\n"
+        \FastWS\Api\Telnet::$globalEvent->add(function(){
+                var_dump("hello\n");
+        }, array(), 1, \FastWS\Core\Event\EventInterface::EVENT_TYPE_TIMER);.
+    提示: 设置后在查看运行状态时会比较方便. 比如实例一监听19910端口用来接收游戏聊天数据, 实例二监听19911端口用来接收服务器负载信息, 那么在查看状态的时候我们可能会混淆不同实例的作用.
+
+##### 接口类的通用属性之回调函数
+
+###### 1. 通用属性之回调函数: callbackStartInstance
     名称: callbackStartInstance.
     类型: function.
     参数1: $instance, 类型: object. 是刚刚启动的这个实例(接口类的对象).
@@ -100,7 +123,7 @@
             var_dump($instance);
         };
 
-###### 4. 通用属性之回调函数: callbackConnect
+###### 2. 通用属性之回调函数: callbackConnect
     名称: callbackConnect.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -111,7 +134,7 @@
             var_dump('收到新链接. 链接ID为'.$connect->id."\n");
         };
 
-###### 5. 通用属性之回调函数: callbackNewData
+###### 3. 通用属性之回调函数: callbackNewData
     名称: callbackNewData.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -122,7 +145,7 @@
             var_dump('收到新消息. 链接ID为'.$connect->id.'的用户说'.$data."\n");
         };
 
-###### 6. 通用属性之回调函数: callbackInstanceStop
+###### 4. 通用属性之回调函数: callbackInstanceStop
     名称: callbackInstanceStop.
     类型: function.
     参数1: $instance, 类型: object. 是即将停止的这个实例(接口类的对象).
@@ -134,7 +157,7 @@
             }
         };
 
-###### 7. 通用属性之回调函数: callbackConnectClose
+###### 5. 通用属性之回调函数: callbackConnectClose
     名称: callbackConnectClose.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -144,7 +167,7 @@
             var_dump('链接ID为'.$connect->id."的用户断开了链接\n");
         };
 
-###### 8. 通用属性之回调函数: callbackError
+###### 6. 通用属性之回调函数: callbackError
     名称: callbackError.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -156,7 +179,7 @@
             error_log('error code is ' . $errCode . '. error message: ' . $errMsg . '. connect is ' . serialize($connect));
         };
 
-###### 9. 通用属性之回调函数: callbackSendBufferFull
+###### 7. 通用属性之回调函数: callbackSendBufferFull
     名称: callbackSendBufferFull.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -166,7 +189,7 @@
             error_log('Waiting to send the buffer is full, we should increase the processing efficiency of the. For example, add a server');
         };
 
-###### 10. 通用属性之回调函数: callbackSendBufferEmpty
+###### 8. 通用属性之回调函数: callbackSendBufferEmpty
     名称: callbackSendBufferEmpty.
     类型: function.
     参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
@@ -175,6 +198,31 @@
     示例:
         $telnetApi->callbackSendBufferFull = function($connect){
             var_dump('用户'.$connect->id."的待发送队列已经为空\n");
+        };
+
+##### 传输层协议类的对象的属性
+  每个链接为一个传输层协议类的对象. 这些属性在FastWS就已经赋好值, 您直接使用即可.
+
+###### 1. 所属实例instance
+    名称: instance.
+    类型: object.
+    描述: 该链接所属的实例对象. 例如一个TCP链接, 它属于Telnet接口类的对象.
+    示例: 例如有新链接加入时, 回触发callbackConnect回调函数. 回调函数会接收到一个参数$connect. 直接$connect->instance使用即可.
+        $telnetApi->callbackConnect = function($connect){
+            foreach($connect->instance->clientList as $client){
+                $client->send('新用户'.$client->id.'已经上线了.');
+            }
+        };
+
+###### 2. 链接id
+    名称: id.
+    类型: int.
+    描述: 每个实例的每个进程, 都有一个唯一的id. 从1开始, 每次增加1.
+    示例: 例如有新链接加入时, 回触发callbackConnect回调函数. 回调函数会接收到一个参数$connect. 直接$connect->id使用即可.
+        $telnetApi->callbackConnect = function($connect){
+            foreach($connect->instance->clientList as $client){
+                $client->send('新用户'.$client->id.'已经上线了.');
+            }
         };
 
 ##### 接口类文件: Telnet
