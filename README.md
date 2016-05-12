@@ -1,6 +1,8 @@
 # FastWS-PHP
 
-## FastWS是Fast WebService的缩写, 旨在提供高校稳定的纯PHP构建的多进程WebService. 可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放等.
+## FastWS是Fast WebService的缩写.
+### FastWS旨在提供高校稳定的由纯PHP开发的多进程WebService.
+### FastWS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, FastWS的HTTP协议在简单场景下是可以取代Apache/Nginx的.
 
 #### 综述:
 
