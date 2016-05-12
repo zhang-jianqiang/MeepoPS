@@ -1,12 +1,10 @@
 # FastWS-PHP
-
-## FastWS是Fast WebService的缩写.
-### FastWS旨在提供高校稳定的由纯PHP开发的多进程WebService.
-### FastWS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, FastWS的HTTP协议在简单场景下是可以取代Apache/Nginx的.
+###### FastWS是Fast WebService的缩写. 旨在提供高校稳定的由纯PHP开发的多进程WebService.
+###### FastWS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, FastWS的HTTP协议在简单场景下是可以取代Apache/Nginx的.
 
 #### 综述:
 
----1. 目前版本为V0.0.2.<br>
+1. 目前版本为V0.0.2.<br>
 2. 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.<br>
 3. 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发不到Master分支, 其余分支请不要部署在生产环境.<br>
 4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.<br>
@@ -33,7 +31,7 @@
 
 ###### 普通终端启动:
 
-    1. 启动: 命令行输入"php demo-text-chat.php start".
+    1. 启动: 命令行输入`php demo-text-chat.php start`.
     2. 状态: 命令行输入"php demo-text-chat.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
     4. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
