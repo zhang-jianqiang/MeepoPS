@@ -30,7 +30,7 @@
 #### 服务端使用方法:
 
 ###### 普通终端启动:
-
+`echo 123;`
     1. 启动: 命令行输入`php demo-text-chat.php start`.
     2. 状态: 命令行输入"php demo-text-chat.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
