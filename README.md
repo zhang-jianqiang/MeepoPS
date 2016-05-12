@@ -6,9 +6,10 @@
 1. 目前版本为V0.0.2, 可小规模使用.<br>
 2. 正在进行大规模\高并发\分布式的测试, 请在V1.0版本开始进行商用.<br>
 3. 正式可用分支为Master分支. 其余分支请不要部署在生产环境.<br>
-4. 数据交互方式目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP已经在dev分支中,正在调试.<br>
+4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP已经在dev分支中,正在调试.<br>
 5. PHP不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建即时通讯.<br>
 6. FastWS的最低运行要求是安装了PHP的PCNTL库.
+7. FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
 
 #### 声明:
 1. 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动FastWS.<br>
@@ -86,3 +87,117 @@
 结论3: 链接数极少的情况下, 内存占用也极少.<br>
 结论4: 链接数越多, Libevent事件机制的优势越大, 链接数越少, Select轮询机制越占优势.<br>
 结论5: 链接数的增加, 会提高内存的占用. 发送消息的频率越高, 会提高CPU的使用率.<br>
+
+
+#### 快速入门:
+##### 惊鸿一瞥:
+    1. FastWS/config.ini是FastWS的配置文件. 采用和php.ini同样的格式, ";"为注释.
+    2. 必须引入FastWS/index.php文件. 使用FastWS都是从 require_once 'FastWS/index.php' 开始的.
+    3. FastWS/Api/目录下的文件为暴露给用户的接口. 需要实例化接口类文件, FastWS的使用都是围绕实例化接口文件后的对象来操作的. 实例化的时候传入监听的HOST和端口即可.
+    4. FastWS会以回调函数的方式来触发您设置的业务逻辑. 比如新链接加入时会回调您设置的"Hello world", 再比如某个链接发送了消息"PING"时, 会回调您设置的返回消息"PONG".
+    5. FastWS可以启动多个实例, 每一次的new接口类文件都是一次实例化.
+    7. FastWS不但可以实例化多个接口类文件, 也可以实例化同一个接口类文件多次. 比如启动了三个实例, 分别监听了19910, 19911, 19912端口.
+    6. 实例化接口类文件并进行了相关设置后, 调用\FastWS\runFastWS()即可启动FastWS.
+    7. \FastWS\runFastWS()之后的所有代码都将不会执行.
+##### 接口类文件
+    1. 所有的接口类文件都存放在FastWS/Api/目录下.
+    2. 所有的接口类文件都是FastWS/Core/FastWS.php的子类.
+    3. 所有的接口文件都可以设置FastWS/Core/FastWS.php所提供的可设置的属性
+##### 接口类的通用属性
+所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
+###### 1. 通用属性: childProcessCount
+    名称: childProcessCount.
+    类型: int.
+    描述: childProcessCount用来表示需要多少个子进程来处理这个接口类文件.
+    示例: $telnetApi->childProcessCount = 8.
+    提示: 启动的子进程数量通常为CPU核心数. 在CPU使用率过高而内存占用较低时, 可适当降低子进程数量. 在内存占用过高而CPU使用率较低时, 可适当增加子进程数量.
+###### 2. 通用属性: instanceName
+    名称: instanceName.
+    类型: string.
+    描述: instanceName用来设置这个实例(接口类的对象)的名称.
+    示例: $telnetApi->instanceName = 'FastWS-Telnet'.
+    提示: 设置后在查看运行状态时会比较方便. 比如实例一监听19910端口用来接收游戏聊天数据, 实例二监听19911端口用来接收服务器负载信息, 那么在查看状态的时候我们可能会混淆不同实例的作用.
+###### 3. 通用属性之回调函数: callbackStartInstance
+    名称: callbackStartInstance.
+    类型: function.
+    参数1: $instance, 类型: object. 是刚刚启动的这个实例(接口类的对象).
+    描述: FastWS在启动这个实例时触发该回调函数.
+    示例:
+        $telnetApi->callbackStartInstance = function($instance){
+            var_dump($instance);
+        }.
+###### 4. 通用属性之回调函数: callbackConnect
+    名称: callbackConnect.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    参数: 一个参数,
+    描述: 有新的链接加入本实例时触发该回调函数.
+    示例:
+        $telnetApi->callbackConnect = function($connect){
+            var_dump('收到新链接. 链接ID为'.$connect->id."\n");
+        }.
+###### 5. 通用属性之回调函数: callbackNewData
+    名称: callbackNewData.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    参数2: $data, 类型: string. 经过协议解析后的数据.
+    描述: 收到新数据时触发该回调函数.
+    示例:
+        $telnetApi->callbackNewData = function($connect, $data){
+            var_dump('收到新消息. 链接ID为'.$connect->id.'的用户说'.$data."\n");
+        }.
+###### 6. 通用属性之回调函数: callbackInstanceStop
+    名称: callbackInstanceStop.
+    类型: function.
+    参数1: $instance, 类型: object. 是即将停止的这个实例(接口类的对象).
+    描述: 实例停止时触发该回调函数.
+    示例:
+        $telnetApi->callbackInstanceStop = function($instance){
+            foreach($instance->clientList as $client){
+                $client->send("服务即将停止\n");
+            }
+        }.
+###### 7. 通用属性之回调函数: callbackConnectClose
+    名称: callbackConnectClose.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    描述: 链接断开时出发该回调函数.
+    示例:
+        $telnetApi->callbackConnectClose = function($connect){
+            var_dump('链接ID为'.$connect->id."的用户断开了链接\n");
+        }.
+###### 8. 通用属性之回调函数: callbackError
+    名称: callbackError.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    参数2: $errCode, 类型: int. 错误码.
+    参数3: $errMsg, 类型: string. 错误描述.
+    描述: 在链接有错误时触发该回调函数. 例如一个TCP链接, 在缓冲区已满或发送消息失败的时候会触发.
+    示例:
+        $telnetApi->callbackError = function($connect, $errCode, $errMsg){
+            error_log('error code is ' . $errCode . '. error message: ' . $errMsg . '. connect is ' . serialize($connect));
+        }.
+###### 9. 通用属性之回调函数: callbackSendBufferFull
+    名称: callbackSendBufferFull.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    描述: 待发送缓冲区已经塞满时触发该回调函数. 例如一个TCP链接, 它的待发送缓冲区已经塞满时触发该回调函数.
+    示例:
+        $telnetApi->callbackSendBufferFull = function($connect){
+            error_log('Waiting to send the buffer is full, we should increase the processing efficiency of the. For example, add a server');
+        }.
+###### 10. 通用属性之回调函数: callbackSendBufferEmpty
+    名称: callbackSendBufferEmpty.
+    类型: function.
+    参数1: $connect, 类型: object. 传输层协议类的对象, 每个链接都不相同. 例如一个TCP协议类的对象.
+    描述: 缓冲区没有积压时触发该回调函数. 例如一个TCP链接, 缓冲区没有积压时触发该回调函数.
+    提示: 本回调函数不会每次缓冲区为空时都会出发. 仅仅会在一次没有发送完, 需要多次发送的时候, 当所有数据都发送完时才会触发.
+    示例:
+        $telnetApi->callbackSendBufferFull = function($connect){
+            var_dump('用户'.$connect->id."的待发送队列已经为空\n");
+        }
+
+##### 接口类文件: Telnet
+    2. Telnet.php 接口类文件是收发数据时使用了Telnet协议来解析(提取)数据.
+    3. Telnet.php 由FastWS自动引入, 无需手动引入.
+    4. 使用时只需要new \FastWS\Api\Telnet('0.0.0.0', '19910')即可. 传入的两个参数分别为需要监听的HOST和端口.
