@@ -4,13 +4,13 @@
 
 #### 综述:
 
-1. 目前版本为V0.0.2, 可小规模使用.<br>
+1. 目前版本为V0.0.2.<br>
 2. 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.<br>
-3. 正式可用分支为Master分支. 其余分支请不要部署在生产环境.<br>
-4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP已经在dev分支中, 正在调试.<br>
+3. 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发不到Master分支, 其余分支请不要部署在生产环境.<br>
+4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.<br>
 5. PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.<br>
-6. FastWS的最低运行要求是安装了PHP的PCNTL库.
-7. FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
+6. FastWS的最低运行要求是安装了PHP的PCNTL库.<br>
+7. FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.<br>
 
 #### 声明:
 
@@ -21,6 +21,11 @@
 5. 多进程及信号处理需要依赖PHP的PCNTL库. FastWS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的FastWS, 仍然需要安装PCNTL. 如何安装: [PHP手册-PCNTL安装](http://php.net/manual/zh/pcntl.installation.php)<br>
 6. 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [PHP手册-Libevent安装](http://php.net/manual/zh/libevent.installation.php). 截止2016-05-06, PHP官方的Libevent扩展不支持PHP7, PHP7下的Libevent安装方法: [PHP7的Libevent分支](https://github.com/expressif/pecl-event-libevent)<br>
 7. 默认监听链接的方式为Select轮询机制. PHP的Select轮询机制最多只能监听1024个链接. 想要突破这个限制, 要么安装Libevent, 要么使用--enable-fd-setsize=2048重新编译安装PHP.<br>
+
+#### 多进程通信:
+1. FastWS目前不支持进程间通信. 想要多进程通信需要您自行开发. 但很快, FastWS官方即将推出解决方案.<br>
+2. 我们可以启动FastWS的多进程来处理高并发的请求, 但进程间的不能通信仅仅影响了多进程下的聊天应用.<br>
+3. 就像Apache/Nginx一样, 使用多进程也只是为了提升单机的处理效率, 每个无状态的请求无论哪个进程来处理, 都是互不影响.<br>
 
 #### 服务端使用方法:
 
