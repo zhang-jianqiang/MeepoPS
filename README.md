@@ -4,20 +4,21 @@
 
 #### 综述:
 1. 目前版本为V0.0.2, 可小规模使用.<br>
-2. 正在进行大规模\高并发\分布式的测试, 请在V1.0版本开始进行商用.<br>
+2. 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.<br>
 3. 正式可用分支为Master分支. 其余分支请不要部署在生产环境.<br>
-4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP已经在dev分支中,正在调试.<br>
-5. PHP不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建即时通讯.<br>
+4. 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP已经在dev分支中, 正在调试.<br>
+5. PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.<br>
 6. FastWS的最低运行要求是安装了PHP的PCNTL库.
 7. FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
 
 #### 声明:
 1. 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动FastWS.<br>
-2. 不支持非Unix操作系统, 如Windows.<br>
+2. 不支持非Unix操作系统, 例如Windows.<br>
 3. Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行FastWS.<br>
-4. FastWS需要PHP的POSIX库. POSIX是默认安装的, 通常情况下你不需要手动安装. 如何安装: [PHP手册-POSIX安装](http://php.net/manual/zh/posix.installation.php)<br>
+4. FastWS需要PHP的POSIX库. POSIX是PHP默认安装的, 通常情况下你不需要手动安装. 如何安装: [PHP手册-POSIX安装](http://php.net/manual/zh/posix.installation.php)<br>
 5. 多进程及信号处理需要依赖PHP的PCNTL库. FastWS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的FastWS, 仍然需要安装PCNTL. 如何安装: [PHP手册-PCNTL安装](http://php.net/manual/zh/pcntl.installation.php)<br>
-6. 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [PHP手册-Libevent安装](http://php.net/manual/zh/libevent.installation.php). 截止2016-05-06, Libevent官方扩展不支持PHP7, PHP7下的Libevent安装方法: [PHP7的Libevent分支](https://github.com/expressif/pecl-event-libevent)<br>
+6. 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [PHP手册-Libevent安装](http://php.net/manual/zh/libevent.installation.php). 截止2016-05-06, PHP官方的Libevent扩展不支持PHP7, PHP7下的Libevent安装方法: [PHP7的Libevent分支](https://github.com/expressif/pecl-event-libevent)<br>
+7. 默认监听链接的方式为Select轮询机制. PHP的Select轮询机制最多只能监听1024个链接. 想要突破这个限制, 要么安装Libevent, 要么使用--enable-fd-setsize=2048重新编译安装PHP.<br>
 
 #### 服务端使用方法:
 ###### 普通终端启动:
@@ -33,7 +34,7 @@
     5. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
 ###### DEMO:
     1. 基于Telnet协议的服务端使用方法请参考demo-text-chat.php.
-    2. 如果服务端启动的是HOST是0.0.0.0, 那么客户端可以是外机,可以是本机.本机可以.
+    2. 如果服务端启动的是HOST是0.0.0.0, 那么客户端可以是外机,可以是本机.本机可以是127.0.0.1, 也可以是localhost.
     3. 如果服务端启动的是HOST是127.0.0.1/localhost, 那么客户端是不能外机,只能是本机.
 
 #### 客户端使用方法:
@@ -104,19 +105,23 @@
     2. 所有的接口类文件都是FastWS/Core/FastWS.php的子类.
     3. 所有的接口文件都可以设置FastWS/Core/FastWS.php所提供的可设置的属性
 ##### 接口类的通用属性
-所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
+    所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
+  所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
+
 ###### 1. 通用属性: childProcessCount
     名称: childProcessCount.
     类型: int.
     描述: childProcessCount用来表示需要多少个子进程来处理这个接口类文件.
     示例: $telnetApi->childProcessCount = 8.
     提示: 启动的子进程数量通常为CPU核心数. 在CPU使用率过高而内存占用较低时, 可适当降低子进程数量. 在内存占用过高而CPU使用率较低时, 可适当增加子进程数量.
+
 ###### 2. 通用属性: instanceName
     名称: instanceName.
     类型: string.
     描述: instanceName用来设置这个实例(接口类的对象)的名称.
     示例: $telnetApi->instanceName = 'FastWS-Telnet'.
     提示: 设置后在查看运行状态时会比较方便. 比如实例一监听19910端口用来接收游戏聊天数据, 实例二监听19911端口用来接收服务器负载信息, 那么在查看状态的时候我们可能会混淆不同实例的作用.
+
 ###### 3. 通用属性之回调函数: callbackStartInstance
     名称: callbackStartInstance.
     类型: function.
@@ -125,7 +130,8 @@
     示例:
         $telnetApi->callbackStartInstance = function($instance){
             var_dump($instance);
-        }.
+        };
+
 ###### 4. 通用属性之回调函数: callbackConnect
     名称: callbackConnect.
     类型: function.
@@ -135,7 +141,8 @@
     示例:
         $telnetApi->callbackConnect = function($connect){
             var_dump('收到新链接. 链接ID为'.$connect->id."\n");
-        }.
+        };
+
 ###### 5. 通用属性之回调函数: callbackNewData
     名称: callbackNewData.
     类型: function.
@@ -145,7 +152,8 @@
     示例:
         $telnetApi->callbackNewData = function($connect, $data){
             var_dump('收到新消息. 链接ID为'.$connect->id.'的用户说'.$data."\n");
-        }.
+        };
+
 ###### 6. 通用属性之回调函数: callbackInstanceStop
     名称: callbackInstanceStop.
     类型: function.
@@ -156,7 +164,8 @@
             foreach($instance->clientList as $client){
                 $client->send("服务即将停止\n");
             }
-        }.
+        };
+
 ###### 7. 通用属性之回调函数: callbackConnectClose
     名称: callbackConnectClose.
     类型: function.
@@ -165,7 +174,8 @@
     示例:
         $telnetApi->callbackConnectClose = function($connect){
             var_dump('链接ID为'.$connect->id."的用户断开了链接\n");
-        }.
+        };
+
 ###### 8. 通用属性之回调函数: callbackError
     名称: callbackError.
     类型: function.
@@ -176,7 +186,8 @@
     示例:
         $telnetApi->callbackError = function($connect, $errCode, $errMsg){
             error_log('error code is ' . $errCode . '. error message: ' . $errMsg . '. connect is ' . serialize($connect));
-        }.
+        };
+
 ###### 9. 通用属性之回调函数: callbackSendBufferFull
     名称: callbackSendBufferFull.
     类型: function.
@@ -185,7 +196,8 @@
     示例:
         $telnetApi->callbackSendBufferFull = function($connect){
             error_log('Waiting to send the buffer is full, we should increase the processing efficiency of the. For example, add a server');
-        }.
+        };
+
 ###### 10. 通用属性之回调函数: callbackSendBufferEmpty
     名称: callbackSendBufferEmpty.
     类型: function.
@@ -195,9 +207,9 @@
     示例:
         $telnetApi->callbackSendBufferFull = function($connect){
             var_dump('用户'.$connect->id."的待发送队列已经为空\n");
-        }
+        };
 
 ##### 接口类文件: Telnet
-    2. Telnet.php 接口类文件是收发数据时使用了Telnet协议来解析(提取)数据.
-    3. Telnet.php 由FastWS自动引入, 无需手动引入.
-    4. 使用时只需要new \FastWS\Api\Telnet('0.0.0.0', '19910')即可. 传入的两个参数分别为需要监听的HOST和端口.
+    1. Telnet.php 接口类文件是收发数据时使用了Telnet协议来解析(提取)数据.
+    2. Telnet.php 由FastWS自动引入, 无需手动引入.
+    3. 使用时只需要new \FastWS\Api\Telnet('0.0.0.0', '19910')即可. 传入的两个参数分别为需要监听的HOST和端口.
