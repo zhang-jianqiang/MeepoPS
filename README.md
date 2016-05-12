@@ -3,6 +3,7 @@
 ## FastWS是Fast WebService的缩写, 旨在提供高校稳定的纯PHP构建的多进程WebService. 可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放等.
 
 #### 综述:
+
 1. 目前版本为V0.0.2, 可小规模使用.<br>
 2. 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.<br>
 3. 正式可用分支为Master分支. 其余分支请不要部署在生产环境.<br>
@@ -12,6 +13,7 @@
 7. FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
 
 #### 声明:
+
 1. 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动FastWS.<br>
 2. 不支持非Unix操作系统, 例如Windows.<br>
 3. Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行FastWS.<br>
@@ -21,31 +23,39 @@
 7. 默认监听链接的方式为Select轮询机制. PHP的Select轮询机制最多只能监听1024个链接. 想要突破这个限制, 要么安装Libevent, 要么使用--enable-fd-setsize=2048重新编译安装PHP.<br>
 
 #### 服务端使用方法:
+
 ###### 普通终端启动:
+
     1. 启动: 命令行输入"php demo-text-chat.php start".
     2. 状态: 命令行输入"php demo-text-chat.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
     4. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
+
 ###### 守护进程模式启动:
     1. 启动: 命令行输入"php demo-text-chat.php start -d".
     2. 状态: 命令行输入"php demo-text-chat.php status".
     3. 平滑结束: 命令行输入"php demo-text-chat.php stop".
     4. 强行结束: 命令行输入"php demo-text-chat.php kill".
     5. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
+
 ###### DEMO:
     1. 基于Telnet协议的服务端使用方法请参考demo-text-chat.php.
     2. 如果服务端启动的是HOST是0.0.0.0, 那么客户端可以是外机,可以是本机.本机可以是127.0.0.1, 也可以是localhost.
     3. 如果服务端启动的是HOST是127.0.0.1/localhost, 那么客户端是不能外机,只能是本机.
 
 #### 客户端使用方法:
+
 ###### Telnet:
     客户端可使用telnet客户端.如: telnet 127.0.0.1 19910
+
 ###### 编写代码:
     客户端可借助编程语言的Socket来实现. 可参考Test/test_client.php
 
 
 #### 测试案例:
+
 ##### 进程\Libevent\Select:
+
 ###### 测试案例一:<br>
 案例特性: 链接数极少, 但是每个链接的数据发送频率极快.<br>
 服务端和客户端同一台服务器. 服务器为一台物理机(F5). 内存: 64G. CPU: 2个物理CPU, 24个逻辑CPU, 6核心. CPU信息: Intel(R) Xeon(R) CPU E5-2630 v2 @ 2.60GHz. PHP版本为5.6.<br>
@@ -91,6 +101,7 @@
 
 
 #### 快速入门:
+
 ##### 惊鸿一瞥:
   1. FastWS/config.ini是FastWS的配置文件. 采用和php.ini同样的格式, ";"为注释.
   2. 必须引入FastWS/index.php文件. 使用FastWS都是从 require_once 'FastWS/index.php' 开始的.
@@ -100,10 +111,12 @@
   7. FastWS不但可以实例化多个接口类文件, 也可以实例化同一个接口类文件多次. 比如启动了三个实例, 分别监听了19910, 19911, 19912端口.
   6. 实例化接口类文件并进行了相关设置后, 调用\FastWS\runFastWS()即可启动FastWS.
   7. \FastWS\runFastWS()之后的所有代码都将不会执行.
+
 ##### 接口类文件
   1. 所有的接口类文件都存放在FastWS/Api/目录下.
   2. 所有的接口类文件都是FastWS/Core/FastWS.php的子类.
   3. 所有的接口文件都可以设置FastWS/Core/FastWS.php所提供的可设置的属性
+
 ##### 接口类的通用属性
     所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
   所谓的通用属性, 就是与接口类文件无关. 无论您实例化哪一个接口类文件, 都可以给实例化后的对象设置通用属性. 也就是说, 无论已有的Telnet协议, 还是即将加入FastWS豪华套餐的HTTP协议, 在实例化后都可以设置一些通用属性.
