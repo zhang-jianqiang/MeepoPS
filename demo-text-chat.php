@@ -36,10 +36,13 @@ $telnet->callbackConnectClose = 'callbackConnectClose';
 //以下为回调函数, 业务相关.
 function callbackStartInstance($instance){
     echo '实例'.$instance->instanceName.'成功启动' . "\n";
-    var_dump($instance);
 }
 
 function callbackConnect($connect){
+    global $telnet;
+    foreach($telnet->clientList as $client){
+        $client->send('hi');
+    }
     //信号定时器
 //    \FastWS\Core\Timer::add(function($conn){
 //        var_dump("hello\n");
@@ -67,7 +70,7 @@ function callbackInstanceStop($instance){
     }
 }
 
-function callbackConnectClose($connect){
+function clientListClose($connect){
     var_dump('UniqueId='.$connect->id.'断开了'."\n");
 }
 
