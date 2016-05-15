@@ -47,9 +47,3 @@ define('FASTWS_EVENT_SELECT_POLL_TIMEOUT', $config['event']['event_select_poll_t
 
 //SELECT轮询事件最大监听资源数.此为PHP源码限制.默认为1024. FastWS最多接收1020. 如果要改变这个值,请重新编译PHP(--enable-fd-setsize=2048)
 define('FASTWS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size']);
-
-//启动用户
-define('FASTWS_START_USER', $config['user']['start_user']);
-
-//启动用户组
-define('FASTWS_START_GROUP', $config['user']['start_group']);
