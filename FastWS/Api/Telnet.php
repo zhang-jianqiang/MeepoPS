@@ -16,17 +16,16 @@ class Telnet extends FastWS{
 
     /**
      * Telnet constructor.
-     * @param string $protocol string 协议,默认为Telnet
      * @param string $host string 需要监听的地址
      * @param string $port string 需要监听的端口
      * @param array $contextOptionList
      */
-    public function __construct($protocol, $host, $port, $contextOptionList=array())
+    public function __construct($host, $port, $contextOptionList=array())
     {
         if(!$host || !$port){
             return;
         }
-        parent::__construct($protocol, $host, $port, $contextOptionList);
+        parent::__construct('telnet', $host, $port, $contextOptionList);
     }
 
     /**
