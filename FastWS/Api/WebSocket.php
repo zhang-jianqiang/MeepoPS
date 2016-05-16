@@ -12,7 +12,12 @@ namespace FastWS\Api;
 
 use FastWS\Core\FastWS;
 
-class Telnet extends FastWS{
+class WebSocket extends FastWS{
+
+    //回调函数 - 接收到PING的时候
+    public $callbackPing;
+    //回调函数 - 接收到PONG的时候
+    public $callbackPong;
 
     /**
      * Telnet constructor.
@@ -25,7 +30,7 @@ class Telnet extends FastWS{
         if(!$host || !$port){
             return;
         }
-        parent::__construct('telnet', $host, $port, $contextOptionList);
+        parent::__construct('websocket', $host, $port, $contextOptionList);
     }
 
     /**
