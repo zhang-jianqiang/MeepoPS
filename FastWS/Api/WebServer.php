@@ -27,22 +27,21 @@ class WebServer extends FastWS{
     //后缀和MimeType的对应关系 array('ext1'=>'mime_type1', 'ext2'=>'mime_type2')
     private static $mimeTypeMap = array();
 
-    private $_callerCallbackStart = '';
+    private $_callerCallbackStartInstance = '';
     private $_callerCallbackNewData = '';
 
     /**
      * WebServer constructor.
-     * @param string $protocol string 协议,默认为Telnet
      * @param string $host string 需要监听的地址
      * @param string $port string 需要监听的端口
      * @param array $contextOptionList
      */
-    public function __construct($protocol, $host, $port, $contextOptionList=array())
+    public function __construct($host, $port, $contextOptionList=array())
     {
-        if(!$protocol || !$host || !$port){
+        if(!$host || !$port){
             return;
         }
-        parent::__construct($protocol, $host, $port, $contextOptionList);
+        parent::__construct('http', $host, $port, $contextOptionList);
     }
 
     /**
@@ -54,9 +53,9 @@ class WebServer extends FastWS{
         }
         //调用者所设置的回调放置在_callerCallback系列的属性中
         $this->_callerCallbackNewData = $this->callbackNewData;
-        $this->_callerCallbackStart = $this->callbackStart;
+        $this->_callerCallbackStartInstance = $this->callbackStartInstance;
         //设置FastWS的回调.
-        $this->callbackStart = array($this, 'callbackStart');
+        $this->callbackStartInstance = array($this, 'callbackStartInstance');
         $this->callbackNewData = array($this, 'callbackNewData');
         //运行FastWS
         parent::run();
@@ -87,7 +86,7 @@ class WebServer extends FastWS{
     /**
      * 回调.开始运行时
      */
-    public function callbackStart(){
+    public function callbackStartInstance(){
         // Init HttpCache.
         HttpCache::init();
         // Init mimeMap.
