@@ -12,17 +12,17 @@
  */
 namespace FastWS\Core\Protocol;
 
-use FastWS\Core\Connect\ConnectInterface;
+use FastWS\Core\Transfer\TransferInterface;
 
 class Telnet implements ProtocolInterface {
     /**
      * 检测数据, 返回数据包的长度.
      * 没有数据包或者数据包未结束,则返回0
      * @param string $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return bool|int
      */
-    public static function input($data, ConnectInterface $connect)
+    public static function input($data, TransferInterface $connect)
     {
         //如果数据量超过所能接受的最大限制,则关闭这个链接.结束本方法
         if(strlen($data) > FASTWS_TCP_CONNECT_MAX_PACKET_SIZE){
@@ -41,10 +41,10 @@ class Telnet implements ProtocolInterface {
     /**
      * 数据编码.在发送数据前调用此方法.
      * @param string $data 给数据流中发送的数据
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return string
      */
-    public static function encode($data, ConnectInterface $connect)
+    public static function encode($data, TransferInterface $connect)
     {
         return $data."\n";
     }
@@ -52,10 +52,10 @@ class Telnet implements ProtocolInterface {
     /**
      * 数据解码.在接收数据前调用此方法
      * @param string $data 从数据流中接收到的数据
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return string
      */
-    public static function decode($data, ConnectInterface $connect)
+    public static function decode($data, TransferInterface $connect)
     {
         return trim($data);
     }

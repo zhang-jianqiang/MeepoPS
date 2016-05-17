@@ -10,12 +10,12 @@
  */
 namespace FastWS\Core\Protocol;
 
-use FastWS\Core\Connect\ConnectInterface;
+use FastWS\Core\Transfer\TransferInterface;
 use FastWS\Core\Log;
 
 class Http implements ProtocolInterface{
 
-    public static function input($data, ConnectInterface $connect)
+    public static function input($data, TransferInterface $connect)
     {
         $position = strpos($data, "\r\n\r\n");
         //如果数据是两个\r\n开头,或者如果数据没有找到两个\r\n,表示数据未完.则不处理
@@ -47,10 +47,10 @@ class Http implements ProtocolInterface{
     /**
      * 将数据封装为HTTP协议数据
      * @param $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return string
      */
-    public static function encode($data, ConnectInterface $connect)
+    public static function encode($data, TransferInterface $connect)
     {
         //状态码
         $header = isset(HttpCache::$header['Http-Code']) ? HttpCache::$header['Http-Code'] : 'HTTP/1.1 200 OK';
@@ -80,10 +80,10 @@ class Http implements ProtocolInterface{
     /**
      * 将数据包根据HTTP协议解码
      * @param $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return array
      */
-    public static function decode($data, ConnectInterface $connect)
+    public static function decode($data, TransferInterface $connect)
     {
         //将超全局变量设为空.初始化HttpCache
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = $GLOBALS['HTTP_RAW_POST_DATA'] = array();

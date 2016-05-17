@@ -8,24 +8,28 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace FastWS\Core\Connect;
+namespace FastWS\Core\Transfer;
 
-abstract class ConnectInterface{
+abstract class TransferInterface{
 
     //统计信息
     public static $statistics = array(
-        //当前链接数
-        'current_connect_count' => 0,
         //总链接数
         'total_connect_count' => 0,
-        //当前处理的请求数
-//        'current_request_count' => 0,
-        //总请求数
-        'total_request_count' => 0,
+        //当前链接数
+        'current_connect_count' => 0,
+        //总读取数
+        'total_read_count' => 0,
+        //总读取失败数
+        'total_read_failed_count' => 0,
+        //总读取包数
+        'total_read_package_count' => 0,
+        //总读取包失败数
+        'total_read_package_failed_count' => 0,
         //总发送数
         'total_send_count' => 0,
-        //发送失败数
-        'send_failed_count' => 0,
+        //总发送失败数
+        'total_send_failed_count' => 0,
         //异常数
         'exception_count' => 0,
     );
@@ -34,8 +38,9 @@ abstract class ConnectInterface{
      * 构造函数
      * @param $socket resource 由stream_socket_accept()返回
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
+     * @param $applicationProtocol string 应用层协议, 默认为空
      */
-    abstract public function __construct($socket, $clientAddress);
+    abstract public function __construct($socket, $clientAddress, $applicationProtocol='');
 
     /**
      * 析构函数

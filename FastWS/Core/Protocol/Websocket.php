@@ -10,10 +10,10 @@
  */
 namespace FastWS\Core\Protocol;
 
-use FastWS\Core\Connect\ConnectInterface;
+use FastWS\Core\Transfer\TransferInterface;
 use FastWS\Core\Log;
 
-class WebSocket implements ProtocolInterface {
+class Websocket implements ProtocolInterface {
 
     //最小的头长度
     const MIN_HEAD_LENGTH = 6;
@@ -26,10 +26,10 @@ class WebSocket implements ProtocolInterface {
      * 检测数据, 返回数据包的长度.
      * 没有数据包或者数据包未结束,则返回0
      * @param string $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return bool|int
      */
-    public static function input($data, ConnectInterface $connect)
+    public static function input($data, TransferInterface $connect)
     {
         //数据长度
         $dataLength = strlen($data);
@@ -148,10 +148,10 @@ class WebSocket implements ProtocolInterface {
     /**
      * 数据编码.在发送数据前调用此方法.
      * @param $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return string
      */
-    public static function encode($data, ConnectInterface $connect)
+    public static function encode($data, TransferInterface $connect)
     {
         $dataLength = strlen($data);
         if(empty($connect->websocketType)){
@@ -176,10 +176,10 @@ class WebSocket implements ProtocolInterface {
     /**
      * 数据解码.在接收数据前调用此方法
      * @param $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      * @return string
      */
-    public static function decode($data, ConnectInterface $connect)
+    public static function decode($data, TransferInterface $connect)
     {
         $dataLength = ord($data[1]) & 127;
         if($dataLength === 126){
@@ -209,9 +209,9 @@ class WebSocket implements ProtocolInterface {
     /**
      * 进行首次建立链接的握手
      * @param string $data
-     * @param ConnectInterface $connect
+     * @param TransferInterface $connect
      */
-    private static function _handshake($data, $connect)
+    private static function _handshake($data, TransferInterface $connect)
     {
         //如果是policy-file-request. 在与Flash通信时,三次握手之后客户端会发送一个<policy-file-request>
         if(strpos($data, '<policy') === 0){

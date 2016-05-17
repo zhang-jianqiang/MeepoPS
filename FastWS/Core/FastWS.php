@@ -10,8 +10,8 @@
  */
 namespace FastWS\Core;
 
-use FastWS\Core\Connect\ConnectInterface;
-use FastWS\Core\Connect\Tcp;
+use FastWS\Core\Transfer\TransferInterface;
+use FastWS\Core\Transfer\Tcp;
 use FastWS\Core\Event\EventInterface;
 
 class FastWS
@@ -815,12 +815,12 @@ class FastWS
         $statistics .= str_pad(round(memory_get_usage(true) / (1024*1024), 2) . 'M', 14);
         $statistics .= str_pad($instance->_getBind(), 28);
         $statistics .= str_pad($instance->instanceName, 21);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_connect_count'], 17);
-        $statistics .= str_pad(ConnectInterface::$statistics['current_connect_count'], 19);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_read_package_count'], 17);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_send_count'], 16);
-        $statistics .= str_pad(ConnectInterface::$statistics['total_send_failed_count'], 15);
-        $statistics .= str_pad(ConnectInterface::$statistics['exception_count'], 15);
+        $statistics .= str_pad(TransferInterface::$statistics['total_connect_count'], 17);
+        $statistics .= str_pad(TransferInterface::$statistics['current_connect_count'], 19);
+        $statistics .= str_pad(TransferInterface::$statistics['total_read_package_count'], 17);
+        $statistics .= str_pad(TransferInterface::$statistics['total_send_count'], 16);
+        $statistics .= str_pad(TransferInterface::$statistics['total_send_failed_count'], 15);
+        $statistics .= str_pad(TransferInterface::$statistics['exception_count'], 15);
         $statistics .= "\n";
         file_put_contents(FASTWS_STATISTICS_PATH, $statistics, FILE_APPEND);
         return;

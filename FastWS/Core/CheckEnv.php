@@ -42,19 +42,6 @@ if(!isset($argv[1]) || !in_array($argv[1], array('start', 'stop', 'restart', 'st
     $fatalErrorList[] = "Fatal error: FastWS needs to receive the execution of the operation.\nUsage: php index.php start|stop|restart|status|kill\n\"";
 }
 
-//是否设置了启动用户和用户组
-if(!FASTWS_START_USER || !FASTWS_START_GROUP){
-    $fatalErrorList[] = 'Fatal error: You must set up a startup user and user group.';
-}
-
-//如果设置的启动用户不是当前用户,则提示需要root权限
-//$currentUser = posix_getpwuid(posix_getuid());
-//var_dump($currentUser);
-//var_dump(FASTWS_START_USER);
-//if ($currentUser !== 'root' && FASTWS_START_USER != $currentUser['name']) {
-//    $fatalErrorList[] = 'You must have the root permission to change uid and gid.';
-//}
-
 //日志路径是否已经配置
 if(!defined('FASTWS_LOG_PATH')){
     $fatalErrorList[] = "Fatal error: Log file path is not defined. Please define FASTWS_LOG_PATH in Config.php";
