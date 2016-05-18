@@ -94,8 +94,8 @@ class Tcp extends TransferInterface
         while(true){
             self::$statistics['total_read_count']++;
             $buffer = fread($connect, self::READ_BUFFER_SIZE);
-            if($buffer === false || $buffer === ''){
-                self::$statistics['total_read_failed_count']++;
+            $buffer === false ? self::$statistics['total_read_failed_count']++ : null;
+            if($buffer === false || $buffer === '' || feof($connect) === true){
                 break;
             }
             $isAlreadyReaded = true;
