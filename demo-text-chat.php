@@ -82,3 +82,8 @@ function _broadcast($connect, $data){
         }
     }
 }
+
+function callbackConnectClose($connect){
+    var_dump($connect);
+    $connect->send('88');
+}
