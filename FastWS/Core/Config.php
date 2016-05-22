@@ -37,10 +37,10 @@ define('FASTWS_MASTER_PID_PATH', $config['file']['master_pid_path']);
 define('FASTWS_STATISTICS_PATH', $config['file']['statistics_path']);
 
 //TCP链接中默认最大的待发送缓冲区
-define('FASTWS_TCP_CONNECT_DEFAULT_MAX_SEND_BUFFER_SIZE', $config['connection']['tcp_default_max_send_buffer_size']);
+define('FASTWS_TCP_CONNECT_SEND_MAX_BUFFER_SIZE', $config['connection']['tcp_send_max_buffer_size']);
 
 //TCP链接中所能接收的最大的数据包
-define('FASTWS_TCP_CONNECT_MAX_PACKET_SIZE', $config['connection']['tcp_max_max_packet_size']);
+define('FASTWS_TCP_CONNECT_READ_MAX_PACKET_SIZE', $config['connection']['tcp_read_max_packet_size']);
 
 //SELECT事件轮询中的超时时间
 define('FASTWS_EVENT_SELECT_POLL_TIMEOUT', $config['event']['event_select_poll_timeout']);
