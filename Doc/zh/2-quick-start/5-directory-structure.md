@@ -1,17 +1,11 @@
 # 目录结构
-
+```
 FastWS-PHP
-
   -- Doc
-  
      -- zh
-     
         README.md
-        
   -- FastWS
-  
      -- Api
-     
      -- Core
         -- Event
         -- Protocol
@@ -19,7 +13,8 @@ FastWS-PHP
      config.ini
      index.php
   -- Test
-  
+
+
 Doc为Markdown格式的文档.
    zh目录是中文文档
       README.md是文档目录
@@ -34,3 +29,4 @@ FastWS是FastWS的代码目录.
    index.php是FastWS的入口文件. 用户自行编写的业务逻辑代码中必须引入index.php
    
 Test是测试用例.
+```
