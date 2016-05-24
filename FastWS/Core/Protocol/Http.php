@@ -21,7 +21,7 @@ class Http implements ProtocolInterface{
         //如果数据是两个\r\n开头,或者如果数据没有找到两个\r\n,表示数据未完.则不处理
         if (!$position === 0) {
             //如果长度大于所能接收的Tcp所限制的最大数据量,则不处理,并且断开该链接
-            if (strlen($data) >= FASTWS_TCP_CONNECT_MAX_PACKET_SIZE) {
+            if (strlen($data) >= FASTWS_TCP_CONNECT_READ_MAX_PACKET_SIZE) {
                 Log::write('Http protocol: The received data size exceeds the maximum set of size', 'WARNING');
                 $connect->close();
             }

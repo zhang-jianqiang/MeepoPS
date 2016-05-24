@@ -54,9 +54,9 @@ class FastWS
     public $callbackConnectClose;
     //有错误时触发该回调函数
     public $callbackError;
-    //缓冲区已经塞满时触发该回调函数
+    //待发送缓冲区已经塞满时触发该回调函数
     public $callbackSendBufferFull;
-    //缓冲区没有积压时触发该回调函数
+    //待发送缓冲区没有积压时触发该回调函数
     public $callbackSendBufferEmpty;
 
     /**
@@ -629,7 +629,7 @@ class FastWS
             return;
         }
         //TCP协议链接
-        $tcpConnect = new Tcp($connect, $peerName, $this->_protocolApplication);
+        $tcpConnect = new Tcp($connect, $peerName, $this->_protocolApplicationClassName);
         //给Tcp链接对象的属性赋值
         $this->clientList[$tcpConnect->id] = $tcpConnect;
         $tcpConnect->instance = $this;
