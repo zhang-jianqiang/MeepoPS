@@ -50,9 +50,9 @@ abstract class TransferInterface{
     /**
      * 读取数据
      * @param $connect resource 由stream_socket_accept()返回
-     * @param $isCheckEof bool 如果fread读取到的是空数据或者false的话,是否销毁链接.默认为true
+     * @param $ifDestroy bool 如果fread读取到的是空数据或者false的话,是否销毁链接.默认为true
      */
-    abstract public function read($connect, $isCheckEof=true);
+    abstract public function read($connect, $ifDestroy=true);
 
     /**
      * 发送数据
@@ -64,7 +64,6 @@ abstract class TransferInterface{
     /**
      * 关闭客户端链接
      * @param $data string 关闭链接前发送的消息
-     * @return mixed
      */
     abstract public function close($data='');
 

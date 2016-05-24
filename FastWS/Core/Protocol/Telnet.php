@@ -24,13 +24,9 @@ class Telnet implements ProtocolInterface {
      */
     public static function input($data, TransferInterface $connect)
     {
-        //如果数据量超过所能接受的最大限制,则关闭这个链接.结束本方法
-        if(strlen($data) > FASTWS_TCP_CONNECT_MAX_PACKET_SIZE){
-            $connect->close();
-            return 0;
-        }
+        //获取首个数据包的大小(结尾的位置)
         $position = strpos($data, "\n");
-        //如果没有,则暂时不处理本次请求
+        //如果没有, 说明接收到的不是一个完整的数据包, 则暂时不处理本次请求, 等待下次接收后再处理
         if($position === false){
             return 0;
         }
