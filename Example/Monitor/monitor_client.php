@@ -9,20 +9,27 @@
  * WebSite: http://www.lanecn.com
  */
 
-$errno = $errmsg = '';
-$client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
-while (1) {
-    $data = getData();
-    $data = json_encode($data) . "\n";
-    fwrite($client, $data);
-    while (feof($client) === false && $d = fgetc($client)) {
-        if ($d === "\n") {
-            break;
+while(1){
+    $errno = $errmsg = '';
+    $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
+    if($client){
+        while (1) {
+            $data = getData();
+            $data = json_encode($data) . "\n";
+            $result = @fwrite($client, $data);
+            if(!$result){
+                break;
+            }
+            while (feof($client) === false && $d = fgetc($client)) {
+                if ($d === "\n") {
+                    break;
+                }
+                $data .= $d;
+            }
+            sleep(1);
         }
-        $data .= $d;
     }
-    var_dump($data);
-    sleep(3);
+    fclose($client);
 }
 
 function getData(){

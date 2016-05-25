@@ -20,7 +20,6 @@ class Mysql{
     }
 
     public function query($sql){
-        echo $sql;
         return mysqli_query(self::$conn, $sql);
     }
 
