@@ -23,7 +23,7 @@ require_once 'FastWS/index.php';
 $telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
-//$telnet实例的所有进程启动完毕后会触发callbackStartInstance所设置的回调函数
+//$telnet实例的每个进程在启动完毕时都会触发callbackStartInstance所设置的回调函数
 $telnet->callbackNewData = 'receivedMessage'
 function receivedMessage($connect, $data){
     var_dump('用户ID'.$connect->id.'说:'.$data."\n");
@@ -44,7 +44,7 @@ require_once 'FastWS/index.php';
 $telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
-//$telnet实例的所有进程启动完毕后会触发callbackStartInstance所设置的回调函数
+//$telnet实例的每个进程在启动完毕时都会触发callbackStartInstance所设置的回调函数
 $telnet->callbackNewData = array('Message', 'read');
 
 //启动FastWS
@@ -68,7 +68,7 @@ require_once 'FastWS/index.php';
 $telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
-//$telnet实例的所有进程启动完毕后会触发callbackStartInstance所设置的回调函数
+//$telnet实例的每个进程在启动完毕时都会触发callbackStartInstance所设置的回调函数
 $telnet->callbackNewData = function ($connect, $data){
     var_dump('用户ID'.$connect->id.'说:'.$data."\n");
 };

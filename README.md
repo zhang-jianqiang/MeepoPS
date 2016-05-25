@@ -23,23 +23,23 @@
 #### 快速入门:
 
 ##### 服务端使用方法:
-基础功能和用法都写在demo-text-chat.php, 基本您就可以直接用. 
+基础功能和用法都写在demo-telnet.php, 基本您就可以直接用. 
 
 ###### 普通终端启动:
-    1. 启动: 命令行输入"php demo-text-chat.php start".
-    2. 状态: 命令行输入"php demo-text-chat.php status".
+    1. 启动: 命令行输入"php demo-telnet.php start".
+    2. 状态: 命令行输入"php demo-telnet.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
     4. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
 
 ###### 守护进程模式启动:
-    1. 启动: 命令行输入"php demo-text-chat.php start -d".
-    2. 状态: 命令行输入"php demo-text-chat.php status".
-    3. 平滑结束: 命令行输入"php demo-text-chat.php stop".
-    4. 强行结束: 命令行输入"php demo-text-chat.php kill".
+    1. 启动: 命令行输入"php demo-telnet.php start -d".
+    2. 状态: 命令行输入"php demo-telnet.php status".
+    3. 平滑结束: 命令行输入"php demo-telnet.php stop".
+    4. 强行结束: 命令行输入"php demo-telnet.php kill".
     5. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
 
 ###### DEMO:
-    1. 基于Telnet协议的服务端使用方法请参考demo-text-chat.php.
+    1. 基于Telnet协议的服务端使用方法请参考demo-telnet.php.
     2. 如果服务端启动的是HOST是0.0.0.0, 那么客户端可以是外机,可以是本机.本机可以是127.0.0.1, 也可以是localhost.
     3. 如果服务端启动的是HOST是127.0.0.1/localhost, 那么客户端是不能外机,只能是本机.
 
@@ -63,4 +63,4 @@
 
 
 #### 测试案例:
-[请看文档-测试一栏](Doc/zh/)
+[请看文档-测试一栏](Doc/zh/8-test)

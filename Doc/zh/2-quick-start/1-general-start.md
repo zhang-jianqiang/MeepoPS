@@ -3,15 +3,15 @@
 
 - 启动: 命令行输入
 ```bash
-php demo-text-chat.php start
+php demo-telnet.php start
 ```
 - 查看状态: 命令行输入
 ```bash
-php demo-text-chat.php status
+php demo-telnet.php status
 ```
 - 平滑重启: 命令行输入
 ```bash
-php demo-text-chat.php restart
+php demo-telnet.php restart
 ```
 - 平滑结束: 启动后按下`ctrl + c`即可.
 - 强行结束: 命令行输入

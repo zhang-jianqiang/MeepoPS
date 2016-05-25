@@ -3,23 +3,23 @@
 
 - 启动: 命令行输入
 ```bash
-php demo-text-chat.php start -d
+php demo-telnet.php start -d
 ```
 - 查看状态: 命令行输入
 ```bash
-php demo-text-chat.php status
+php demo-telnet.php status
 ```
 - 平滑重启: 命令行输入
 ```bash
-php demo-text-chat.php restart
+php demo-telnet.php restart
 ```
 - 平滑结束: 命令行输入
 ```bash
-php demo-text-chat.php stop
+php demo-telnet.php stop
 ```
 - 强行结束: 命令行输入
 ```bash
-php demo-text-chat.php kill
+php demo-telnet.php kill
 ```
 - 强行结束: 命令行输入
 ```bash

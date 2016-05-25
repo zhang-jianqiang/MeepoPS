@@ -37,7 +37,7 @@ $telnet19911->instanceName = 'FastWS-Telnet-19911';
 $telnet19912->instanceName = 'FastWS-Telnet-19912';
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
-//$telnet19910实例的所有进程启动完毕后会触发callbackStartInstance所设置的回调函数
+//$telnet19910实例的每个进程在启动完毕时都会触发callbackStartInstance所设置的回调函数
 $telnet19910->callbackStartInstance = function($instance){
     var_dump('实例'.$instance->instanceName.'已经启动');
 };
