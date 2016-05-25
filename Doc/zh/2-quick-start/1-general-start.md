@@ -1,20 +1,20 @@
 # 普通模式启动:
-如果遇到没有权限的问题, 请使用sudo或切换到root账户
+如果遇到没有权限的问题, 请使用sudo或切换到root账户. 因为默认的情况下, 日志是放在/var/log/fast_ws/目录, Pid文件是存放在/var/run/fast_ws/目录, 这是需要root权限的.
 
 - 启动: 命令行输入
 ```bash
-php demo-telnet.php start
+sudo php demo-telnet.php start
 ```
 - 查看状态: 命令行输入
 ```bash
-php demo-telnet.php status
+sudo php demo-telnet.php status
 ```
 - 平滑重启: 命令行输入
 ```bash
-php demo-telnet.php restart
+sudo php demo-telnet.php restart
 ```
 - 平滑结束: 启动后按下`ctrl + c`即可.
 - 强行结束: 命令行输入
 ```bash
-kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`
+sudo kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`
 ```

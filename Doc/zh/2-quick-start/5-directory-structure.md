@@ -4,6 +4,8 @@ FastWS-PHP
   -- Doc
      -- zh
         README.md
+  -- Example
+     -- Monitor
   -- FastWS
      -- Api
      -- Core
@@ -13,11 +15,15 @@ FastWS-PHP
      config.ini
      index.php
   -- Test
+  demo-telnet.php
 
 
 Doc为Markdown格式的文档.
    zh目录是中文文档
       README.md是文档目录
+      
+Example是示例
+   Monitor是服务器负载监控项目
       
 FastWS是FastWS的代码目录.
    Api是暴露给外部用户使用的接口类文件所在目录. 所有文件均是一个类, 用户在自己的代码中继承该类即可.
@@ -29,4 +35,6 @@ FastWS是FastWS的代码目录.
    index.php是FastWS的入口文件. 用户自行编写的业务逻辑代码中必须引入index.php
    
 Test是测试用例.
+
+demo-telnet.php是启动FastWS的demo
 ```
