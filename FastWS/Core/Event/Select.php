@@ -33,7 +33,8 @@ class Select implements EventInterface
      * 初始化
      * EventInterface constructor.
      */
-    public function __construct(){
+    public function __construct()
+    {
         //初始化事件列表
         $this->_initEventList();
         //初始化一个队列
@@ -45,7 +46,8 @@ class Select implements EventInterface
     /**
      * 初始化事件列表
      */
-    private function _initEventList(){
+    private function _initEventList()
+    {
         $this->_eventList = array(
             self::EVENT_TYPE_READ => array(),
             self::EVENT_TYPE_WRITE => array(),
@@ -54,6 +56,7 @@ class Select implements EventInterface
             self::EVENT_TYPE_TIMER_ONCE => array(),
         );
     }
+
     /**
      * 添加事件
      * @param $callback string|array 回调函数
@@ -62,28 +65,29 @@ class Select implements EventInterface
      * @param $type int 类型
      * @return int|false
      */
-    public function add($callback, array $args, $resource, $type){
+    public function add($callback, array $args, $resource, $type)
+    {
         //如果是读写事件,则两者和不能超过FASTWS_EVENT_SELECT_MAX_SIZE限制.
-        if( ($type == EventInterface::EVENT_TYPE_READ || $type == EventInterface::EVENT_TYPE_WRITE)){
+        if (($type == EventInterface::EVENT_TYPE_READ || $type == EventInterface::EVENT_TYPE_WRITE)) {
             $total = (count($this->_eventList[self::EVENT_TYPE_READ]) + count($this->_eventList[self::EVENT_TYPE_WRITE]));
-            if(FASTWS_EVENT_SELECT_MAX_SIZE < $total){
+            if (FASTWS_EVENT_SELECT_MAX_SIZE < $total) {
                 Log::write('Select maximum number of listening resources is set to ' . FASTWS_EVENT_SELECT_MAX_SIZE . ', but you have descriptors numbered at least as high as ' . $total . '. If you want to change this value, you must recompile PHP (--enable-fd-setsize=2048)', 'WARNING');
                 return false;
             }
         }
         $type = intval($type);
-        switch($type){
+        switch ($type) {
             //读/写/信号事件
             case self::EVENT_TYPE_READ:
             case self::EVENT_TYPE_WRITE:
             case self::EVENT_TYPE_SIGNAL:
                 $uniqueId = (int)($resource);
                 $this->_eventList[$type][$uniqueId] = array($callback, $resource);
-                if($type === self::EVENT_TYPE_READ){
+                if ($type === self::EVENT_TYPE_READ) {
                     $this->_readEventResourceList[$uniqueId] = $resource;
-                }else if($type === self::EVENT_TYPE_WRITE){
+                } else if ($type === self::EVENT_TYPE_WRITE) {
                     $this->_writeEventResourceList[$uniqueId] = $resource;
-                }else{
+                } else {
                     pcntl_signal($resource, array($this, 'signalCallback'), false);
                 }
                 return $uniqueId;
@@ -110,12 +114,13 @@ class Select implements EventInterface
      * 信号回调函数
      * @param $signal int 信号
      */
-    public function signalCallback($signal){
+    public function signalCallback($signal)
+    {
         $uniqueId = (int)($signal);
-        try{
+        try {
             call_user_func($this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0], $uniqueId);
-        } catch (\Exception $e){
-            Log::write('FastWS: execution callback function run timer signal callback-'.$this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0] . ' throw exception', 'ERROR');
+        } catch (\Exception $e) {
+            Log::write('FastWS: execution callback function run timer signal callback-' . $this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0] . ' throw exception', 'ERROR');
         }
     }
 
@@ -125,14 +130,14 @@ class Select implements EventInterface
     private function _runTimerEvent()
     {
         //如果队列不为空
-        while(!$this->_splPriorityQueue->isEmpty()){
+        while (!$this->_splPriorityQueue->isEmpty()) {
             //查看队列顶部的最高优先级的数据(只看,不出队)
             $data = $this->_splPriorityQueue->top();
             //优先级 = 下次运行时间的负数
             $runTime = -$data['priority'];
             $nowTime = microtime(true);
             //当前时间还没有到下次运行时间
-            if($nowTime < $runTime){
+            if ($nowTime < $runTime) {
                 $this->_selectTimeout = ($runTime - $nowTime) * 1000000;
                 return;
             }
@@ -141,26 +146,26 @@ class Select implements EventInterface
             //将数据出队
             $this->_splPriorityQueue->extract();
             //从定时器任务列表中获取本次的任务
-            if(isset($this->_eventList[self::EVENT_TYPE_TIMER][$timerId])){
+            if (isset($this->_eventList[self::EVENT_TYPE_TIMER][$timerId])) {
                 $type = self::EVENT_TYPE_TIMER;
-            }else if(isset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$timerId])){
+            } else if (isset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$timerId])) {
                 $type = self::EVENT_TYPE_TIMER_ONCE;
-            }else{
+            } else {
                 continue;
             }
             $task = $this->_eventList[$type][$timerId];
             //如果是长期的定时器任务.则计算下次执行时间,并重新根据优先级入队
-            if($type === EventInterface::EVENT_TYPE_TIMER){
+            if ($type === EventInterface::EVENT_TYPE_TIMER) {
                 $nextRunTime = $nowTime + $task[2];
                 $this->_splPriorityQueue->insert($timerId, -$nextRunTime);
-            //如果是一次性定时任务,则从队列列表中删除
-            }else if($type === EventInterface::EVENT_TYPE_TIMER_ONCE){
+                //如果是一次性定时任务,则从队列列表中删除
+            } else if ($type === EventInterface::EVENT_TYPE_TIMER_ONCE) {
                 $this->delOne($timerId, EventInterface::EVENT_TYPE_TIMER_ONCE);
             }
-            try{
+            try {
                 call_user_func_array($task[0], $task[1]);
-            } catch (\Exception $e){
-                Log::write('FastWS: execution callback function run timer event-'.$task[0] . ' throw exception', 'ERROR');
+            } catch (\Exception $e) {
+                Log::write('FastWS: execution callback function run timer event-' . $task[0] . ' throw exception', 'ERROR');
             }
             continue;
         }
@@ -172,13 +177,14 @@ class Select implements EventInterface
      * @param $resource resource|int 读写事件中表示socket资源,定时器任务中表示时间(int,秒),信号回调中表示信号(int)
      * @param $type int 类型
      */
-    public function delOne($resource, $type){
+    public function delOne($resource, $type)
+    {
         $uniqueId = (int)($resource);
-        if($type === self::EVENT_TYPE_READ){
+        if ($type === self::EVENT_TYPE_READ) {
             unset($this->_readEventResourceList[$uniqueId]);
-        }else if($type === self::EVENT_TYPE_WRITE){
+        } else if ($type === self::EVENT_TYPE_WRITE) {
             unset($this->_writeEventResourceList[$uniqueId]);
-        }else{
+        } else {
             //将信号设置为忽略信号
             pcntl_signal($resource, SIG_IGN);
         }
@@ -188,7 +194,8 @@ class Select implements EventInterface
     /**
      * 清除所有的计时器事件
      */
-    public function delAllTimer(){
+    public function delAllTimer()
+    {
         //清空计时器任务列表
         $this->_eventList[self::EVENT_TYPE_TIMER] = array();
         $this->_eventList[self::EVENT_TYPE_TIMER_ONCE] = array();
@@ -200,11 +207,12 @@ class Select implements EventInterface
     /**
      * 循环事件
      */
-    public function loop(){
+    public function loop()
+    {
         //检测空轮询
         $this->_checkEmptyLoop();
         $e = null;
-        while(true){
+        while (true) {
             //调用等待信号的处理器.即收到信号后执行通过pcntl_signal安装的信号处理函数.此处不会阻塞一直等待
             pcntl_signal_dispatch();
             //已添加的读事件 - 每个元素都是socket资源
@@ -215,11 +223,11 @@ class Select implements EventInterface
             //请注意:stream_select()最多只能接收1024个监听
             $selectNum = stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
             //执行定时器队列
-            if(!$this->_splPriorityQueue->isEmpty()){
+            if (!$this->_splPriorityQueue->isEmpty()) {
                 $this->_runTimerEvent();
             }
             //如果没有变化的读写事件则开始执行下次等待
-            if(!$selectNum){
+            if (!$selectNum) {
                 continue;
             }
             //处理接收到的读和写请求
@@ -227,14 +235,14 @@ class Select implements EventInterface
                 array('type' => EventInterface::EVENT_TYPE_READ, 'data' => $readList),
                 array('type' => EventInterface::EVENT_TYPE_WRITE, 'data' => $writeList),
             );
-            foreach($selectList as $select){
-                foreach($select['data'] as $item){
+            foreach ($selectList as $select) {
+                foreach ($select['data'] as $item) {
                     $uniqueId = (int)($item);
-                    if(isset($this->_eventList[$select['type']][$uniqueId])){
-                        try{
+                    if (isset($this->_eventList[$select['type']][$uniqueId])) {
+                        try {
                             call_user_func($this->_eventList[$select['type']][$uniqueId][0], $this->_eventList[$select['type']][$uniqueId][1]);
-                        } catch (\Exception $e){
-                            Log::write('FastWS: execution callback function select loop-'.$this->_eventList[$select['type']][$uniqueId][0] . ' throw exception', 'ERROR');
+                        } catch (\Exception $e) {
+                            Log::write('FastWS: execution callback function select loop-' . $this->_eventList[$select['type']][$uniqueId][0] . ' throw exception', 'ERROR');
                         }
                     }
                 }
@@ -248,9 +256,9 @@ class Select implements EventInterface
      */
     private function _checkEmptyLoop()
     {
-        if(empty($this->_eventList[self::EVENT_TYPE_READ])){
+        if (empty($this->_eventList[self::EVENT_TYPE_READ])) {
             $channel = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-            if($channel){
+            if ($channel) {
                 stream_set_blocking($channel[0], 0);
                 $this->_eventList[self::EVENT_TYPE_READ][0] = array('', $channel[0]);
                 fclose($channel[1]);

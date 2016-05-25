@@ -81,7 +81,8 @@ class HttpCache
     /**
      * 初始化
      */
-    public static function init(){
+    public static function init()
+    {
         self::$sessionPath = session_save_path() ? session_save_path() : sys_get_temp_dir();
         @session_start();
     }

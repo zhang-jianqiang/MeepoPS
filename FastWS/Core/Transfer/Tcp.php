@@ -57,23 +57,23 @@ class Tcp extends TransferInterface
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
      * @param $applicationProtocol string 应用层协议所使用的类, 默认为空
      */
-    public function __construct($socket, $clientAddress, $applicationProtocolClassname='')
+    public function __construct($socket, $clientAddress, $applicationProtocolClassname = '')
     {
         //更改统计信息
         self::$statistics['current_connect_count']++;
         self::$statistics['total_connect_count']++;
         //属性赋值
         $this->id = self::$_recorderId++;
-        if(!is_resource($socket)){
+        if (!is_resource($socket)) {
             Log::write('Construct Tcp failed. Possible socket resource has disabled', 'WARNING');
             return;
         }
         $this->_connect = $socket;
 
         $this->_clientAddress = $clientAddress;
-        if(!class_exists($applicationProtocolClassname)) {
+        if (!class_exists($applicationProtocolClassname)) {
             $applicationProtocolClassname = '';
-            Log::write('Application protocol class: '.$this->_applicationProtocolClassName.' not exists', 'FATAL');
+            Log::write('Application protocol class: ' . $this->_applicationProtocolClassName . ' not exists', 'FATAL');
         }
         $this->_applicationProtocolClassName = $applicationProtocolClassname;
         stream_set_blocking($this->_connect, 0);
@@ -94,21 +94,22 @@ class Tcp extends TransferInterface
      * @param $connect resource 是一个Socket的资源
      * @param $ifDestroy bool 如果fread()读取到的是空数据或者false的话,是否销毁链接.默认为true
      */
-    public function read($connect, $ifDestroy=true){
+    public function read($connect, $ifDestroy = true)
+    {
         //是否读取到了数据
         $isAlreadyReaded = false;
-        while(true){
+        while (true) {
             self::$statistics['total_read_count']++;
             $buffer = fread($connect, self::READ_SIZE);
             $buffer === false ? self::$statistics['total_read_failed_count']++ : null;
-            if($buffer === false || $buffer === '' || feof($connect) === true){
+            if ($buffer === false || $buffer === '' || feof($connect) === true) {
                 break;
             }
             $isAlreadyReaded = true;
             $this->_readDate .= $buffer;
         }
         //检测连接是否关闭
-        if($isAlreadyReaded===false && $ifDestroy===true){
+        if ($isAlreadyReaded === false && $ifDestroy === true) {
             $this->destroy();
             return;
         }
@@ -119,25 +120,26 @@ class Tcp extends TransferInterface
     /**
      * 读取数据包. 通过应用层协议
      */
-    private function _readByApplicationProtocol(){
+    private function _readByApplicationProtocol()
+    {
         //如果接收到的数据不为空, 并且没有被暂停
-        while(!empty($this->_readDate) && $this->_isPauseRead === false){
+        while (!empty($this->_readDate) && $this->_isPauseRead === false) {
             $applicationProtocolClassName = $this->_applicationProtocolClassName;
             $this->_currentPackageSize = $applicationProtocolClassName::input($this->_readDate, $this);
             $this->_currentPackageSize = intval($this->_currentPackageSize);
             //如果数据包未完, 则不处理
-            if($this->_currentPackageSize === 0) {
+            if ($this->_currentPackageSize === 0) {
                 break;
-            //数据包长度不正确,销毁链接
-            }else if($this->_currentPackageSize < 0){
+                //数据包长度不正确,销毁链接
+            } else if ($this->_currentPackageSize < 0) {
                 self::$statistics['total_read_package_failed_count']++;
-                Log::write('data packet size incorrect. size='.$this->_currentPackageSize, 'WARNING');
+                Log::write('data packet size incorrect. size=' . $this->_currentPackageSize, 'WARNING');
                 //强制销毁链接, 该链接尚未发送的数据也不发了.
                 $this->destroy();
                 return;
             }
             //如果数据包超过配置的最大TCP链接所接收的数据量, 则抛弃本数据包, 写日志. 此方式模仿PHP的POST请求过大会直接放弃, 所以$_FILE有时会为空
-            if($this->_currentPackageSize > FASTWS_TCP_CONNECT_READ_MAX_PACKET_SIZE ) {
+            if ($this->_currentPackageSize > FASTWS_TCP_CONNECT_READ_MAX_PACKET_SIZE) {
                 //放弃该数据包
                 $this->_readDate = substr($this->_readDate, $this->_currentPackageSize);
                 $this->_currentPackageSize = 0;
@@ -149,22 +151,22 @@ class Tcp extends TransferInterface
             //处理完整长度的数据包
             self::$statistics['total_read_package_count']++;
             //如果缓冲区的所有数据是一个完整的包
-            if($this->_currentPackageSize == strlen($this->_readDate)){
+            if ($this->_currentPackageSize == strlen($this->_readDate)) {
                 $requestBuffer = $this->_readDate;
                 $this->_readDate = '';
-            }else{
+            } else {
                 //从读取缓冲区中获取一个完整的包
                 $requestBuffer = substr($this->_readDate, 0, $this->_currentPackageSize);
                 //从读取缓冲区删除获取到的包
                 $this->_readDate = substr($this->_readDate, $this->_currentPackageSize);
             }
             $this->_currentPackageSize = 0;
-            if($this->instance->callbackNewData){
-                try{
+            if ($this->instance->callbackNewData) {
+                try {
                     call_user_func_array($this->instance->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
-                }catch (\Exception $e){
+                } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'ERROR');
+                    Log::write('FastWS: execution callback function callbackNewData-' . $this->instance->callbackNewData . ' throw exception', 'ERROR');
                 }
             }
         }
@@ -173,19 +175,20 @@ class Tcp extends TransferInterface
     /**
      * 读取数据包. 如果没有应用层协议
      */
-    private function _readNoApplicationProtocol(){
+    private function _readNoApplicationProtocol()
+    {
         //如果读取到的数据是空,或者链接已经被暂停
-        if($this->_readDate === '' || $this->_isPauseRead === true){
+        if ($this->_readDate === '' || $this->_isPauseRead === true) {
             return;
         }
         self::$statistics['total_read_package_count']++;
         //触发接收到新数据的回调函数
-        if($this->instance->callbackNewData){
-            try{
+        if ($this->instance->callbackNewData) {
+            try {
                 call_user_func_array($this->instance->callbackNewData, array($this, $this->_readDate));
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                Log::write('FastWS: execution callback function callbackNewData-'.$this->instance->callbackNewData . ' throw exception', 'ERROR');
+                Log::write('FastWS: execution callback function callbackNewData-' . $this->instance->callbackNewData . ' throw exception', 'ERROR');
             }
         }
         $this->_readDate = '';
@@ -193,47 +196,48 @@ class Tcp extends TransferInterface
 
     /**
      * 发送数据
-     * @param $data string 待发送的数据
+     * @param mixed string 待发送的数据
      * @param $isEncode bool 发送前是否根据应用层协议转码
      * @return int|bool 拒绝发送为0, 发送成功为发送成功的数据长度.加入待发送缓冲区延迟发送为-1 发送失败为false.
      */
-    public function send($data, $isEncode=true){
+    public function send($data, $isEncode = true)
+    {
         //如果需要根据协议转码, 并且应用层协议类存在
-        if($isEncode === true && $this->_applicationProtocolClassName && class_exists($this->_applicationProtocolClassName)){
+        if ($isEncode === true && $this->_applicationProtocolClassName && class_exists($this->_applicationProtocolClassName)) {
             $applicationProtocolClassname = $this->_applicationProtocolClassName;
             $data = $applicationProtocolClassname::encode($data, $this);
-            if(!$data){
+            if (!$data) {
                 return 0;
             }
         }
         //如果状态是链接中.
-        if($this->_currentStatus === self::CONNECT_STATUS_CONNECTING){
+        if ($this->_currentStatus === self::CONNECT_STATUS_CONNECTING) {
             $this->_sendBuffer .= $data;
             return 0;
-        //如果状态是正在关闭或者和已经关闭
-        }else if($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED){
+            //如果状态是正在关闭或者和已经关闭
+        } else if ($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
             return 0;
         }
         //如果待发送的缓冲区为空,直接发送本次需要发送的数据
-        if(empty($this->_sendBuffer)){
+        if (empty($this->_sendBuffer)) {
             $length = $this->_sendAction($this->_connect, $data);
             //全部发送成功
-            if($length > 0 && $length === strlen($data)){
+            if ($length > 0 && $length === strlen($data)) {
                 return $length;
-            //部分发送成功
-            }else if($length > 0 && $length !== strlen($data)){
+                //部分发送成功
+            } else if ($length > 0 && $length !== strlen($data)) {
                 $this->_sendBuffer = substr($data, $length);
                 //因为没有全部发送成功,则将发送事件加入到事件监听列表中
                 FastWS::$globalEvent->add(array($this, 'sendEvent'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
                 //检测队列是否为空
                 $this->_sendBufferIsFull();
                 return -1;
-            //发送失败
-            }else{
+                //发送失败
+            } else {
                 return false;
             }
-        //如果待发送队列有值.
-        }else{
+            //如果待发送队列有值.
+        } else {
             $this->_sendBuffer .= $data;
             $this->_sendBufferIsFull();
             return -1;
@@ -249,29 +253,29 @@ class Tcp extends TransferInterface
         //给socket资源中写入数据
         $length = $this->_sendAction($this->_connect, $this->_sendBuffer);
         //写入失败
-        if(!is_int($length) || intval($length) <= 0){
+        if (!is_int($length) || intval($length) <= 0) {
             return;
         }
         //全部发送成功
-        if($length === strlen($this->_sendBuffer)){
+        if ($length === strlen($this->_sendBuffer)) {
             //全部发送成功后不再轮询这个事件
             FastWS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_WRITE);
             $this->_sendBuffer = '';
             //触发待发送缓冲区为空的队列
-            if($this->instance->callbackSendBufferEmpty){
-                try{
+            if ($this->instance->callbackSendBufferEmpty) {
+                try {
                     call_user_func($this->instance->callbackSendBufferEmpty, $this);
-                }catch (\Exception $e){
+                } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackSendBufferEmpty-'.$this->instance->callbackSendBufferEmpty . ' throw exception', 'ERROR');
+                    Log::write('FastWS: execution callback function callbackSendBufferEmpty-' . $this->instance->callbackSendBufferEmpty . ' throw exception', 'ERROR');
                 }
             }
             //如果是正在关闭中的状态(平滑断开链接会发送完待发送缓冲区的所有数据后再销毁资源)
-            if($this->_currentStatus === self::CONNECT_STATUS_CLOSING){
+            if ($this->_currentStatus === self::CONNECT_STATUS_CLOSING) {
                 $this->destroy();
             }
-        //部分发送成功
-        }else{
+            //部分发送成功
+        } else {
             $this->_sendBuffer = substr($this->_sendBuffer, $length);
         }
     }
@@ -282,19 +286,20 @@ class Tcp extends TransferInterface
      * @param $socket resource Socket资源
      * @return int|bool
      */
-    private function _sendAction($socket, $data){
+    private function _sendAction($socket, $data)
+    {
         self::$statistics['total_send_count']++;
         $length = @fwrite($socket, $data);
-        if(!is_int($length) || intval($length) <= 0){
+        if (!is_int($length) || intval($length) <= 0) {
             Log::write('Write data failed. Possible socket resource has disabled or network problems', 'WARNING');
             self::$statistics['total_send_failed_count']++;
             //触发错误的回调函数
-            if($this->instance->callbackError){
-                try{
+            if ($this->instance->callbackError) {
+                try {
                     call_user_func_array($this->instance->callbackError, array($this, FASTWS_ERROR_CODE_SEND_SOCKET_INVALID, 'Send data failed. Possible socket resource has disabled'));
-                }catch (\Exception $e){
+                } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackError-'.$this->instance->callbackError . ' throw exception', 'ERROR');
+                    Log::write('FastWS: execution callback function callbackError-' . $this->instance->callbackError . ' throw exception', 'ERROR');
                 }
             }
             //强制销毁
@@ -305,18 +310,19 @@ class Tcp extends TransferInterface
 
     /**
      * 关闭客户端链接
-     * @param string|null $data  关闭前需要发送的数据
+     * @param string|null $data 关闭前需要发送的数据
      */
-    public function close($data=null){
-        if($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED){
+    public function close($data = null)
+    {
+        if ($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
             return;
-        }else{
-            if(!is_null($data)){
+        } else {
+            if (!is_null($data)) {
                 $this->send($data);
             }
             $this->_currentStatus = self::CONNECT_STATUS_CLOSING;
         }
-        if($this->_sendBuffer === ''){
+        if ($this->_sendBuffer === '') {
             $this->destroy();
         }
     }
@@ -324,10 +330,11 @@ class Tcp extends TransferInterface
     /**
      * 销毁链接
      */
-    public function destroy(){
+    public function destroy()
+    {
         //如果当前状态是已经关闭的,则不处理
-        if($this->_currentStatus === self::CONNECT_STATUS_CLOSED){
-            return ;
+        if ($this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
+            return;
         }
         //从事件中移除对链接的读写监听
         FastWS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_READ);
@@ -338,12 +345,12 @@ class Tcp extends TransferInterface
         //变更状态为已经关闭
         $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
         //执行链接断开时的回调函数
-        if($this->instance->callbackConnectClose) {
+        if ($this->instance->callbackConnectClose) {
             try {
                 call_user_func($this->instance->callbackConnectClose, $this);
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                Log::write('FastWS: execution callback function callbackConnectClose-'.$this->instance->callbackConnectClose . ' throw exception', 'ERROR');
+                Log::write('FastWS: execution callback function callbackConnectClose-' . $this->instance->callbackConnectClose . ' throw exception', 'ERROR');
             }
         }
     }
@@ -351,7 +358,8 @@ class Tcp extends TransferInterface
     /**
      * 暂停读取消息
      */
-    public function pauseRead(){
+    public function pauseRead()
+    {
         FastWS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_READ);
         $this->_isPauseRead = true;
     }
@@ -359,8 +367,9 @@ class Tcp extends TransferInterface
     /**
      * 继续读取消息
      */
-    public function resumeRead(){
-        if($this->_isPauseRead !== true) {
+    public function resumeRead()
+    {
+        if ($this->_isPauseRead !== true) {
             return;
         }
         FastWS::$globalEvent->add(array($this, 'read'), array(), $this->_connect, EventInterface::EVENT_TYPE_READ);
@@ -369,15 +378,25 @@ class Tcp extends TransferInterface
     }
 
     /**
+     * 当前是否被暂停读取
+     * @return bool 暂停返回true, 没暂停返回false
+     */
+    public function isPauseRead()
+    {
+        return $this->_isPauseRead;
+    }
+
+    /**
      * 获取客户端地址
      * @return array|false 成功返回array[0]是ip,array[1]是端口. 失败返回false
      */
-    public function getClientAddress(){
-        if($this->_clientAddress){
+    public function getClientAddress()
+    {
+        if ($this->_clientAddress) {
             $postion = strrpos($this->_clientAddress, ':');
-            if(is_int($postion)){
+            if (is_int($postion)) {
                 $ret[0] = substr($this->_clientAddress, 0, $postion);
-                $ret[1] = substr($this->_clientAddress, $postion+1);
+                $ret[1] = substr($this->_clientAddress, $postion + 1);
                 return $ret;
             }
         }
@@ -389,11 +408,11 @@ class Tcp extends TransferInterface
      * @param $start
      * @param null $length
      */
-    public function substrReadData($start, $length=null)
+    public function substrReadData($start, $length = null)
     {
-        if(is_null($length)){
+        if (is_null($length)) {
             $this->_readDate = substr($this->_readDate, $start);
-        }else{
+        } else {
             $this->_readDate = substr($this->_readDate, $start, $length);
         }
 
@@ -406,14 +425,14 @@ class Tcp extends TransferInterface
      */
     private function _sendBufferIsFull()
     {
-        if(strlen($this->_sendBuffer) >= FASTWS_TCP_CONNECT_SEND_MAX_BUFFER_SIZE){
+        if (strlen($this->_sendBuffer) >= FASTWS_TCP_CONNECT_SEND_MAX_BUFFER_SIZE) {
             Log::write('Send data failed. The send buffer is full. Data is discarded', 'WARNING');
-            if($this->instance->callbackSendBufferFull){
-                try{
+            if ($this->instance->callbackSendBufferFull) {
+                try {
                     call_user_func($this->instance->callbackSendBufferFull, $this);
-                }catch (\Exception $e){
+                } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('FastWS: execution callback function callbackSendBufferFull-'.$this->instance->callbackSendBufferFull . ' throw exception', 'ERROR');
+                    Log::write('FastWS: execution callback function callbackSendBufferFull-' . $this->instance->callbackSendBufferFull . ' throw exception', 'ERROR');
                 }
                 return true;
             }

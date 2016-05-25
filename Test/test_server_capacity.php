@@ -13,13 +13,13 @@
 
 $clientList = array();
 $clientCount = 20000;
-while(true){
-    if(count($clientList) >= $clientCount){
+while (true) {
+    if (count($clientList) >= $clientCount) {
         break;
     }
     $errno = $errmsg = '';
     $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
-    if(!$client){
+    if (!$client) {
         var_dump($errno);
         var_dump($errmsg);
         continue;
@@ -27,7 +27,7 @@ while(true){
     $clientList[] = $client;
 }
 echo "创建成功\n";
-while(1){
+while (1) {
     var_dump(count($clientList));
     sleep(10);
 }

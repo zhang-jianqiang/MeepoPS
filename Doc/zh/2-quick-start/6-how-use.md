@@ -8,3 +8,30 @@
 - FastWS不但可以实例化多个接口类文件, 也可以实例化同一个接口类文件多次. 比如启动了三个实例, 分别监听了19910, 19911, 19912端口.
 - 实例化接口类文件并进行了相关设置后, 调用\FastWS\runFastWS()即可启动FastWS.
 - \FastWS\runFastWS()之后的所有代码都将不会执行.
+
+### 使用示例:
+这是我们自行编写的代码: demo.php
+```php
+<?php
+//引入FastWS
+require_once 'FastWS/index.php';
+
+使用文本传输的Telnet接口类
+$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+
+//启动的子进程数量. 通常为CPU核心数
+$telnet->childProcessCount = 1;
+
+//设置FastWS实例名称
+$telnet->instanceName = 'FastWS-Telnet';
+
+//启动FastWS
+\FastWS\runFastWS();
+
+//后面的所有代码都不会执行哦
+```
+
+启动后查看一下进程吧.
+```bash
+ps aux | grep php
+```

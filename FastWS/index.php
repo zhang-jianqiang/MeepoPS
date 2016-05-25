@@ -14,7 +14,7 @@ namespace FastWS;
 use FastWS\Core\FastWS;
 
 //FastWS根目录
-define('FAST_WS_ROOT_PATH', dirname(__FILE__).'/');
+define('FAST_WS_ROOT_PATH', dirname(__FILE__) . '/');
 
 //载入FastWS配置文件
 require_once FAST_WS_ROOT_PATH . '/Core/Config.php';
@@ -26,6 +26,7 @@ require_once FAST_WS_ROOT_PATH . '/Core/CheckEnv.php';
 require_once FAST_WS_ROOT_PATH . '/Core/Init.php';
 
 //启动FastWS
-function runFastWS(){
+function runFastWS()
+{
     FastWS::runFastWS();
 }

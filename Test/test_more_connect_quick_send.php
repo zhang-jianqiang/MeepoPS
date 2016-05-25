@@ -18,13 +18,13 @@ $sendErrorCount = 0;
 $receiveCount = 0;
 $receiveErrorCount = 0;
 $f = fopen('/home/lixuan-it/test_more_connect_quick_send', 'w+');
-while(true){
-    if(count($clientList) >= $clientCount){
+while (true) {
+    if (count($clientList) >= $clientCount) {
         break;
     }
     $errno = $errmsg = '';
     $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
-    if(!$client){
+    if (!$client) {
         var_dump($errno);
         var_dump($errmsg);
         continue;
@@ -32,18 +32,18 @@ while(true){
     $clientList[] = $client;
 }
 echo "创建成功\n";
-while(1){
-    foreach($clientList as $id=>$client){
+while (1) {
+    foreach ($clientList as $id => $client) {
         $result = fwrite($client, "hello world\n");
         $result ? $sendCount++ : $sendErrorCount++;
         $data = '';
-        while(feof($client) !== true){
+        while (feof($client) !== true) {
             $data .= fread($client, 2000);
-            if($data[strlen($data)-1] === "\n"){
+            if ($data[strlen($data) - 1] === "\n") {
                 break;
             }
         }
         $data ? $receiveCount++ : $receiveErrorCount++;
     }
-    fwrite($f, json_encode(array('send_count'=>$sendCount, 'receive_count'=>$sendErrorCount, 'err_send'=>$sendErrorCount, 'err_receive'=>$receiveErrorCount))."\n");
+    fwrite($f, json_encode(array('send_count' => $sendCount, 'receive_count' => $sendErrorCount, 'err_send' => $sendErrorCount, 'err_receive' => $receiveErrorCount)) . "\n");
 }

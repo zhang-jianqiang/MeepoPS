@@ -12,7 +12,8 @@ namespace FastWS\Api;
 
 use FastWS\Core\FastWS;
 
-class Telnet extends FastWS{
+class Telnet extends FastWS
+{
 
     /**
      * Telnet constructor.
@@ -20,9 +21,9 @@ class Telnet extends FastWS{
      * @param string $port string 需要监听的端口
      * @param array $contextOptionList
      */
-    public function __construct($host, $port, $contextOptionList=array())
+    public function __construct($host, $port, $contextOptionList = array())
     {
-        if(!$host || !$port){
+        if (!$host || !$port) {
             return;
         }
         parent::__construct('telnet', $host, $port, $contextOptionList);
@@ -31,7 +32,8 @@ class Telnet extends FastWS{
     /**
      * 运行一个Telnet实例
      */
-    public function run(){
+    public function run()
+    {
         parent::run();
     }
 }

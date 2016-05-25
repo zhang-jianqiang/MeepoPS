@@ -10,21 +10,21 @@
  */
 $errno = $errmsg = '';
 $client = stream_socket_client('127.0.0.1:19910', $errno, $errmsg);
-if(!$client){
+if (!$client) {
     var_dump($errno);
     var_dump($errmsg);
     exit;
 }
-while(1){
+while (1) {
     $readList = array($client);
     $writeList = array();
     stream_select($readList, $writeList, $err, 10, 0);
-    foreach($readList as $id=>$client){
+    foreach ($readList as $id => $client) {
         fwrite($client, "hello world\n");
         $data = '';
-        while(feof($client) === false && $d = fgetc($client)){
-            if($d === "\n"){
-                break ;
+        while (feof($client) === false && $d = fgetc($client)) {
+            if ($d === "\n") {
+                break;
             }
             $data .= $d;
         }

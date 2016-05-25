@@ -10,7 +10,8 @@
  */
 namespace FastWS\Core\Event;
 
-interface EventInterface{
+interface EventInterface
+{
     //读事件
     const EVENT_TYPE_READ = 1;
     //写事件

@@ -10,7 +10,8 @@
  */
 namespace FastWS\Core\Transfer;
 
-abstract class TransferInterface{
+abstract class TransferInterface
+{
 
     //统计信息
     public static $statistics = array(
@@ -40,7 +41,7 @@ abstract class TransferInterface{
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
      * @param $applicationProtocol string 应用层协议, 默认为空
      */
-    abstract public function __construct($socket, $clientAddress, $applicationProtocol='');
+    abstract public function __construct($socket, $clientAddress, $applicationProtocol = '');
 
     /**
      * 析构函数
@@ -52,20 +53,20 @@ abstract class TransferInterface{
      * @param $connect resource 由stream_socket_accept()返回
      * @param $ifDestroy bool 如果fread读取到的是空数据或者false的话,是否销毁链接.默认为true
      */
-    abstract public function read($connect, $ifDestroy=true);
+    abstract public function read($connect, $ifDestroy = true);
 
     /**
      * 发送数据
-     * @param $data string 待发送的数据
+     * @param $data mixed 待发送的数据
      * @param $isEncode bool 发送前是否根据应用层协议转码
      */
-    abstract public function send($data, $isEncode=true);
-    
+    abstract public function send($data, $isEncode = true);
+
     /**
      * 关闭客户端链接
      * @param $data string 关闭链接前发送的消息
      */
-    abstract public function close($data='');
+    abstract public function close($data = '');
 
     /**
      * 获取客户端地址

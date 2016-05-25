@@ -1,24 +1,65 @@
-# 概述:
-PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.
+# 接口
 
-### 现状
-- 目前版本为V0.0.2.
-- 原则上要求PHP版本为5.3以上.
-- 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发布到Master分支, 其余分支请不要部署在生产环境.
-- 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.
-- FastWS的最低运行要求是安装了PHP的PCNTL库.
-- FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
+### 接口是什么
+- 接口就是提供给您来继承的类. 我们的主要开发和使用都是围绕着这个类实例化后的对象来使用的. 
+- 接口和协议有关, 例如Api/Telnet.php就是使用Telnet协议的接口, Api/WebServer.php就是使用HTTP协议的接口.
+- 所有的接口类文件都存放在FastWS/Api/目录下.
+- 所有的接口类文件都是FastWS/Core/FastWS.php的子类.
+- 所有的接口文件都可以使用FastWS/Core/FastWS.php所提供的非private属性.
+- 所有的接口文件的对象都应该(当然, 也可以不)去注册一个回调函数, 我们的所有业务逻辑代码都写在回调函数中.
 
-### 天地初开
-FastWS的诞生是因为两个需求:
-- 为了使用基于可靠链接TCP协议的Socket通信, 借用Socket长链接的特性, 我们可以实时监控服务器的CPU, 内存, 负载等状态.
-- 服务端接口程序使用HTTP协议效率较低, 便采用Socket监听本地IP和端口, 接收客户端的数据. 这样可以将Mysql链接常驻内存, 不需要每个请求链接一次Mysql, 将接口业务逻辑从MVC笨重的身躯中剥离.
-最后, 小巧精悍的FastWS最初版诞生了, 这是FastWS的最初版本.
-  
-### 重复的轮子
-市面上, 有鸟哥在10年所写的Mpass, PHP的C扩展Swoole以及Workerman. 可是, 它们对我们来说，都或多或少有些不可接受的问题. 比如Mpass略显复古, 并且鸟哥也说你们别指望它=.=, Swoole过于简陋的文档和容错率较低, Workerman的代码不够优雅等等. 我们决定手写一套.
-尽管我们重新开发也会有无数的问题和BUG, 甚至远不如他们. 但是程序猿就喜欢重构别人的项目, 然后再把自己的烂摊子留给后人, 这大概也能叫情怀吧.
+### 如何使用
+- 例如, Telnet.php 接口类文件是收发数据时使用了Telnet协议来解析(提取)数据.
+- Telnet.php 由FastWS自动引入, 无需手动引入.
+- 使用时只需要new \FastWS\Api\Telnet('0.0.0.0', '19910')即可. 传入的两个参数分别为需要监听的HOST和端口.
+- 具体怎么写代码, 请看下面的示例.
 
-### 巨人的肩膀
-FastWS诞生后, 我们借鉴了很多优秀的开源项目, 比如之前提到的Mpass, Swoole, Workerman. 它们真的是非常优秀的项目, 尤其是Mpass, Workerman, 他们打开了PHP工程师的一扇新窗口, 原来PHP也可以做这些事情, 因此它们是先辈, 是巨人.
-我们通读了Mpass和Workerman的源码之后, 深受启发, 因此在FatWS功能渐丰并且开源后的版本, 或多或少都有前辈们的影子.
+### 使用示例:
+这是我们自行编写的代码: demo.php
+```php
+<?php
+//引入FastWS
+require_once 'FastWS/index.php';
+
+//使用文本传输的Telnet接口类
+$telnet19910 = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet19911 = new \FastWS\Api\Telnet('0.0.0.0', '19911');
+$telnet19912 = new \FastWS\Api\Telnet('0.0.0.0', '19912');
+
+//启动的子进程数量. 通常为CPU核心数
+$telnet19910->childProcessCount = 1;
+$telnet19911->childProcessCount = 4;
+$telnet19912->childProcessCount = 8;
+
+//设置FastWS实例名称
+$telnet19910->instanceName = 'FastWS-Telnet-19910';
+$telnet19911->instanceName = 'FastWS-Telnet-19911';
+$telnet19912->instanceName = 'FastWS-Telnet-19912';
+
+//设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
+//$telnet19910实例的所有进程启动完毕后会触发callbackStartInstance所设置的回调函数
+$telnet19910->callbackStartInstance = function($instance){
+    var_dump('实例'.$instance->instanceName.'已经启动');
+};
+//有新链接加入$telnet19910实例的时候会触发callbackConnect所设置的回调函数
+$telnet19910->callbackConnect = function($connect){
+    var_dump('收到新链接. 链接ID为'.$connect->id."\n");
+};
+//$telnet19910实例收到新消息的时候会触发callbackNewData所设置的回调函数
+$telnet19910->callbackNewData = function($connect, $data){
+    var_dump('收到新消息. 链接ID为'.$connect->id.'的用户说'.$data."\n");
+};
+
+//启动FastWS, 我们实例化后的三个进程都会启动
+\FastWS\runFastWS();
+
+//后面的所有代码都不会执行哦
+```
+启动FastWS
+```bash
+php demo.php start
+```
+启动后查看一下进程吧.
+```bash
+ps aux | grep php
+```

@@ -5,9 +5,13 @@
 ```bash
 php demo-text-chat.php start -d
 ```
-- 状态: 命令行输入
+- 查看状态: 命令行输入
 ```bash
 php demo-text-chat.php status
+```
+- 平滑重启: 命令行输入
+```bash
+php demo-text-chat.php restart
 ```
 - 平滑结束: 命令行输入
 ```bash

@@ -114,7 +114,7 @@ class FastWS
      * @param string $port string 需要监听的端口
      * @param array $contextOptionList
      */
-    public function __construct($protocol='', $host = '', $port='', $contextOptionList = array())
+    public function __construct($protocol = '', $host = '', $port = '', $contextOptionList = array())
     {
         //---每一个实例的属性---
         $this->_bindProtocol = $protocol;
@@ -123,7 +123,7 @@ class FastWS
         //传入的协议是应用层协议还是传输层协议
         if (isset(self::$_protocolTransferList[$protocol])) {
             $this->protocolTransfer = self::$_protocolTransferList[$this->$protocol];
-        //不是传输层协议,则认为是应用层协议.直接new应用层协议类
+            //不是传输层协议,则认为是应用层协议.直接new应用层协议类
         } else {
             $this->_protocolApplication = $protocol;
             $this->_protocolApplicationClassName = '\FastWS\Core\Protocol\\' . ucfirst($this->_protocolApplication);
@@ -199,7 +199,7 @@ class FastWS
         $isDomain = isset($argv[2]) && trim($argv[2]) === '-d' ? true : false;
         //获取主进程ID - 用来判断当前进程是否在运行
         $masterPid = false;
-        if(file_exists(FASTWS_MASTER_PID_PATH)){
+        if (file_exists(FASTWS_MASTER_PID_PATH)) {
             $masterPid = @file_get_contents(FASTWS_MASTER_PID_PATH);
         }
         //主进程当前是否正在运行
@@ -322,8 +322,8 @@ class FastWS
     private static function _checkInstanceListProcess()
     {
         foreach (self::$_instanceList as $instance) {
-            foreach(self::$_instancePidList[$instance->_instanceId] as $pid){
-                if($pid <= 0){
+            foreach (self::$_instancePidList[$instance->_instanceId] as $pid) {
+                if ($pid <= 0) {
                     self::_forkInstance($instance);
                 }
             }
@@ -346,7 +346,7 @@ class FastWS
         if ($pid > 0) {
             unset(self::$_instancePidList[$instance->_instanceId][$id]);
             self::$_instancePidList[$instance->_instanceId][$pid] = $pid;
-        //如果是子进程
+            //如果是子进程
         } elseif ($pid === 0) {
             self::$_instancePidList = array();
             self::$_instanceList = array($instance->_instanceId => $instance);
@@ -355,7 +355,7 @@ class FastWS
             $instance->id = $id;
             $instance->run();
             exit(250);
-        //创建进程失败
+            //创建进程失败
         } else {
             Log::write('fork child process failed', 'ERROR');
         }
@@ -390,7 +390,7 @@ class FastWS
                 try {
                     call_user_func($this->callbackStartInstance, $this);
                 } catch (\Exception $e) {
-                    Log::write('FastWS: execution callback function callbackStartInstance-'.$this->callbackStartInstance . ' throw exception', 'ERROR');
+                    Log::write('FastWS: execution callback function callbackStartInstance-' . $this->callbackStartInstance . ' throw exception', 'ERROR');
                 }
             }
             //开启事件轮询
@@ -449,7 +449,7 @@ class FastWS
     private static function _startScreen()
     {
         echo "-------------------------- FastWS Start Success------------------------\n";
-        echo 'FastWS Version: ' . FASTWS_VERSION . '      PHP Version: ' . PHP_VERSION . '      Pid:'.self::$_masterPid . "\n";
+        echo 'FastWS Version: ' . FASTWS_VERSION . '      PHP Version: ' . PHP_VERSION . '      Pid:' . self::$_masterPid . "\n";
         echo "-------------------------- Instances List-------------------------\n";
         foreach (self::$_instanceList as $instance) {
             echo $instance->instanceName . '    ' . $instance->_getBind() . '     Child Process: ' . $instance->childProcessCount . "\n";
@@ -504,7 +504,7 @@ class FastWS
             foreach (self::$_instancePidList as $instanceId => $pidList) {
                 if (isset($pidList[$pid])) {
                     $instance = self::$_instanceList[$instanceId];
-                    Log::write('FastWS instance(' . $instance->instanceName . ':' . $pid . ') exit. Status: ' . $status, $status!==0 ? 'ERROR' : 'INFO');
+                    Log::write('FastWS instance(' . $instance->instanceName . ':' . $pid . ') exit. Status: ' . $status, $status !== 0 ? 'ERROR' : 'INFO');
                     //记录统计信息.
                     self::$_statistics['instance_exit_info'][$instanceId][$status] = !isset(self::$_statistics['instance_exit_info'][$instanceId][$status]) ? 0 : (self::$_statistics['instance_exit_info'][$instanceId][$status]++);
                     //清除数据
@@ -516,8 +516,8 @@ class FastWS
             //如果是停止状态, 并且所有的instance的所有进程都没有pid了.那么就退出所有.即所有的子进程都结束了,就退出主进程
             if (self::$_currentStatus === FASTWS_STATUS_SHUTDOWN && !self::_getAllEnablePidList()) {
                 self::_exitAndClearAll();
-            //如果不是停止状态,则检测是否需要创建一个新的子进程
-            }else if(self::$_currentStatus !== FASTWS_STATUS_SHUTDOWN){
+                //如果不是停止状态,则检测是否需要创建一个新的子进程
+            } else if (self::$_currentStatus !== FASTWS_STATUS_SHUTDOWN) {
                 self::_checkInstanceListProcess();
             }
         }
@@ -539,8 +539,8 @@ class FastWS
      */
     private function _getBind()
     {
-        if($this->_bindProtocol && $this->_bindHost && $this->_bindPort){
-            $bind = lcfirst($this->_bindProtocol.'://'.$this->_bindHost.':'.$this->_bindPort);
+        if ($this->_bindProtocol && $this->_bindHost && $this->_bindPort) {
+            $bind = lcfirst($this->_bindProtocol . '://' . $this->_bindHost . ':' . $this->_bindPort);
         }
         return isset($bind) ? $bind : '';
     }
@@ -568,7 +568,7 @@ class FastWS
         $ret = array();
         foreach (self::$_instancePidList as $pidList) {
             foreach ($pidList as $pid) {
-                if($pid > 0){
+                if ($pid > 0) {
                     $ret[$pid] = $pid;
                 }
             }
@@ -590,7 +590,7 @@ class FastWS
                 posix_kill($pid, SIGINT);
                 Timer::add('posix_kill', array($pid, SIGKILL), FASTWS_KILL_INSTANCE_TIME_INTERVAL, false);
             }
-        //如果是子进程
+            //如果是子进程
         } else {
             foreach (self::$_instanceList as $instance) {
                 $instance->_stop();
@@ -606,7 +606,7 @@ class FastWS
             try {
                 call_user_func($this->callbackInstanceStop, $this);
             } catch (\Exception $e) {
-                Log::write('FastWS: execution callback function callbackInstanceStop-'.$this->callbackInstanceStop . ' throw exception', 'ERROR');
+                Log::write('FastWS: execution callback function callbackInstanceStop-' . $this->callbackInstanceStop . ' throw exception', 'ERROR');
             }
         }
         //删除这个实例相关的所有事件监听
@@ -638,7 +638,7 @@ class FastWS
             try {
                 call_user_func($this->callbackConnect, $tcpConnect);
             } catch (\Exception $e) {
-                Log::write('FastWS: execution callback function callbackConnect-'.$this->callbackConnect . ' throw exception', 'ERROR');
+                Log::write('FastWS: execution callback function callbackConnect-' . $this->callbackConnect . ' throw exception', 'ERROR');
             }
         }
     }
@@ -646,7 +646,8 @@ class FastWS
     /**
      * 解析命令 - 启动
      */
-    private static function _commandStart($isDomain){
+    private static function _commandStart($isDomain)
+    {
         if ($isDomain) {
             self::$isDaemon = true;
             self::_daemon();
@@ -656,7 +657,8 @@ class FastWS
     /**
      * 解析命令 - 停止
      */
-    private static function _commandStop($masterPid){
+    private static function _commandStop($masterPid)
+    {
         Log::write('FastWS receives the "stop" instruction, FastWS will graceful stop');
         //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
         if ($masterPid) {
@@ -684,7 +686,8 @@ class FastWS
     /**
      * 解析命令 - 重启
      */
-    private static function _commandRestart($masterPid, $isDomain){
+    private static function _commandRestart($masterPid, $isDomain)
+    {
         Log::write('FastWS receives the "restart" instruction, FastWS will graceful restart');
         //给当前正在运行的主进程发送终止信号SIGINT(ctrl+c)
         if ($masterPid) {
@@ -714,7 +717,8 @@ class FastWS
     /**
      * 解析命令 - 强行结束
      */
-    private static function _commandKill($startFilename){
+    private static function _commandKill($startFilename)
+    {
         Log::write('FastWS receives the "kill" instruction, FastWS will end the violence');
         exec("ps aux | grep $startFilename | grep -v grep | awk '{print $2}' |xargs kill -SIGINT");
         exec("ps aux | grep $startFilename | grep -v grep | awk '{print $2}' |xargs kill -SIGKILL");
@@ -724,7 +728,8 @@ class FastWS
     /**
      * 解析命令 - 查看状态
      */
-    private static function _commandStatus($masterPid){
+    private static function _commandStatus($masterPid)
+    {
         //删除之前的统计文件.忽略可能发生的warning(文件不存在的时候)
         @unlink(FASTWS_STATISTICS_PATH);
         //给正在运行的FastWS的主进程发送SIGUSR1信号,此时主进程收到SIGUSR1信号后会通知子进程将当前状态写入文件当中
@@ -773,37 +778,37 @@ class FastWS
     private static function _statisticsToFile()
     {
         //如果是主进程, 写入全局类的信息, 如果是子进程来执行本方法. 将统计信息以追加的方式写入文件.
-        if (self::$_masterPid === posix_getpid()){
+        if (self::$_masterPid === posix_getpid()) {
             //-----以下为主进程的统计信息---
             $globalStatistics = '';
             $globalStatistics .= '-------------------------GLOBAL STATISTICS-------------------------' . "\n";
             $globalStatistics .= 'FastWS Version: ' . FASTWS_VERSION . '          PHP version:' . PHP_VERSION . '          Master Pid: ' . self::$_masterPid . "\n";
-            $globalStatistics .= 'FastWS Start time: '. self::$_statistics['start_time'] . '          Event: ' . self::_chooseEventPoll() . "\n";
+            $globalStatistics .= 'FastWS Start time: ' . self::$_statistics['start_time'] . '          Event: ' . self::_chooseEventPoll() . "\n";
             $loadAvg = sys_getloadavg();
-            $globalStatistics .= 'System load: 1 minutes ago:' . round($loadAvg[0], 2) .  '; 5 minutes ago:' . round($loadAvg[1], 2) . '; 15 minutes ago:' . round($loadAvg[2], 2) . "\n";
+            $globalStatistics .= 'System load: 1 minutes ago:' . round($loadAvg[0], 2) . '; 5 minutes ago:' . round($loadAvg[1], 2) . '; 15 minutes ago:' . round($loadAvg[2], 2) . "\n";
             $globalStatistics .= 'Total instance number: ' . count(self::$_instancePidList) . '          Total child process number: ' . count(self::_getAllEnablePidList()) . "\n";
             $instanceStatistics = '';
             $instanceStatistics .= '-----------------------INSTANCE STATISTICS-----------------------' . "\n";
             $instanceStatistics .= 'instance_name    exit_status    exit_count' . "\n";
-            foreach(self::$_instancePidList as $instanceId => $pidList){
+            foreach (self::$_instancePidList as $instanceId => $pidList) {
                 $instance = self::$_instanceList[$instanceId];
-                if(isset(self::$_statistics['instance_exit_info'][$instanceId])){
-                    foreach(self::$_statistics['instance_exit_info'][$instanceId] as $instanceExitStatus => $instanceExitCount){
+                if (isset(self::$_statistics['instance_exit_info'][$instanceId])) {
+                    foreach (self::$_statistics['instance_exit_info'][$instanceId] as $instanceExitStatus => $instanceExitCount) {
                         $instanceStatistics .= $instance->instanceName . '    ' . str_pad($instanceExitStatus, 11) . '    ' . str_pad($instanceExitCount, 10) . "\n";
                     }
-                }else{
+                } else {
                     $instanceStatistics .= $instance->instanceName . '    ' . str_pad(0, 11) . '    ' . str_pad(0, 11) . "\n";
                 }
             }
             $separate = '    ';
             $instanceDetail = '';
             $instanceDetail .= '-------------------------PROCESS STATUS-------------------------' . "\n";
-            $instanceDetail .= 'pid'.$separate.$separate.'memory'.$separate.$separate.'host'.$separate.$separate.$separate.$separate.$separate.$separate.'instance_name'.$separate.$separate.'total_connect'.$separate.'current_connect'.$separate.'total_request'.$separate.'send_request'.$separate.'send_failed'.$separate.'throw_exception'.$separate . "\n";
+            $instanceDetail .= 'pid' . $separate . $separate . 'memory' . $separate . $separate . 'host' . $separate . $separate . $separate . $separate . $separate . $separate . 'instance_name' . $separate . $separate . 'total_connect' . $separate . 'current_connect' . $separate . 'total_request' . $separate . 'send_request' . $separate . 'send_failed' . $separate . 'throw_exception' . $separate . "\n";
             //主进程做完统计后告诉所有子进程进行统计
-            foreach(self::_getAllEnablePidList() as $pid){
+            foreach (self::_getAllEnablePidList() as $pid) {
                 posix_kill($pid, SIGUSR1);
             }
-            file_put_contents(FASTWS_STATISTICS_PATH, $globalStatistics."\n".$instanceStatistics."\n".$instanceDetail."\n", FILE_APPEND);
+            file_put_contents(FASTWS_STATISTICS_PATH, $globalStatistics . "\n" . $instanceStatistics . "\n" . $instanceDetail . "\n", FILE_APPEND);
             return;
         }
 
@@ -812,7 +817,7 @@ class FastWS
         $instance = current(self::$_instanceList);
         //获取系统分配给PHP的内存,四舍五入到两位小数,单位M
         $statistics = str_pad(posix_getpid(), 11);
-        $statistics .= str_pad(round(memory_get_usage(true) / (1024*1024), 2) . 'M', 14);
+        $statistics .= str_pad(round(memory_get_usage(true) / (1024 * 1024), 2) . 'M', 14);
         $statistics .= str_pad($instance->_getBind(), 28);
         $statistics .= str_pad($instance->instanceName, 21);
         $statistics .= str_pad(TransferInterface::$statistics['total_connect_count'], 17);

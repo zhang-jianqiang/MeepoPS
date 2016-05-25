@@ -22,7 +22,7 @@ $webServer->childProcessCount = 1;
 $webServer->instanceName = 'FastWS-Http';
 
 //设置主
-$webServer->setRoot('www.lanecn.com', __DIR__.'/Test/Web');
+$webServer->setRoot('www.lanecn.com', __DIR__ . '/Test/Web');
 
 //启动FastWS
 \FastWS\runFastWS();

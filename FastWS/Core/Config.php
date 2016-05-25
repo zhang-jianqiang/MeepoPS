@@ -25,10 +25,10 @@ define('FASTWS_KILL_INSTANCE_TIME_INTERVAL', $config['system']['stop_multi_insta
 define('FASTWS_IMPLICIT_FLUSH', $config['system']['implicit_flush']);
 
 //Log路径
-define('FASTWS_LOG_PATH', $config['file']['log_filename_prefix'] . date('Y-m-d').'.log');
+define('FASTWS_LOG_PATH', $config['file']['log_filename_prefix'] . date('Y-m-d') . '.log');
 
 //标准输出路径
-define('FASTWS_STDOUT_PATH', $config['file']['stdout_path_prefix'] . date('Y-m-d').'.stdout');
+define('FASTWS_STDOUT_PATH', $config['file']['stdout_path_prefix'] . date('Y-m-d') . '.stdout');
 
 //Pid文件路径
 define('FASTWS_MASTER_PID_PATH', $config['file']['master_pid_path']);

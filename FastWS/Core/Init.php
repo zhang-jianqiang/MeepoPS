@@ -9,9 +9,9 @@
  * WebSite: http://www.lanecn.com
  */
 namespace FastWS\Core;
-/**
- * -------从这里开始,以下流程的代码请勿修改,除非你有把握-------------------------------
- */
+    /**
+     * -------从这里开始,以下流程的代码请勿修改,除非你有把握-------------------------------
+     */
 
 //自动载入函数
 require 'Autoload.php';
@@ -26,16 +26,16 @@ define('FASTWS_VERSION', '0.0.2');
 define('FASTWS_ROOT_PATH', dirname(__DIR__));
 
 //错误报告是否开启
-if(FASTWS_DEBUG){
+if (FASTWS_DEBUG) {
     error_reporting(E_ALL);
-}else{
+} else {
     error_reporting(0);
 }
 
 //开启立即刷新输出
-if(FASTWS_IMPLICIT_FLUSH){
+if (FASTWS_IMPLICIT_FLUSH) {
     ob_implicit_flush();
-}else{
+} else {
     ob_implicit_flush(false);
 }
 

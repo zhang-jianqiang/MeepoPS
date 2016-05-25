@@ -9,7 +9,8 @@
  * WebSite: http://www.lanecn.com
  */
 namespace FastWS\Core;
-class Func{
+class Func
+{
     /**
      * @descrpition 数组的KEY变更为项中的ID
      * @param $arr
@@ -26,14 +27,15 @@ class Func{
 
     public static function setProcessTitle($title)
     {
-        if(function_exists('cli_set_process_title')) {
+        if (function_exists('cli_set_process_title')) {
             @cli_set_process_title($title);
-        }elseif(extension_loaded('proctitle') && function_exists('setproctitle')){
+        } elseif (extension_loaded('proctitle') && function_exists('setproctitle')) {
             @setproctitle($title);
         }
     }
 
-    public static function getCurrentUser(){
+    public static function getCurrentUser()
+    {
         $userInfo = posix_getpwuid(posix_getuid());
         return $userInfo['name'];
     }

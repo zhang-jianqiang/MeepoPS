@@ -12,7 +12,8 @@ namespace FastWS\Api;
 
 use FastWS\Core\FastWS;
 
-class WebSocket extends FastWS{
+class WebSocket extends FastWS
+{
 
     //回调函数 - 接收到PING的时候
     public $callbackPing;
@@ -25,9 +26,9 @@ class WebSocket extends FastWS{
      * @param string $port string 需要监听的端口
      * @param array $contextOptionList
      */
-    public function __construct($host, $port, $contextOptionList=array())
+    public function __construct($host, $port, $contextOptionList = array())
     {
-        if(!$host || !$port){
+        if (!$host || !$port) {
             return;
         }
         parent::__construct('websocket', $host, $port, $contextOptionList);
@@ -36,7 +37,8 @@ class WebSocket extends FastWS{
     /**
      * 运行一个Telnet实例
      */
-    public function run(){
+    public function run()
+    {
         parent::run();
     }
 }
