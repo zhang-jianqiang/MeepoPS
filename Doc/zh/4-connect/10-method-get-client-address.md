@@ -8,11 +8,11 @@
 这是我们自行编写的代码: demo.php
 ```php
 <?php
-//引入FastWS
-require_once 'FastWS/index.php';
+//引入MeepoPS
+require_once 'MeepoPS/index.php';
 
 //使用文本传输的Telnet接口类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
 //有新的链接加入$telnet实例时触发callbackConnect所设置的回调函数
@@ -23,6 +23,6 @@ $telnet->callbackConnect = function($connect){
         var_dump('IP: ' . $address[0] . ', 端口: ' . $address[1]);  
     }
 };
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 ```

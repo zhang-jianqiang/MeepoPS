@@ -1,6 +1,6 @@
 # 自定义应用层协议
 
-FastWS目前提供的协议, 如Telnet, HTTP, WebSocket协议等, 如果不能满足您的业务需求, 您可以自行开发协议类.
+MeepoPS目前提供的协议, 如Telnet, HTTP, WebSocket协议等, 如果不能满足您的业务需求, 您可以自行开发协议类.
 
 所有的应用层协议类都要实现ProtocolInterface接口. ProtocolInterface接口约定了每个实现的类都必须实现三个方法: input(), encode(), decode().
 
@@ -19,14 +19,14 @@ FastWS目前提供的协议, 如Telnet, HTTP, WebSocket协议等, 如果不能�
 我们举个栗子, 比如我们采用文本化的JSON格式作为数据传输的格式. 那我们可以开发一个JSON协议.
 
 ### Json协议示例
-代码文件存放在FastWS/Core/Protocol/Json.php
+代码文件存放在MeepoPS/Core/Protocol/Json.php
 ```php
 <?php
 /**
  * 从TCP数据流中解析Json协议
  * 每个数据包已\n来结尾.如果发现\n, 则\n之前为一个数据包.如果没有\n,则等待下次数据的到来
  */
-namespace FastWS\Core\Protocol;
+namespace MeepoPS\Core\Protocol;
 
 class Json implements ProtocolInterface
 {
@@ -70,18 +70,18 @@ class Json implements ProtocolInterface
 }
 ```
 
-开发完一个应用层的协议后, 在FastWS/Api目录下再开发一个接口类文件.
-代码文件存放在FastWS/Api/Json.php
+开发完一个应用层的协议后, 在MeepoPS/Api目录下再开发一个接口类文件.
+代码文件存放在MeepoPS/Api/Json.php
 ```php
 <?php
 /**
  * API - Json协议
  */
-namespace FastWS\Api;
+namespace MeepoPS\Api;
 
-use FastWS\Core\FastWS;
+use MeepoPS\Core\MeepoPS;
 
-class Json extends FastWS
+class Json extends MeepoPS
 {
 
     /**

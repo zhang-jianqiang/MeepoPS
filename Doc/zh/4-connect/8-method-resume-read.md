@@ -11,11 +11,11 @@
 这是我们自行编写的代码: demo.php
 ```php
 <?php
-//引入FastWS
-require_once 'FastWS/index.php';
+//引入MeepoPS
+require_once 'MeepoPS/index.php';
 
 //使用文本传输的Telnet接口类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
 //$telnet实例收到新消息时触发callbackNewData所设置的回调函数
@@ -24,7 +24,7 @@ $telnet->callbackNewData = function ($connect, $data){
     if($data === 'PHP is No.2'){
         $connect->pauseRead();
         //信号定时器
-        \FastWS\Core\Timer::add(function($connect){
+        \MeepoPS\Core\Timer::add(function($connect){
             $connect->resumeRead();
             $connect->send("恢复发言, 以后注意措辞!");
         }, array($connect), 10, false);
@@ -36,6 +36,6 @@ $telnet->callbackNewData = function ($connect, $data){
     }
 };
 
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 ```

@@ -9,17 +9,17 @@
  * WebSite: http://www.lanecn.com
  */
 
-//引入FastWS
-require_once 'FastWS/index.php';
+//引入MeepoPS
+require_once 'MeepoPS/index.php';
 
 //使用文本传输的Api类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
 $telnet->childProcessCount = 1;
 
-//设置FastWS实例名称
-$telnet->instanceName = 'FastWS-Telnet';
+//设置MeepoPS实例名称
+$telnet->instanceName = 'MeepoPS-Telnet';
 
 //设置回调函数 - 这是所有应用的业务代码入口
 $telnet->callbackStartInstance = 'callbackStartInstance';
@@ -29,17 +29,8 @@ $telnet->callbackSendBufferEmpty = 'callbackSendBufferEmpty';
 $telnet->callbackInstanceStop = 'callbackInstanceStop';
 $telnet->callbackConnectClose = 'callbackConnectClose';
 
-$telnet->callbackConnect = function($connect){
-    foreach($connect->instance->clientList as $client){
-        //上线提示就不用告诉自己了, 对吧!
-        if($connect->id != $client->id){
-            $client->send('新用户'.$connect->id.'已经上线了.');
-        }
-    }
-};
-
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 
 
 //以下为回调函数, 业务相关.
@@ -50,17 +41,17 @@ function callbackStartInstance($instance)
 
 function callbackConnect($connect)
 {
-    global $telnet;
-    foreach ($telnet->clientList as $client) {
-        $client->send('hi');
+    foreach($connect->instance->clientList as $client){
+        //上线提示就不用告诉自己了, 对吧!
+        if($connect->id != $client->id){
+            $client->send('新用户'.$connect->id.'已经上线了.');
+        }
     }
-    //信号定时器
-//    \FastWS\Core\Timer::add(function($conn){
-//        var_dump("hello\n");
-//        $conn->send("hello world\n");
-//    }, array($connect), 1, true);
-    //事件定时器
-//    \FastWS\Api\Telnet::$globalEvent->add(function(){var_dump("hello\n");}, array(), 1, \FastWS\Core\Event\EventInterface::EVENT_TYPE_TIMER);
+
+    //定时器
+    \MeepoPS\Core\Timer::add(function($connect){
+        $connect->send('PING');
+    }, array($connect), 5, true);
 
     var_dump('收到新链接. UniqueId=' . $connect->id . "\n");
 }
@@ -69,7 +60,11 @@ function callbackNewData($connect, $data)
 {
     $connect->send('用户' . $connect->id . '说: ' . $data . "\n");
     var_dump('UniqueId=' . $connect->id . '说:' . $data . "\n");
-    _broadcast($connect, $data);
+    foreach ($connect->instance->clientList as $client) {
+        if ($connect->id != $client->id) {
+            $client->send('群发: 用户' . $connect->id . '说: ' . $data . "\n");
+        }
+    }
 }
 
 function callbackSendBufferEmpty($connect)
@@ -87,16 +82,6 @@ function callbackInstanceStop($instance)
 function clientListClose($connect)
 {
     var_dump('UniqueId=' . $connect->id . '断开了' . "\n");
-}
-
-function _broadcast($connect, $data)
-{
-    $userId = $connect->id;
-    foreach ($connect->instance->clientList as $client) {
-        if ($connect->id != $client->id) {
-            $client->send('用户' . $userId . '说: ' . $data . "\n");
-        }
-    }
 }
 
 function callbackConnectClose($connect)

@@ -1,22 +1,22 @@
-# FastWS-PHP
-###### FastWS是Fast WebService的缩写. 旨在提供高校稳定的由纯PHP开发的多进程WebService.
-###### FastWS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, FastWS的HTTP协议在简单场景下是可以替代Apache/Nginx的.
+# MeepoPS-PHP
+###### MeepoPS是Meepo PHP Socket的缩写. 旨在提供高效稳定的由纯PHP开发的多进程WebService.
+###### MeepoPS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, MeepoPS的HTTP协议在简单场景下是可以替代Apache/Nginx的.
 
 #### 综述:
 - 目前版本为V0.0.2.
 - 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.
 - 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发不到Master分支, 其余分支请不要部署在生产环境.
-- 数据交互协议目前仅支持Telnet协议. FastWS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.
+- 数据交互协议目前仅支持Telnet协议. MeepoPS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.
 - PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.
-- FastWS的最低运行要求是安装了PHP的PCNTL库.
-- FastWS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
+- MeepoPS的最低运行要求是安装了PHP的PCNTL库.
+- MeepoPS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
 
 #### 声明:
-- 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动FastWS.
+- 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动MeepoPS.
 - 不支持非Unix操作系统, 例如Windows.
-- Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行FastWS.
-- FastWS需要PHP的POSIX库. POSIX是PHP默认安装的, 通常情况下你不需要手动安装. 如何安装: [PHP手册-POSIX安装](http://php.net/manual/zh/posix.installation.php)
-- 多进程及信号处理需要依赖PHP的PCNTL库. FastWS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的FastWS, 仍然需要安装PCNTL. 如何安装: [PHP手册-PCNTL安装](http://php.net/manual/zh/pcntl.installation.php)
+- Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行MeepoPS.
+- MeepoPS需要PHP的POSIX库. POSIX是PHP默认安装的, 通常情况下你不需要手动安装. 如何安装: [PHP手册-POSIX安装](http://php.net/manual/zh/posix.installation.php)
+- 多进程及信号处理需要依赖PHP的PCNTL库. MeepoPS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的MeepoPS, 仍然需要安装PCNTL. 如何安装: [PHP手册-PCNTL安装](http://php.net/manual/zh/pcntl.installation.php)
 - 在大规模访问下, 我们建议安装PHP的PECL扩展Libevent, 但这不是必须的. 在高链接数的场景下, Libevent表现优异. 如何安装: [PHP手册-Libevent安装](http://php.net/manual/zh/libevent.installation.php). 截止2016-05-06, PHP官方的Libevent扩展不支持PHP7, PHP7下的Libevent安装方法: [PHP7的Libevent分支](https://github.com/expressif/pecl-event-libevent)
 - 默认监听链接的方式为Select轮询机制. PHP的Select轮询机制最多只能监听1024个链接. 想要突破这个限制, 要么安装Libevent, 要么使用--enable-fd-setsize=2048重新编译安装PHP.
 
@@ -29,14 +29,14 @@
     1. 启动: 命令行输入"php demo-telnet.php start".
     2. 状态: 命令行输入"php demo-telnet.php status".
     3. 平滑结束: 启动后按下"ctrl + c"即可.
-    4. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
+    4. 强行结束: 命令行输入"kill -INT `cat /var/run/meepo_ps/meepo_ps_master.pid`".
 
 ###### 守护进程模式启动:
     1. 启动: 命令行输入"php demo-telnet.php start -d".
     2. 状态: 命令行输入"php demo-telnet.php status".
     3. 平滑结束: 命令行输入"php demo-telnet.php stop".
     4. 强行结束: 命令行输入"php demo-telnet.php kill".
-    5. 强行结束: 命令行输入"kill -INT `cat /var/run/fast_ws/fast_ws_master.pid`".
+    5. 强行结束: 命令行输入"kill -INT `cat /var/run/meepo_ps/meepo_ps_master.pid`".
 
 ###### DEMO:
     1. 基于Telnet协议的服务端使用方法请参考demo-telnet.php.
@@ -52,14 +52,14 @@
     客户端可借助编程语言的Socket来实现. 可参考Test/test_client.php
 
 ##### 惊鸿一瞥:
-  1. FastWS/config.ini是FastWS的配置文件. 采用和php.ini同样的格式, ";"为注释.
-  2. 必须引入FastWS/index.php文件. 使用FastWS都是从 require_once 'FastWS/index.php' 开始的.
-  3. FastWS/Api/目录下的文件为暴露给用户的接口. 需要实例化接口类文件, FastWS的使用都是围绕实例化接口文件后的对象来操作的. 实例化的时候传入监听的HOST和端口即可.
-  4. FastWS会以回调函数的方式来触发您设置的业务逻辑. 比如新链接加入时会回调您设置的"Hello world", 再比如某个链接发送了消息"PING"时, 会回调您设置的返回消息"PONG".
-  5. FastWS可以启动多个实例, 每一次的new接口类文件都是一次实例化.
-  7. FastWS不但可以实例化多个接口类文件, 也可以实例化同一个接口类文件多次. 比如启动了三个实例, 分别监听了19910, 19911, 19912端口.
-  6. 实例化接口类文件并进行了相关设置后, 调用\FastWS\runFastWS()即可启动FastWS.
-  7. \FastWS\runFastWS()之后的所有代码都将不会执行.
+  1. MeepoPS/config.ini是MeepoPS的配置文件. 采用和php.ini同样的格式, ";"为注释.
+  2. 必须引入MeepoPS/index.php文件. 使用MeepoPS都是从 require_once 'MeepoPS/index.php' 开始的.
+  3. MeepoPS/Api/目录下的文件为暴露给用户的接口. 需要实例化接口类文件, MeepoPS的使用都是围绕实例化接口文件后的对象来操作的. 实例化的时候传入监听的HOST和端口即可.
+  4. MeepoPS会以回调函数的方式来触发您设置的业务逻辑. 比如新链接加入时会回调您设置的"Hello world", 再比如某个链接发送了消息"PING"时, 会回调您设置的返回消息"PONG".
+  5. MeepoPS可以启动多个实例, 每一次的new接口类文件都是一次实例化.
+  7. MeepoPS不但可以实例化多个接口类文件, 也可以实例化同一个接口类文件多次. 比如启动了三个实例, 分别监听了19910, 19911, 19912端口.
+  6. 实例化接口类文件并进行了相关设置后, 调用\MeepoPS\runMeepoPS()即可启动MeepoPS.
+  7. \MeepoPS\runMeepoPS()之后的所有代码都将不会执行.
 
 
 #### 测试案例:

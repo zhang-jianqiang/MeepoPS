@@ -9,16 +9,16 @@
  * WebSite: http://www.lanecn.com
  */
 
-//引入FastWS
-require_once '../../FastWS/index.php';
+//引入MeepoPS
+require_once '../../MeepoPS/index.php';
 
 //使用文本传输的Api类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
 $telnet->childProcessCount = 1;
 
-//设置FastWS实例名称
+//设置MeepoPS实例名称
 $telnet->instanceName = 'Monitor-Telnet';
 
 //设置回调函数 - 这是所有应用的业务代码入口
@@ -26,8 +26,8 @@ $telnet->callbackStartInstance = 'callbackStartInstance';
 $telnet->callbackNewData = 'callbackNewData';
 
 
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 
 //global $mysql;
 $mysql = null;
@@ -37,7 +37,7 @@ $mysql = null;
 function callbackStartInstance($instance)
 {
     global $mysql;
-    $mysql = new \FastWS\Library\Db\Mysql('127.0.0.1', 'root', '123456', 'fastws');
+    $mysql = new \MeepoPS\Library\Db\Mysql('127.0.0.1', 'root', '123456', 'meepo_ps');
 }
 
 function callbackNewData($connect, $data)

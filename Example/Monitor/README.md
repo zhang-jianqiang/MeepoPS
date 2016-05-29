@@ -27,7 +27,7 @@ nohup php monitor_client.php &
 
 
 ### Mysql
-- 默认库名: fastws
+- 默认库名: meep_ops
 - 默认表名: moni_2015-05-25
 
 表结构:

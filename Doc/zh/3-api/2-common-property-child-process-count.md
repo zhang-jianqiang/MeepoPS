@@ -10,15 +10,15 @@
 这是我们自行编写的代码: demo.php 
 ```php
 <?php
-//引入FastWS
-require_once 'FastWS/index.php';
+//引入MeepoPS
+require_once 'MeepoPS/index.php';
 
 //使用文本传输的Telnet接口类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
 $telnet->childProcessCount = 4;
 
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 ```

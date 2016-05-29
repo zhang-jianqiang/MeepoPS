@@ -9,11 +9,11 @@
 这是我们自行编写的代码: demo.php
 ```php
 <?php
-//引入FastWS
-require_once 'FastWS/index.php';
+//引入MeepoPS
+require_once 'MeepoPS/index.php';
 
 //使用文本传输的Telnet接口类
-$telnet = new \FastWS\Api\Telnet('0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //设置回调函数 - 这是所有应用的业务代码入口 - 您的所有业务代码都编写在这里
 //$telnet实例中有链接断开时触发callbackConnectClose所设置的回调函数
@@ -21,6 +21,6 @@ $telnet->callbackConnectClose = function($connect){
   var_dump('链接ID为'.$connect->id."的用户断开了链接\n");
 };
 
-//启动FastWS
-\FastWS\runFastWS();
+//启动MeepoPS
+\MeepoPS\runMeepoPS();
 ```
