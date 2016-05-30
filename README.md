@@ -4,7 +4,6 @@
 
 #### 综述:
 - 目前版本为V0.0.2.
-- 正在进行大规模\高并发\分布式的测试, 可在V1.0版本开始进行商用.
 - 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发不到Master分支, 其余分支请不要部署在生产环境.
 - 数据交互协议目前仅支持Telnet协议. MeepoPS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.
 - PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.
