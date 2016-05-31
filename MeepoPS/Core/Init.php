@@ -1,7 +1,7 @@
 <?php
 /**
  * MeepoPS框架核心入口文件
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/17
  * Time: 下午2:50

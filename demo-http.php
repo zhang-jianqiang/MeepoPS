@@ -1,7 +1,7 @@
 <?php
 /**
  * DEMO文件. 展示基于HTTP协议的WebServer
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/4/16
  * Time: 下午10:05

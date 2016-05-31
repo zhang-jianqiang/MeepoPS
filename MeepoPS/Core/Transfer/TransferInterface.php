@@ -1,7 +1,7 @@
 <?php
 /**
  * 链接的抽象类.如TCP或UDP等
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/27
  * Time: 上午1:13

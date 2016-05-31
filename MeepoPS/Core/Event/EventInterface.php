@@ -1,7 +1,7 @@
 <?php
 /**
  * 事件,接口类
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/25
  * Time: 下午5:34

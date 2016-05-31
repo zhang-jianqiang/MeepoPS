@@ -1,7 +1,7 @@
 <?php
 /**
  * 从TCP数据流中解析HTTP协议
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/26
  * Time: 下午10:27
