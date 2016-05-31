@@ -3,7 +3,7 @@
  * 模拟客户端的测试脚本
  * 用来测试服务端的链接数容量
  * 特性: 极少的链接数, 极快的发送频率
- * Created by lixuan-it@360.cn
+ * Created by lane
  * User: lane
  * Date: 16/4/26
  * Time: 下午2:32
@@ -14,7 +14,7 @@ $totalCount = 0;
 $errConnect = 0;
 $errWrite = 0;
 $errRead = 0;
-$f = fopen('/home/lixuan-it/test_less_connect_quick_send_err1', 'w+');
+$f = fopen('/home/lanec/test_less_connect_quick_send_err1', 'w+');
 while (true) {
     $totalCount++;
     $socket = fsockopen('127.0.0.1', '19910', $errno, $errmsg);
@@ -41,6 +41,6 @@ while (true) {
         }
     }
     fclose($socket);
-    file_put_contents('/home/lixuan-it/test_less_connect_quick_send_result1', json_encode(array('total_count' => $totalCount, 'err_connect' => $errConnect, 'err_write' => $errWrite, 'err_read' => $errRead)));
+    file_put_contents('/home/lanec/test_less_connect_quick_send_result1', json_encode(array('total_count' => $totalCount, 'err_connect' => $errConnect, 'err_write' => $errWrite, 'err_read' => $errRead)));
 }
 fclose($f);

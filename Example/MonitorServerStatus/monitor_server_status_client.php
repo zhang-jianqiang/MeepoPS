@@ -2,7 +2,7 @@
 /**
  * 客户端 - 服务器资源情况采集
  * 每秒发送一次数据给服务端
- * Created by lixuan-it@360.cn
+ * Created by lane
  * User: lane
  * Date: 16/4/26
  * Time: 下午2:32

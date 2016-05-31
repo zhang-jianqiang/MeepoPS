@@ -1,7 +1,7 @@
 <?php
 /**
  * 主进程, 子进程运行状态和统计
- * Created by lixuan-it@360.cn
+ * Created by lane
  * User: lane
  * Date: 16/5/27
  * Time: 上午10:35
