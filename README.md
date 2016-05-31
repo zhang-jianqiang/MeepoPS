@@ -1,18 +1,21 @@
-# MeepoPS-PHP
-###### MeepoPS是Meepo PHP Socket的缩写. 旨在提供高效稳定的由纯PHP开发的多进程WebService.
-###### MeepoPS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, MeepoPS的HTTP协议在简单场景下是可以替代Apache/Nginx的.
+# MeepoPS
+###### MeepoPS是Meepo PHP Socket的缩写. 旨在提供高效稳定的由纯PHP开发的多进程SocketService.
+###### MeepoPS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 实时监控, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, MeepoPS的HTTP协议在简单场景下是可以替代Apache/Nginx的.
 
 #### 综述:
 - 目前版本为V0.0.2.
-- 正式可用分支为Master分支. Master分支是至少经过7*24小时的高压力测试, 无任何报错后才会发不到Master分支, 其余分支请不要部署在生产环境.
-- 数据交互协议目前仅支持Telnet协议. MeepoPS计划支持Telnet, HTTP, HTTPS, WebSocket等应用层协议. 事实上HTTP协议和WebSocket协议已经在dev分支中, 正在调试.
-- PHP作为最好的语言, 不仅仅能依靠Nginx/Apache来构建Web应用, 同时, 也可以构建高效稳定的即时通讯和Socket应用.
+- PHP作为最好的语言, 不仅仅能依靠Nginx来开发Web应用, 同时,也可以构建高效稳定的即时通讯类Socket应用.
 - MeepoPS的最低运行要求是安装了PHP的PCNTL库.
 - MeepoPS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
 
+#### 传送门:
+- 手册地址: http://meepops.lanecn.com
+- Github: https://github.com/lixuancn/MeepoPS
+- Bug提交: https://github.com/lixuancn/MeepoPS/issues
+- 微博: http://weibo.com/lanephp
+
 #### 声明:
-- 绝大多数的PHP应用都部署在Linux服务器. 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动MeepoPS.
-- 不支持非Unix操作系统, 例如Windows.
+- 绝大多数的PHP应用都部署在Linux服务器, 因此MeepoPS不支持非Unix操作系统(例如Windows). 你可以使用Apple Mac(OS X), CentOS, Ubuntu, Red Hat, Fedora, FreeBSD等类Unix操作系统来启动MeepoPS.
 - Windows用户可以安装VirtualBox, Vmware等虚拟机软件来运行MeepoPS.
 - MeepoPS需要PHP的POSIX库. POSIX是PHP默认安装的, 通常情况下你不需要手动安装. 如何安装: [PHP手册-POSIX安装](http://php.net/manual/zh/posix.installation.php)
 - 多进程及信号处理需要依赖PHP的PCNTL库. MeepoPS深度依赖PCNTL, 因此PCNTL库是必须安装的, 即使只启动一个进程的MeepoPS, 仍然需要安装PCNTL. 如何安装: [PHP手册-PCNTL安装](http://php.net/manual/zh/pcntl.installation.php)
@@ -60,6 +63,8 @@
   6. 实例化接口类文件并进行了相关设置后, 调用\MeepoPS\runMeepoPS()即可启动MeepoPS.
   7. \MeepoPS\runMeepoPS()之后的所有代码都将不会执行.
 
+#### 示例:
+Example目录下是示例案例, 每一个目录是一个独立的项目. 会不断添加.
 
 #### 测试案例:
 [请看文档-测试一栏](Doc/zh/8-test)
