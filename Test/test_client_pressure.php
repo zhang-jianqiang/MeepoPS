@@ -25,7 +25,7 @@ while (true) {
         break;
     }
     $errno = $errmsg = '';
-    $client = stream_socket_client('111.206.61.177:19910', $errno, $errmsg);
+    $client = stream_socket_client('10.10.10.10:19910', $errno, $errmsg);
     if (!$client) {
         var_dump($errno);
         var_dump($errmsg);

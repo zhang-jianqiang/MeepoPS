@@ -10,7 +10,7 @@ sudo php monitor_server_status_server.php start
 ```bash
 sudo php monitor_server_status_server.php start -d
 ```
-启动后监听19910端口, 接收数据. 在启动时, 没启动一个子进程, 这个子进程都会初始化一个Mysql链接.这个进程内的所有链接都可以使用.
+启动后监听19910端口, 接收数据. 在启动时, 每启动一个子进程, 这个子进程都会初始化一个Mysql链接.这个进程内的所有链接都可以使用.
 
 Mysql的链接信息请自行修改为自己的IP, 账号, 密码, 数据库名, 端口.
 
