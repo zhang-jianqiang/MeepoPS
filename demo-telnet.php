@@ -49,9 +49,9 @@ function callbackConnect($connect)
     }
 
     //定时器
-    \MeepoPS\Core\Timer::add(function($connect){
-        $connect->send('PING');
-    }, array($connect), 5, true);
+//    \MeepoPS\Core\Timer::add(function($connect){
+//        $connect->send('PING');
+//    }, array($connect), 5, true);
 
     var_dump('收到新链接. UniqueId=' . $connect->id . "\n");
 }
@@ -86,6 +86,5 @@ function clientListClose($connect)
 
 function callbackConnectClose($connect)
 {
-    var_dump($connect);
     $connect->send('88');
 }
