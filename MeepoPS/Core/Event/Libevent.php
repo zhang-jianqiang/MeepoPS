@@ -3,7 +3,7 @@
  * 使用Libevent方式进行事件驱动
  * Libevent是封装了Linux的epoll，BSD的kqueue，Windows的IOCP
  * 时间复杂度O(n)
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/29
  * Time: 下午5:38

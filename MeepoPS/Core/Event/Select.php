@@ -2,7 +2,7 @@
 /**
  * 使用Select方式进行轮询
  * 时间复杂度O(n)
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/29
  * Time: 下午5:38

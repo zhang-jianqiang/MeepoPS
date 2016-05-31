@@ -4,7 +4,7 @@
  * 监听alarm信号,并通过alarm信号来控制每次的执行.即收到alarm信号后开始执行定时器任务
  * 比如每十秒发送一次Alarm信号,那么每十秒就执行一次定时器任务
  * 如有事件支持时,比如Select或者Libevent等,则不再使用alarm信号来辅助
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/25
  * Time: 下午2:52

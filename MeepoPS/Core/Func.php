@@ -1,7 +1,7 @@
 <?php
 /**
  * 常用函数
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/25
  * Time: 下午2:32

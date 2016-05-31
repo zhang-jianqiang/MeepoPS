@@ -1,7 +1,7 @@
 <?php
 /**
  * 错误码
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/24
  * Time: 下午6:18

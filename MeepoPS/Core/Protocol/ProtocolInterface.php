@@ -1,7 +1,7 @@
 <?php
 /**
  * 协议接口
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/26
  * Time: 下午10:28

@@ -3,7 +3,7 @@
  * 从TCP数据流中解析Telnet协议
  * 客户端为telnet方式
  * 每个数据包已\n来结尾.如果发现\n,则\n之前为一个数据包.如果没有\n,则等待下次数据的到来
- * Created by lixuan868686@163.com
+ * Created by Lane
  * User: lane
  * Date: 16/3/26
  * Time: 下午10:27
