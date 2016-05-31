@@ -1,6 +1,8 @@
 <?php
 /**
  * DEMO文件. 展示基于Telnet协议的数据传输
+ *
+ * 收集部署在服务器上的客户端发送来的数据,整理入库
  * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/4/16
@@ -19,7 +21,7 @@ $telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 $telnet->childProcessCount = 1;
 
 //设置MeepoPS实例名称
-$telnet->instanceName = 'Monitor-Telnet';
+$telnet->instanceName = 'MonitorServerStatus-Telnet';
 
 //设置回调函数 - 这是所有应用的业务代码入口
 $telnet->callbackStartInstance = 'callbackStartInstance';
