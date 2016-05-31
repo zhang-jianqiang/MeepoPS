@@ -305,7 +305,6 @@ class Tcp extends TransferInterface
      */
     public function close($data = null)
     {
-        echo 123;
         if ($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
             return;
         } else {
@@ -324,7 +323,6 @@ class Tcp extends TransferInterface
      */
     public function destroy()
     {
-        echo 456;
         //如果当前状态是已经关闭的,则不处理
         if ($this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
             return;
