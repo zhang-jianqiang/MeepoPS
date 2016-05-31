@@ -3,7 +3,7 @@
  * 模拟客户端的测试脚本
  * 用来测试服务端的QPS
  * 特性: 较多的链接数, 极快的发送频率
- * Created by lixuan-it@360.cn
+ * Created by lane
  * User: lane
  * Date: 16/4/26
  * Time: 下午2:32
@@ -17,7 +17,7 @@ $sendCount = 0;
 $sendErrorCount = 0;
 $receiveCount = 0;
 $receiveErrorCount = 0;
-$f = fopen('/home/lixuan-it/test_more_connect_quick_send', 'w+');
+$f = fopen('/home/lanec/test_more_connect_quick_send', 'w+');
 while (true) {
     if (count($clientList) >= $clientCount) {
         break;

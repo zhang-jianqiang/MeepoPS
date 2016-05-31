@@ -1,6 +1,6 @@
 <?php
 /**
- * Created by lixuan-it@360.cn
+ * Created by lane
  * User: lane
  * Date: 16/4/26
  * Time: 下午2:07
