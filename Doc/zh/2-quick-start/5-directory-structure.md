@@ -5,7 +5,6 @@ MeepoPS-PHP
      -- zh
         README.md
   -- Example
-     -- Monitor
   -- MeepoPS
      -- Api
      -- Core
@@ -23,7 +22,7 @@ Doc为Markdown格式的文档.
       README.md是文档目录
       
 Example是示例
-   Monitor是服务器负载监控项目
+   一个目录是一个独立的项目, 直接在该项目目录下`php ***_server.php start`运行即可.
       
 MeepoPS是MeepoPS的代码目录.
    Api是暴露给外部用户使用的接口类文件所在目录. 所有文件均是一个类, 用户在自己的代码中继承该类即可.
