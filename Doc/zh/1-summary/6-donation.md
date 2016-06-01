@@ -13,3 +13,7 @@ MeepoPS是免费的, 并且是永久免费.
 - 支付宝
 
 ![支付宝](https://raw.githubusercontent.com/lixuancn/MeepoPS-PHP/dev/Doc/zh/1-summary/Image/donation-alipay.jpeg "支付宝")
+
+### 捐赠列表
+- YiHan ￥0.1
+- ★♂偉 ￥0.01
