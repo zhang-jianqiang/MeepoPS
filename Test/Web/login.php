@@ -6,6 +6,10 @@
 </form>
 </html>
 <?php
+
+
+return var_dump(\MeepoPS\Core\Protocol\Http::sessionStart());
+
 var_dump($_SESSION);
 if (!empty($_POST['username']) && !empty($_POST['password'])) {
     $username = $_POST['username'];

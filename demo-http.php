@@ -13,7 +13,7 @@
 require_once 'MeepoPS/index.php';
 
 //使用文本传输的Api类
-$webServer = new \MeepoPS\Api\WebServer('0.0.0.0', '19910');
+$webServer = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
 $webServer->childProcessCount = 1;
@@ -21,8 +21,10 @@ $webServer->childProcessCount = 1;
 //设置MeepoPS实例名称
 $webServer->instanceName = 'MeepoPS-Http';
 
-//设置主
+//设置根目录
 $webServer->setRoot('www.lanecn.com', __DIR__ . '/Test/Web');
+//设置默认首页
+$webServer->defaultIndex = array('index.html', 'index.php');
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();

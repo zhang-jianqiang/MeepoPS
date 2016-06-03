@@ -7,6 +7,13 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
+
+var_dump(\MeepoPS\Core\Protocol\Http::sessionStart());
+
+
+return;
+
+
 if (empty($_SESSION['user_info']) || empty($_SESSION['user_info']['username'])) {
     echo '<script language="JavaScript">
             alert("请登陆");

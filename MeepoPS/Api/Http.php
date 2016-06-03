@@ -12,24 +12,20 @@ namespace MeepoPS\Api;
 
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Log;
-use MeepoPS\Core\Protocol\Http;
 use MeepoPS\Core\Protocol\HttpCache;
 
-class WebServer extends MeepoPS
+class Http extends MeepoPS
 {
 
     //默认页文件名
-    public $defaultIndex = array('index.html', 'index.php');
-
-    //MIME TYPE
-    private static $_defaultMimeType = 'text/html; charset=utf-8';
+    public $defaultIndex = array('index.html');
     //代码文件根目录
     private $_documentRoot = array();
     //后缀和MimeType的对应关系 array('ext1'=>'mime_type1', 'ext2'=>'mime_type2')
     private static $mimeTypeMap = array();
 
-    private $_callerCallbackStartInstance = '';
-    private $_callerCallbackNewData = '';
+    private $_userCallbackStartInstance = '';
+    private $_userCallbackNewData = '';
 
     /**
      * WebServer constructor.
@@ -42,7 +38,7 @@ class WebServer extends MeepoPS
         if (!$host || !$port) {
             return;
         }
-        self::$mimeTypeMap = Http::getMimeTypesFile();
+        self::$mimeTypeMap = \MeepoPS\Core\Protocol\Http::getMimeTypesFile();
         parent::__construct('http', $host, $port, $contextOptionList);
     }
 
@@ -55,8 +51,8 @@ class WebServer extends MeepoPS
             Log::write('not set document root.', 'ERROR');
         }
         //调用者所设置的回调放置在_callerCallback系列的属性中
-        $this->_callerCallbackNewData = $this->callbackNewData;
-        $this->_callerCallbackStartInstance = $this->callbackStartInstance;
+        $this->_userCallbackNewData = $this->callbackNewData;
+        $this->_userCallbackStartInstance = $this->callbackStartInstance;
         //设置MeepoPS的回调.
         $this->callbackStartInstance = array($this, 'callbackStartInstance');
         $this->callbackNewData = array($this, 'callbackNewData');
@@ -91,8 +87,7 @@ class WebServer extends MeepoPS
      */
     public function callbackStartInstance()
     {
-        // Init HttpCache.
-        HttpCache::init();
+
     }
 
     /**
@@ -105,7 +100,7 @@ class WebServer extends MeepoPS
         //解析来访的URL
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         if (!$requestUri) {
-            Http::setHeader('HTTP/1.1 400 Bad Request');
+            \MeepoPS\Core\Protocol\Http::setHeader('HTTP/1.1 400 Bad Request');
             $connect->close('HTTP 400 Bad Request');
             return;
         }
@@ -128,20 +123,20 @@ class WebServer extends MeepoPS
                     }
                 }
             } else {
-                Http::setHeader("HTTP/1.1 403 Forbidden");
+                \MeepoPS\Core\Protocol\Http::setHeader("HTTP/1.1 403 Forbidden");
                 $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>Not allowed access to the directory!</center></body></html>');
                 return;
             }
         }
         //文件是否有效
         if (!is_file($filename)) {
-            Http::setHeader("HTTP/1.1 404 Not Found");
+            \MeepoPS\Core\Protocol\Http::setHeader("HTTP/1.1 404 Not Found");
             $connect->close('<html><head><title>404 File not found</title></head><body><center><h3>404 Not Found</h3></center></body></html>');
             return;
         }
         //文件是否可读
         if (!is_readable($filename)) {
-            Http::setHeader("HTTP/1.1 403 Forbidden");
+            \MeepoPS\Core\Protocol\Http::setHeader("HTTP/1.1 403 Forbidden");
             $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>File not readable</center></body></html>');
             return;
         }
@@ -152,7 +147,7 @@ class WebServer extends MeepoPS
         $realFilename = realpath($filename);
         $documentRootRealPath = realpath($documentRoot) . '/';
         if (!$realFilename || !$documentRootRealPath || strpos($realFilename, $documentRootRealPath) !== 0) {
-            Http::setHeader("HTTP/1.1 403 Forbidden");
+            \MeepoPS\Core\Protocol\Http::setHeader("HTTP/1.1 403 Forbidden");
             $connect->close('<html><head><title>403 Forbidden</title></head><body><center><h3>403 Forbidden</h3><br>The directory is not authorized!</center></body></html>');
             return;
         }
@@ -166,21 +161,21 @@ class WebServer extends MeepoPS
         }
         //静态文件
         if ($urlExt && isset(self::$mimeTypeMap[$urlExt])) {
-            Http::setHeader('Content-Type: ' . self::$mimeTypeMap[$urlExt]);
+            \MeepoPS\Core\Protocol\Http::setHeader('Content-Type: ' . self::$mimeTypeMap[$urlExt]);
         } else {
-            Http::setHeader('Content-Type: ' . self::$_defaultMimeType);
+            \MeepoPS\Core\Protocol\Http::setHeader('Content-Type: ' . 'text/html; charset=utf-8');
         }
         //获取文件状态
         $info = stat($filename);
         $modifiedTime = $info ? date('D, d M Y H:i:s', $info['mtime']) . ' GMT' : '';
         //静态文件未改变.则返回304
         if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $info && $modifiedTime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
-            Http::setHeader('HTTP/1.1 304 Not Modified');
+            \MeepoPS\Core\Protocol\Http::setHeader('HTTP/1.1 304 Not Modified');
             $connect->close();
             return;
         }
         if ($modifiedTime) {
-            Http::setHeader('Last-Modified: ' . $modifiedTime);
+            \MeepoPS\Core\Protocol\Http::setHeader('Last-Modified: ' . $modifiedTime);
         }
         //给客户端发送消息,并且断开连接.
         $connect->close(file_get_contents($realFilename));

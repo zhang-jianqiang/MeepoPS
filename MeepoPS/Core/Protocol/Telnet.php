@@ -12,6 +12,8 @@
  */
 namespace MeepoPS\Core\Protocol;
 
+use MeepoPS\Core\Transfer\TransferInterface;
+
 class Telnet implements ProtocolInterface
 {
     /**
@@ -45,9 +47,10 @@ class Telnet implements ProtocolInterface
     /**
      * 数据解码. 默认在接收数据时自动调用此方法. 不用您手动调用.
      * @param string $data 从数据流中接收到的数据
+     * @param TransferInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function decode($data)
+    public static function decode($data, TransferInterface $connect)
     {
         return trim($data);
     }

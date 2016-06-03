@@ -10,6 +10,8 @@
  */
 namespace MeepoPS\Core\Protocol;
 
+use MeepoPS\Core\Transfer\TransferInterface;
+
 interface ProtocolInterface
 {
 
@@ -30,8 +32,9 @@ interface ProtocolInterface
     /**
      * 对接收到的数据进行decode. 例如将数据按照客户端约定的协议如Http/WebSocket/stream(json/text等)等进行解析
      * 本方法将会触发MeepoPS::$callbackNewData的回调函数
-     * @param $data string
+     * @param string $data 待解码的数据
+     * @param TransferInterface $connect 机遇传输层协议的链接
      * @return mixed
      */
-    public static function decode($data);
+    public static function decode($data, TransferInterface $connect);
 }
