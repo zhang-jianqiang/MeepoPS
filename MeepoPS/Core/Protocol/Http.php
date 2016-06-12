@@ -85,7 +85,7 @@ class Http implements ProtocolInterface
         $header .= 'Content-Length: ' . strlen($data) . "\r\n\r\n";
         //保存SESSION
         self::_saveSession();
-        unset(self::$_instance->_httpHeader);
+        unset(self::$_instance);
         //返回一个完整的数据包(头 + 数据)
         return $header . $data;
     }
@@ -218,14 +218,15 @@ class Http implements ProtocolInterface
         if (strpos($string, 'HTTP') === 0) {
             $key = 'Http-Code';
         } else {
-            $key = strstr($string, ':', true);
+            $headerArray = explode(':', $string, 2);
+            $key = $headerArray[0];
             if (empty($key)) {
                 return false;
             }
-        }
-        //如果是302跳转
-        if (strtolower($key) === 'location' && !$httpResponseCode) {
-            return self::setHeader($string, true, 302);
+            //如果是302跳转
+            if (strtolower($key) === 'location' && !$httpResponseCode) {
+                $httpResponseCode = 302;
+            }
         }
         $httpCodeList = self::getHttpCode();
         if (isset($httpCodeList[$httpResponseCode])) {
@@ -242,7 +243,7 @@ class Http implements ProtocolInterface
      * 删除header()设置的HTTP头信息
      * @param string $name 删除指定的头信息
      */
-    public static function removeHttpHeader($name)
+    public static function delHttpHeader($name)
     {
         if (PHP_SAPI != 'cli') {
             header_remove();
@@ -254,35 +255,35 @@ class Http implements ProtocolInterface
 
     /**
      * 设置Cookie
-     * 参数意义请参考setcookie()
+     * 参数意义请参考setCookie()
      * @param string $name
      * @param string $value
      * @param integer $maxage
      * @param string $path
      * @param string $domain
      * @param bool $secure
-     * @param bool $HTTPOnly
+     * @param bool $httpOnly
      * @return bool
      */
-    public static function setcookie($name, $value = '', $maxage = 0, $path = '', $domain = '', $secure = false, $HTTPOnly = false)
+    public static function setCookie($name, $value = '', $maxage = 0, $path = '', $domain = '', $secure = false, $httpOnly = false)
     {
         if (PHP_SAPI != 'cli') {
-            return setcookie($name, $value, $maxage, $path, $domain, $secure, $HTTPOnly);
+            return setCookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
         }
         return self::setHeader(
             'Set-Cookie: ' . $name . '=' . rawurlencode($value)
             . (empty($domain) ? '' : '; Domain=' . $domain)
             . (empty($maxage) ? '' : '; Max-Age=' . $maxage)
             . (empty($path) ? '' : '; Path=' . $path)
-            . (!$secure ? '' : '; Secure')
-            . (!$HTTPOnly ? '' : '; HttpOnly'), false);
+            . (empty($secure) ? '' : '; Secure')
+            . (empty($httpOnly) ? '' : '; HttpOnly'), false);
     }
 
     /**
      * 开启SESSION
      * @return bool
      */
-    public static function sessionStart()
+    public static function startSession()
     {
         self::$_sessionPath = session_save_path() ? session_save_path() : sys_get_temp_dir();
         if (PHP_SAPI != 'cli') {
@@ -292,16 +293,16 @@ class Http implements ProtocolInterface
             return true;
         }
         self::$_instance->_isStartSession = true;
-        //生成SID
+        //生成sessionId
         if (!isset($_COOKIE[self::$_sessionName]) || !is_file(self::$_sessionPath . '/session_' . $_COOKIE[self::$_sessionName])) {
             $sessionFilename = tempnam(HttpCache::$sessionPath, 'session_');
             if (!$sessionFilename) {
                 return false;
             }
             self::$_instance->_sessionFilename = $sessionFilename;
-            $session_id = substr(basename($sessionFilename), strlen('session_'));
-            return self::setcookie(
-                self::$_sessionName, $session_id, ini_get('session.cookie_lifetime'), ini_get('session.cookie_path'),
+            $sessionId = substr(basename($sessionFilename), strlen('session_'));
+            return self::setCookie(
+                self::$_sessionName, $sessionId, ini_get('session.cookie_lifetime'), ini_get('session.cookie_path'),
                 ini_get('session.cookie_domain'), ini_get('session.cookie_secure'), ini_get('session.cookie_httponly')
             );
         }
@@ -335,7 +336,7 @@ class Http implements ProtocolInterface
                 return file_put_contents(self::$_sessionFilename, $session);
             }
         }
-        return empty($_SESSION);
+        return false;
     }
 
     /**
@@ -360,7 +361,7 @@ class Http implements ProtocolInterface
      * @param $httpPostBoundary string HTTP POST 请求的边界
      * @return void
      */
-    protected static function parseUploadFiles($httpBody, $httpPostBoundary)
+    private static function parseUploadFiles($httpBody, $httpPostBoundary)
     {
         $httpBody = substr($httpBody, 0, strlen($httpBody) - (strlen($httpPostBoundary) + 4));
         $boundaryDataList = explode($httpPostBoundary . "\r\n", $httpBody);
@@ -397,16 +398,6 @@ class Http implements ProtocolInterface
                 }
             }
         }
-    }
-
-    /**
-     * 获取MIME TYPE
-     * @return string
-     */
-    public static function getMimeTypesFile()
-    {
-        //从nginx1.10.0的mime.types中复制的, 然后转换成数组
-        return array ('html' => 'text/html', 'htm' => 'text/html', 'shtml' => 'text/html', 'css' => 'text/css', 'xml' => 'text/xml', 'gif' => 'image/gif', 'jpeg' => 'image/jpeg', 'jpg' => 'image/jpeg', 'js' => 'application/javascript', 'atom' => 'application/atom+xml', 'rss' => 'application/rss+xml', 'mml' => 'text/mathml', 'txt' => 'text/plain', 'jad' => 'text/vnd.sun.j2me.app-descriptor', 'wml' => 'text/vnd.wap.wml', 'htc' => 'text/x-component', 'png' => 'image/png', 'tif' => 'image/tiff', 'tiff' => 'image/tiff', 'wbmp' => 'image/vnd.wap.wbmp', 'ico' => 'image/x-icon', 'jng' => 'image/x-jng', 'bmp' => 'image/x-ms-bmp', 'svg' => 'image/svg+xml', 'svgz' => 'image/svg+xml', 'webp' => 'image/webp', 'woff' => 'application/font-woff', 'jar' => 'application/java-archive', 'war' => 'application/java-archive', 'ear' => 'application/java-archive', 'json' => 'application/json', 'hqx' => 'application/mac-binhex40', 'doc' => 'application/msword', 'pdf' => 'application/pdf', 'ps' => 'application/postscript', 'eps' => 'application/postscript', 'ai' => 'application/postscript', 'rtf' => 'application/rtf', 'm3u8' => 'application/vnd.apple.mpegurl', 'xls' => 'application/vnd.ms-excel', 'eot' => 'application/vnd.ms-fontobject', 'ppt' => 'application/vnd.ms-powerpoint', 'wmlc' => 'application/vnd.wap.wmlc', 'kml' => 'application/vnd.google-earth.kml+xml', 'kmz' => 'application/vnd.google-earth.kmz', '7z' => 'application/x-7z-compressed', 'cco' => 'application/x-cocoa', 'jardiff' => 'application/x-java-archive-diff', 'jnlp' => 'application/x-java-jnlp-file', 'run' => 'application/x-makeself', 'pl' => 'application/x-perl', 'pm' => 'application/x-perl', 'prc' => 'application/x-pilot', 'pdb' => 'application/x-pilot', 'rar' => 'application/x-rar-compressed', 'rpm' => 'application/x-redhat-package-manager', 'sea' => 'application/x-sea', 'swf' => 'application/x-shockwave-flash', 'sit' => 'application/x-stuffit', 'tcl' => 'application/x-tcl', 'tk' => 'application/x-tcl', 'der' => 'application/x-x509-ca-cert', 'pem' => 'application/x-x509-ca-cert', 'crt' => 'application/x-x509-ca-cert', 'xpi' => 'application/x-xpinstall', 'xhtml' => 'application/xhtml+xml', 'xspf' => 'application/xspf+xml', 'zip' => 'application/zip', 'bin' => 'application/octet-stream', 'exe' => 'application/octet-stream', 'dll' => 'application/octet-stream', 'deb' => 'application/octet-stream', 'dmg' => 'application/octet-stream', 'iso' => 'application/octet-stream', 'img' => 'application/octet-stream', 'msi' => 'application/octet-stream', 'msp' => 'application/octet-stream', 'msm' => 'application/octet-stream', 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'mid' => 'audio/midi', 'midi' => 'audio/midi', 'kar' => 'audio/midi', 'mp3' => 'audio/mpeg', 'ogg' => 'audio/ogg', 'm4a' => 'audio/x-m4a', 'ra' => 'audio/x-realaudio', '3gpp' => 'video/3gpp', '3gp' => 'video/3gpp', 'ts' => 'video/mp2t', 'mp4' => 'video/mp4', 'mpeg' => 'video/mpeg', 'mpg' => 'video/mpeg', 'mov' => 'video/quicktime', 'webm' => 'video/webm', 'flv' => 'video/x-flv', 'm4v' => 'video/x-m4v', 'mng' => 'video/x-mng', 'asx' => 'video/x-ms-asf', 'asf' => 'video/x-ms-asf', 'wmv' => 'video/x-ms-wmv', 'avi' => 'video/x-msvideo');
     }
 
     /**
