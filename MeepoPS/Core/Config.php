@@ -9,6 +9,8 @@
  */
 namespace MeepoPS\Core;
 
+//-------------------系统相关-------------------
+
 //解析配置文件
 $config = parse_ini_file(MEEPO_PS_ROOT_PATH . 'config.ini', true);
 
@@ -36,14 +38,23 @@ define('MEEPO_PS_MASTER_PID_PATH', $config['file']['master_pid_path']);
 //统计信息存储文件路径
 define('MEEPO_PS_STATISTICS_PATH', $config['file']['statistics_path']);
 
+//-------------------TCP相关-------------------
+
 //TCP链接中默认最大的待发送缓冲区
 define('MEEPO_PS_TCP_CONNECT_SEND_MAX_BUFFER_SIZE', $config['connection']['tcp_send_max_buffer_size']);
 
 //TCP链接中所能接收的最大的数据包
 define('MEEPO_PS_TCP_CONNECT_READ_MAX_PACKET_SIZE', $config['connection']['tcp_read_max_packet_size']);
 
+//-------------------事件相关-------------------
+
 //SELECT事件轮询中的超时时间
 define('MEEPO_PS_EVENT_SELECT_POLL_TIMEOUT', $config['event']['event_select_poll_timeout']);
 
 //SELECT轮询事件最大监听资源数.此为PHP源码限制.默认为1024. MeepoPS最多接收1020. 如果要改变这个值,请重新编译PHP(--enable-fd-setsize=2048)
 define('MEEPO_PS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size']);
+
+//-------------------HTTP相关-------------------
+
+//Session name
+define('MEEPO_PS_HTTP_SESSION_NAME', $config['http']['http_session_name']);

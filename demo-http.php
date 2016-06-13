@@ -24,7 +24,7 @@ $webServer->instanceName = 'MeepoPS-Http';
 //设置根目录
 $webServer->setRoot('www.lanecn.com', __DIR__ . '/Test/Web');
 //设置默认首页
-$webServer->defaultIndex = array('index.html', 'index.php');
+$webServer->defaultIndexList = array('index.html', 'index.php');
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();
