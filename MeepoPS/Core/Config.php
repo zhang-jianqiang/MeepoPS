@@ -58,3 +58,4 @@ define('MEEPO_PS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size
 
 //Session name
 define('MEEPO_PS_HTTP_SESSION_NAME', $config['http']['http_session_name']);
+define('MEEPO_PS_HTTP_SESSION_PATH', '/var/tmp');

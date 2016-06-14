@@ -15,9 +15,9 @@ use MeepoPS\Core\Log;
 
 class Http implements ProtocolInterface
 {
-
     //每一个链接对应一个实例, 每一个示例都是一个HTTP协议类
-    private static $_instance = null;
+    private static $_httpInstance = null;
+    //HTTP 头
     private $_httpHeader = array();
 
     public static function input($data)
@@ -58,16 +58,16 @@ class Http implements ProtocolInterface
     public static function encode($data)
     {
         //状态码
-        $header = isset(self::$_instance->_httpHeader['Http-Code']) ? self::$_instance->_httpHeader['Http-Code'] : 'HTTP/1.1 200 OK';
+        $header = isset(self::$_httpInstance->_httpHeader['Http-Code']) ? self::$_httpInstance->_httpHeader['Http-Code'] : 'HTTP/1.1 200 OK';
         $header .= "\r\n";
         //Connection
-        $header .= isset(self::$_instance->_httpHeader['Connection']) ? self::$_instance->_httpHeader['Connection'] : 'Connection: keep-alive';
+        $header .= isset(self::$_httpInstance->_httpHeader['Connection']) ? self::$_httpInstance->_httpHeader['Connection'] : 'Connection: keep-alive';
         $header .= "\r\n";
         //Content-Type
-        $header .= isset(self::$_instance->_httpHeader['Content-Type']) ? self::$_instance->_httpHeader['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
+        $header .= isset(self::$_httpInstance->_httpHeader['Content-Type']) ? self::$_httpInstance->_httpHeader['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
         $header .= "\r\n";
         //其他部分
-        foreach (self::$_instance->_httpHeader as $name => $value) {
+        foreach (self::$_httpInstance->_httpHeader as $name => $value) {
             if ($name === 'Set-Cookie' && is_array($value)) {
                 foreach ($value as $v) {
                     $header .= $v . "\r\n";
@@ -80,7 +80,7 @@ class Http implements ProtocolInterface
         $header .= 'Server: MeepoPS/' . MEEPO_PS_VERSION . "\r\n";
         $header .= 'X-Powered-By:: PHP/' . PHP_VERSION . "\r\n";
         $header .= 'Content-Length: ' . strlen($data) . "\r\n\r\n";
-        unset(self::$_instance->_httpHeader);
+        self::$_httpInstance = null;
         //返回一个完整的数据包(头 + 数据)
         return $header . $data;
     }
@@ -94,7 +94,7 @@ class Http implements ProtocolInterface
     public static function decode($data, TransferInterface $connect)
     {
         //实例化链接
-        self::$_instance = new Http();
+        self::$_httpInstance = new Http();
         //将超全局变量设为空.
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = $GLOBALS['HTTP_RAW_POST_DATA'] = array();
         $_SERVER = array();
@@ -235,12 +235,12 @@ class Http implements ProtocolInterface
         }
         $httpCodeList = self::getHttpCode();
         if (isset($httpCodeList[$httpResponseCode])) {
-            self::$_instance->_httpHeader['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . $httpCodeList[$httpResponseCode];
+            self::$_httpInstance->_httpHeader['Http-Code'] = 'HTTP/1.1 ' . $httpResponseCode . ' ' . $httpCodeList[$httpResponseCode];
             if ($key === 'Http-Code') {
                 return true;
             }
         }
-        $key === 'Set-Cookie' ? (self::$_instance->_httpHeader[$key][] = $string) : (self::$_instance->_httpHeader[$key] = $string);
+        $key === 'Set-Cookie' ? (self::$_httpInstance->_httpHeader[$key][] = $string) : (self::$_httpInstance->_httpHeader[$key] = $string);
         return true;
     }
 
@@ -253,7 +253,7 @@ class Http implements ProtocolInterface
         if (PHP_SAPI != 'cli') {
             header_remove();
         } else {
-            unset(self::$_instance->_httpHeader[$name]);
+            unset(self::$_httpInstance->_httpHeader[$name]);
         }
 
     }
@@ -273,7 +273,7 @@ class Http implements ProtocolInterface
     public static function setCookie($name, $value = '', $maxage = 0, $path = '', $domain = '', $secure = false, $httpOnly = false)
     {
         if (PHP_SAPI != 'cli') {
-            return setCookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
+            return \setcookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
         }
         return self::setHeader(
             'Set-Cookie: ' . $name . '=' . rawurlencode($value)

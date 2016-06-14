@@ -1,19 +1,5 @@
 <?php
-/**
- * Created by lane
- * User: lane
- * Date: 16/4/26
- * Time: 下午2:07
- * E-mail: lixuan868686@163.com
- * WebSite: http://www.lanecn.com
- */
-
-
-//启动SESSION
-// 现在可以使用 $_SESSION 保存以及获取数据了
-$_SESSION['a'] = 'a';
-$_SESSION['b'] = 'b';
-$_SESSION['c'] = 'c';
+\MeepoPS\Api\Http::sessionStart();
 
 
 //if (empty($_SESSION['user_info']) || empty($_SESSION['user_info']['username'])) {

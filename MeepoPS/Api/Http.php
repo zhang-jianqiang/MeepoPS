@@ -12,6 +12,7 @@ namespace MeepoPS\Api;
 
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Log;
+use MeepoPS\Library\Session;
 
 class Http extends MeepoPS
 {
@@ -22,6 +23,10 @@ class Http extends MeepoPS
     private $_documentRoot = array();
     //错误页 array('404' => '页面不在', '503' => 'tpl/err_503.html')
     private $_errorPage = array();
+    //用户自定义的callbackNewData
+    private $_userCallbackNewData;
+    //Session
+    private static $_sessionInstance;
 
     /**
      * WebServer constructor.
@@ -46,6 +51,7 @@ class Http extends MeepoPS
             Log::write('not set document root.', 'ERROR');
         }
         //设置MeepoPS的回调.
+        $this->_userCallbackNewData = $this->callbackNewData;
         $this->callbackNewData = array($this, 'callbackNewData');
         //运行MeepoPS
         parent::run();
@@ -115,9 +121,9 @@ class Http extends MeepoPS
      * 开启SESSION
      * @return bool
      */
-    public static function startSession()
+    public static function sessionStart()
     {
-        return \MeepoPS\Core\Protocol\Http::startSession();
+        self::$_sessionInstance->start();
     }
 
     /**
@@ -136,15 +142,12 @@ class Http extends MeepoPS
      */
     public function callbackNewData($connect, $data)
     {
-        session_start();
-        //设定SESSION名
-        session_name(MEEPO_PS_HTTP_SESSION_NAME);
-
+        self::$_sessionInstance = new Session();
         //解析来访的URL
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         if (!$requestUri) {
             $this->setHeader('HTTP/1.1 400 Bad Request');
-            $connect->close($this->getErrorPage(400, 'Bad Request'));
+            $this->_close($connect, $this->getErrorPage(400, 'Bad Request'));
             return;
         }
         $urlPath = $requestUri['path'];
@@ -166,20 +169,20 @@ class Http extends MeepoPS
                 }
             } else {
                 $this->setHeader("HTTP/1.1 403 Forbidden");
-                $connect->close($this->getErrorPage(403, 'Forbidden'));
+                $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
                 return;
             }
         }
         //文件是否有效
         if (!is_file($filename)) {
             $this->setHeader("HTTP/1.1 404 Not Found");
-            $connect->close($this->getErrorPage(404, 'File not found'));
+            $this->_close($connect, $this->getErrorPage(404, 'File not found'));
             return;
         }
         //文件是否可读
         if (!is_readable($filename)) {
             $this->setHeader("HTTP/1.1 403 Forbidden");
-            $connect->close($this->getErrorPage(403, 'Forbidden'));
+            $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
             return;
         }
         //获取文件后缀
@@ -190,7 +193,7 @@ class Http extends MeepoPS
         $documentRootRealPath = realpath($documentRoot) . '/';
         if (!$realFilename || !$documentRootRealPath || strpos($realFilename, $documentRootRealPath) !== 0) {
             $this->setHeader("HTTP/1.1 403 Forbidden");
-            $connect->close($this->getErrorPage(403, 'Forbidden'));
+            $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
             return;
         }
         //如果请求的是PHP文件
@@ -198,8 +201,7 @@ class Http extends MeepoPS
             ob_start();
             include $realFilename;
             $content = ob_get_clean();
-            $connect->close($content);
-            session_write_close();
+            $this->_close($connect, $content);
             return;
         }
         //静态文件
@@ -213,13 +215,19 @@ class Http extends MeepoPS
             //静态文件未改变.则返回304
             if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $fileMtime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
                 $this->setHeader('HTTP/1.1 304 Not Modified');
-                $connect->close();
+                $this->_close($connect);
                 return;
             }
         }
         //给客户端发送消息,并且断开连接.
-        $connect->close(file_get_contents($realFilename));
+        $this->_close($connect, file_get_contents($realFilename));
         return;
+    }
+
+    private function _close($connect, $data){
+        $connect->close($data);
+        self::$_sessionInstance->write($_SESSION);
+        self::$_sessionInstance = null;
     }
 
     /**

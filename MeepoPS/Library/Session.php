@@ -9,23 +9,30 @@
  */
 namespace MeepoPS\Library;
 
+use MeepoPS\Api\Http;
+
 class Session{
     //Session文件保存路径
     private $_savePath;
+    //Session是否开启
+    private $_isStart = false;
+    //SessionId
+    private $_sessionId;
 
     /**
-     * session_start()时自动调用
-     * @param $savePath
-     * @param $sessionName
+     * 开启Session
      * @return bool
      */
-    function open($savePath, $sessionName){
-        //命令行调用时返回false
-        if(PHP_SAPI === 'cli'){
-            //日志
-//            return false;
+    public function start(){
+        //非命令行调用时
+        if(PHP_SAPI !== 'cli'){
+            return session_start();
         }
-        $this->_savePath = !empty($savePath) ? $savePath : sys_get_temp_dir();
+        //Session路径
+        $this->_savePath = !empty(session_save_path()) ? session_save_path() : sys_get_temp_dir();
+        if(strlen($this->_savePath) > 1 && $this->_savePath[strlen($this->_savePath)-1] === '/'){
+            $this->_savePath = substr($this->_savePath, 0, -1);
+        }
         if(!$this->_savePath){
             //日志
             return false;
@@ -37,14 +44,25 @@ class Session{
                 return false;
             }
         }
-        return true;
-    }
-
-    /**
-     * 关闭Session
-     * @return bool
-     */
-    function close(){
+        //获取SessionId
+        $this->_sessionId = isset($_COOKIE[MEEPO_PS_HTTP_SESSION_NAME]) ? $_COOKIE[MEEPO_PS_HTTP_SESSION_NAME] : '';
+        if(empty($this->_sessionId) || !is_file($this->_savePath . '/' . $_COOKIE[MEEPO_PS_HTTP_SESSION_NAME])){
+            $this->_sessionId = uniqid('sess_', true);
+            return Http::setCookie(
+                MEEPO_PS_HTTP_SESSION_NAME
+                , $this->_sessionId
+                , ini_get('session.cookie_lifetime')
+                , ini_get('session.cookie_path')
+                , ini_get('session.cookie_domain')
+                , ini_get('session.cookie_secure')
+                , ini_get('session.cookie_httponly')
+            );
+        }
+        //填充$_SESSION
+        $_SESSION = $this->_read();
+        $_SESSION = $this->_decode($_SESSION);
+        //Session状态
+        $this->_isStart = true;
         return true;
     }
 
@@ -53,37 +71,51 @@ class Session{
      * @param int $sessionId
      * @return string
      */
-    function read($sessionId){
-        var_dump($sessionId);
-        return @file_get_contents($this->_savePath . '/sess_' . $sessionId);
+    private function _read(){
+        return file_get_contents($this->_savePath . '/' . $this->_sessionId);
     }
 
     /**
-     * 脚本结束时调用
-     * 本方法结束时会PHP内部自动调用close()
-     * @param $sessionId
+     * Session保存到文件时先encode
+     */
+    private function _encode($data){
+        return serialize($data);
+    }
+
+    /**
+     * Session从文件读取后先Decode
+     */
+    private function _decode($data){
+        return unserialize($data);
+    }
+
+    /**
+     * 保存Session
      * @param $data
      * @return bool or int
      */
-    function write($sessionId, $data){
-        var_dump($sessionId);
-        var_dump($data);
-        $result = file_put_contents($this->_savePath . '/sess_' . $sessionId, $data);
-        var_dump($result);
-        return $result;
+    public function write($data){
+        return @file_put_contents($this->_savePath . '/' . $this->_sessionId, $this->_encode($data));
     }
 
     /**
-     * 调用session_destroy()时会自动调用本方法
+     * 关闭Session
+     * @return bool
+     */
+    public function close(){
+        return true;
+    }
+
+    /**
+     * 销毁Session
      * @param $sessionId
      * @return bool
      */
-    function destroy($sessionId){
-        $file = "$this->savePath/sess_$sessionId";
+    public function destroy($sessionId){
+        $file = $this->_savePath . '/' . $sessionId;
         if (file_exists($file)) {
             unlink($file);
         }
-
         return true;
     }
 
@@ -94,7 +126,11 @@ class Session{
      * @param $maxLifeTime
      * @return bool
      */
-    function gc($maxLifeTime){
+    public function gc($maxLifeTime=0){
+        $maxLifeTime = $maxLifeTime !== 0 ? $maxLifeTime : ini_get('session.gc_maxlifetime');
+        if(!$maxLifeTime){
+            return false;
+        }
         foreach (glob($this->_savePath . '/sess_*') as $file) {
             if (filemtime($file) + $maxLifeTime < time()) {
                 @unlink($file);
