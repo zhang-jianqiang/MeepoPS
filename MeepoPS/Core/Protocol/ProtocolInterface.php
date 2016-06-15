@@ -16,7 +16,8 @@ interface ProtocolInterface
 {
 
     /**
-     * 将输入的内容(包)进行检测.返回包的长度(可以为0,如果为0则等待下个数据包),如果失败返回false并关闭参数中的链接.
+     * 检测数据, 返回数据包的长度.
+     * 没有数据包或者数据包未结束,则返回0
      * @param string $data 数据包
      * @return mixed
      */

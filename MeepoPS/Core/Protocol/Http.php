@@ -20,6 +20,11 @@ class Http implements ProtocolInterface
     //HTTP 头
     private $_httpHeader = array();
 
+    /**
+     * 将输入的内容(包)进行检测.返回包的长度(可以为0,如果为0则等待下个数据包),如果失败返回false并关闭参数中的链接.
+     * @param string $data
+     * @return int
+     */
     public static function input($data)
     {
         $position = strpos($data, "\r\n\r\n");

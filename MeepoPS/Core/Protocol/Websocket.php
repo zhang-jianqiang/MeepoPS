@@ -27,10 +27,9 @@ class Websocket implements ProtocolInterface
      * 检测数据, 返回数据包的长度.
      * 没有数据包或者数据包未结束,则返回0
      * @param string $data
-     * @param TransferInterface $connect
      * @return bool|int
      */
-    public static function input($data, TransferInterface $connect)
+    public static function input($data)
     {
         //数据长度
         $dataLength = strlen($data);
