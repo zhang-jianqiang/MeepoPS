@@ -199,7 +199,11 @@ class Http extends MeepoPS
         //如果请求的是PHP文件
         if ($fileExt === 'php') {
             ob_start();
-            include $realFilename;
+            try{
+                include $realFilename;
+            }catch (\Exception $e){
+                Log::write('Exception was introduced to the PHP file.', 'WARNING');
+            }
             $content = ob_get_clean();
             $this->_close($connect, $content);
             return;
