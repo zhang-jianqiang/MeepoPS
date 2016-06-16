@@ -58,6 +58,18 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 \MeepoPS\Api\Http::setHeader('HTTP/1.1 400 Bad Request');
 ```
 
+#### 删除指定的HTTP头\MeepoPS\Api\Http::delHttpHeader($name)
+- 名称: \MeepoPS\Api\Http::delHttpHeader();
+- 参数: 参数$name是需要删除的头的名称。
+- 返回: void 
+- 描述: 删除指定的HTTP头。
+###### 示例:
+这是我们自行编写的代码: demo.php
+```php
+<?php
+\MeepoPS\Api\Http::delHttpHeader('TEST');
+```
+
 #### 设置HTTP Cookie信息\MeepoPS\Api\Http::setCookie()
 - 名称: \MeepoPS\Api\Http::setCookie();
 - 参数: 参数个数和含义与setcookie()完全一致
@@ -69,18 +81,6 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 <?php
 \MeepoPS\Api\Http::Http::setCookie('USERNAME', 'meepops');
 \MeepoPS\Api\Http::Http::setCookie('SEX', 'male');
-```
-
-#### 删除指定的HTTP头\MeepoPS\Api\Http::delHttpHeader($name)
-- 名称: \MeepoPS\Api\Http::delHttpHeader();
-- 参数: 参数$name是需要删除的头的名称。
-- 返回: void 
-- 描述: 删除指定的HTTP头。
-###### 示例:
-这是我们自行编写的代码: demo.php
-```php
-<?php
-\MeepoPS\Api\Http::delHttpHeader('TEST');
 ```
 
 #### 开启SESSION \MeepoPS\Api\Http::sessionStart()
@@ -111,7 +111,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 \MeepoPS\Api\Http::sessionWrite()
 ```
 
-#### 保存SESSION \MeepoPS\Api\Http::sessionId()
+#### 获取SESSION ID \MeepoPS\Api\Http::sessionId()
 - 名称: \MeepoPS\Api\Http::sessionId();
 - 参数: 无。
 - 返回: bool 
@@ -126,7 +126,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 $sessionId = \MeepoPS\Api\Http::sessionId()
 ```
 
-#### 保存SESSION \MeepoPS\Api\Http::sessionDestroy()
+#### 销毁SESSION \MeepoPS\Api\Http::sessionDestroy()
 - 名称: \MeepoPS\Api\Http::sessionDestroy();
 - 参数: 无。
 - 返回: bool 
@@ -141,12 +141,12 @@ $sessionId = \MeepoPS\Api\Http::sessionId()
 \MeepoPS\Api\Http::sessionDestroy()
 ```
  
-#### 保存SESSION \MeepoPS\Api\Http::setErrorPage()
+#### 设置HTTP错误页 \MeepoPS\Api\Http::setErrorPage()
 - 名称: \MeepoPS\Api\Http::setErrorPage();
 - 参数1: $httpCode。HTTP状态码.
 - 参数2: $description。加载页面的文件路劲, 或者描述。
 - 返回: bool 
-- 描述: 设置HTTP错误页, 指定HTTP状态吗, 当此HTTP状态码时, 加载指定的页面, 或者在MeepoPS的默认样式中显示描述。
+- 描述: 设置HTTP错误页, 指定HTTP状态码, 当此HTTP状态码时, 加载指定的页面, 或者在MeepoPS的默认样式中显示描述。
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
