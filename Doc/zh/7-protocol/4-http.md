@@ -49,6 +49,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 参数个数和含义与header()完全一致。
 - 返回: bool 
 - 描述: MeepoPS的HTTP协议中, 不支持直接使用header()函数来设置头, 设置头信息时, 请使用`\MeepoPS\Api\Http::setHeader();`。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -63,6 +64,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 参数$name是需要删除的头的名称。
 - 返回: void 
 - 描述: 删除指定的HTTP头。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -75,6 +77,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 参数个数和含义与setcookie()完全一致
 - 返回: bool 
 - 描述: MeepoPS的HTTP协议中, 不支持直接使用setcookie()函数来设置Cookie, 设置Cookie信息时, 请使用`\MeepoPS\Api\Http::setCookie();`。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -88,6 +91,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 无。
 - 返回: bool 
 - 描述: 开启SESSION, 类似session_start()。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -101,6 +105,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 无。
 - 返回: bool 
 - 描述: 保存SESSION, 本方法自动执行, 通常不需要您手动, 类似session_write_close(), 默认在脚本执行结束时触发。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -116,6 +121,7 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 - 参数: 无。
 - 返回: bool 
 - 描述: 获取SESSION ID, 类似session_id()。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -131,6 +137,7 @@ $sessionId = \MeepoPS\Api\Http::sessionId()
 - 参数: 无。
 - 返回: bool 
 - 描述: 销毁SESSION, 类似session_destroy()。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
@@ -147,6 +154,7 @@ $sessionId = \MeepoPS\Api\Http::sessionId()
 - 参数2: $description。加载页面的文件路劲, 或者描述。
 - 返回: bool 
 - 描述: 设置HTTP错误页, 指定HTTP状态码, 当此HTTP状态码时, 加载指定的页面, 或者在MeepoPS的默认样式中显示描述。
+
 ###### 示例:
 这是我们自行编写的代码: demo.php
 ```php
