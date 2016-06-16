@@ -151,7 +151,7 @@ class Http implements ProtocolInterface
                         $_SERVER['CONTENT_TYPE'] = $value;
                     } else {
                         $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
-                        $httpPostBoundary = '--' . $match[1];
+                        $postBoundary = $match[1];
                     }
                     break;
                 case 'accept-charset':
@@ -195,8 +195,10 @@ class Http implements ProtocolInterface
 
         //POST请求
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'multipart/form-data') {
-                self::parseUploadFiles($http[1], $httpPostBoundary);
+            //multipart/form-data 类型
+            if (isset($_SERVER['CONTENT_TYPE']) && $_SERVER['CONTENT_TYPE'] === 'multipart/form-data' && !empty($postBoundary)) {
+                self::_parseMultipartForm($http[1], $postBoundary);
+            //application/x-www-form-urlencoded 类型 或者 text/plain
             } else {
                 parse_str($http[1], $_POST);
                 $GLOBALS['HTTP_RAW_POST_DATA'] = $http[1];
@@ -207,7 +209,7 @@ class Http implements ProtocolInterface
         //REQUEST
         $_REQUEST = array_merge($_GET, $_POST);
 
-        return array('get' => $_GET, 'post' => $_POST, 'cookie' => $_COOKIE, 'server' => $_SERVER, 'files' => $_FILES);
+        return true;
     }
 
     /**
@@ -281,7 +283,7 @@ class Http implements ProtocolInterface
             return \setcookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
         }
         return self::setHeader(
-            'Set-Cookie: ' . $name . '=' . rawurlencode($value)
+            'Set-Cookie: ' . $name . '=' . urlencode($value)
             . (empty($domain) ? '' : '; Domain=' . $domain)
             . (empty($maxage) ? '' : '; Max-Age=' . $maxage)
             . (empty($path) ? '' : '; Path=' . $path)
@@ -290,47 +292,50 @@ class Http implements ProtocolInterface
     }
 
     /**
-     * 解析$_FILES
-     * @param $httpBody string HTTP主体数据
-     * @param $httpPostBoundary string HTTP POST 请求的边界
+     * 解析multipart/form-data类型的form表单
+     * @param $postData string HTTP数据部分
+     * @param $postBoundary string HTTP的数据部分中, 每个字段的分割
      * @return void
      */
-    private static function parseUploadFiles($httpBody, $httpPostBoundary)
-    {
-        $httpBody = substr($httpBody, 0, strlen($httpBody) - (strlen($httpPostBoundary) + 4));
-        $boundaryDataList = explode($httpPostBoundary . "\r\n", $httpBody);
-        if ($boundaryDataList[0] === '') {
-            unset($boundaryDataList[0]);
-        }
-        foreach ($boundaryDataList as $boundaryData) {
+    private static function _parseMultipartForm($postData, $postBoundary){
+        $postBoundary = '--' . $postBoundary;
+        //去掉结尾的boundary和--\r\n
+        $postData = rtrim($postData, "{$postBoundary}--\r\n");
+        //去掉开头的boundary和\r\n
+        $postData = ltrim($postData, "{$postBoundary}\r\n");
+        $postDataMapList = explode("\r\n{$postBoundary}\r\n", $postData);
+        //提取每个字段的名称和值
+        $postUrlEncode = '';
+        foreach ($postDataMapList as $postDataMap) {
             //分割为描述信息和数据
-            list($boundaryHeaderBuffer, $boundaryValue) = explode("\r\n\r\n", $boundaryData, 2);
-            //移除数据结尾的\r\n
-            $boundaryValue = substr($boundaryValue, 0, -2);
-            foreach (explode("\r\n", $boundaryHeaderBuffer) as $item) {
-                list($headerName, $headerValue) = explode(": ", $item);
-                $headerName = strtolower($headerName);
-                switch ($headerName) {
-                    case "content-disposition":
-                        //是上传文件
-                        if (preg_match('/name=".*?"; filename="(.*?)"$/', $headerValue, $match)) {
-                            //将文件数据写入$_FILES
-                            $_FILES[] = array(
-                                'file_name' => $match[1],
-                                'file_data' => $boundaryValue,
-                                'file_size' => strlen($boundaryValue),
-                            );
-                            continue;
-                            //POST数据
-                        } else {
-                            //将POST数据写入$_POST
-                            if (preg_match('/name="(.*?)"$/', $headerValue, $match)) {
-                                $_POST[$match[1]] = $boundaryValue;
-                            }
-                        }
-                        break;
+            $postDataMap = explode("\r\n\r\n", $postDataMap, 2);
+            if(preg_match('/; name="(.*)"/Ui', $postDataMap[0], $name)) {
+                //如果不是上传文件
+                if (!preg_match('/; filename="(.*)"/', $postDataMap[0], $filename)) {
+                    $postUrlEncode .= urlencode($name[1]) . '=' . urlencode($postDataMap[1]) . '&';
+                //如果是上传文件
+                } else {
+                    //填充$_FILE
+                    $_FILES[$name[1]]['name'] = $filename[1];
+                    $_FILES[$name[1]]['size'] = strlen($postDataMap[1]);
+                    $_FILES[$name[1]]['type'] = preg_match('/Content-Type: ?(.*);?/s', $postDataMap[0], $contentType) ? $contentType[1] : '';
+                    if (HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE && ($filename = tempnam(sys_get_temp_dir(), 'uf_'))
+                        && $filename !== false && file_put_contents($filename, $postDataMap[1]) !== false
+                    ) {
+                        $_FILES[$name[1]]['tmp_name'] = $filename;
+                    } else {
+                        $_FILES[$name[1]]['file_content'] = $postDataMap[1];
+                    }
                 }
+            }else{
+                //日志
+                Log::write('An illegal HTTP POST request, because the name does not exist. HTTP body: ' . $postDataMap[0], 'WARNING');
             }
+        }
+        //填充$_POST
+        if(!empty($postUrlEncode)){
+            rtrim($postUrlEncode, '&');
+            parse_str($postUrlEncode, $_POST);
         }
     }
 

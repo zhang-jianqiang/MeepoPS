@@ -63,7 +63,13 @@ class Session{
         $_SESSION = $this->_decode($_SESSION);
         //Session状态
         $this->_isStart = true;
+        //回收过期SESSION
+        $this->_gc();
         return true;
+    }
+
+    public function id(){
+        return $this->_sessionId;
     }
 
     /**
@@ -108,11 +114,10 @@ class Session{
 
     /**
      * 销毁Session
-     * @param $sessionId
      * @return bool
      */
-    public function destroy($sessionId){
-        $file = $this->_savePath . '/' . $sessionId;
+    public function destroy(){
+        $file = $this->_savePath . '/' . $this->_sessionId;
         if (file_exists($file)) {
             unlink($file);
         }
@@ -121,16 +126,27 @@ class Session{
 
     /**
      * 资源回收。
+     * 本方法涉及到三个外部参数, 来自PHP.ini
      * 调用周期由 session.gc_probability 和 session.gc_divisor 参数控制
-     * 传入到此回调函数的 $maxLifeTime 参数由 session.gc_maxlifetime 设置
-     * @param $maxLifeTime
+     * SESSION有效期由session.gc_maxlifetime 设置
      * @return bool
      */
-    public function gc($maxLifeTime=0){
-        $maxLifeTime = $maxLifeTime !== 0 ? $maxLifeTime : ini_get('session.gc_maxlifetime');
-        if(!$maxLifeTime){
+    private function _gc(){
+        $probability = intval(ini_get('session.gc_probability'));
+        $divisor = intval(ini_get('session.gc_divisor'));
+        $maxLifeTime = intval(ini_get('session.gc_maxlifetime'));
+        if(!$probability || !$divisor || !$maxLifeTime){
             return false;
         }
+        //概率计算
+        if($probability < $divisor){
+            //概率
+            $rand = mt_rand(0, $divisor);
+            if($rand > $probability){
+                return false;
+            }
+        }
+        //开始清除
         foreach (glob($this->_savePath . '/sess_*') as $file) {
             if (filemtime($file) + $maxLifeTime < time()) {
                 @unlink($file);

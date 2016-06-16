@@ -12,12 +12,13 @@ namespace MeepoPS\Api;
 
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Log;
+use MeepoPS\Core\Transfer\Tcp;
 use MeepoPS\Library\Session;
 
 class Http extends MeepoPS
 {
     //默认页文件名
-    public $defaultIndexList = array('index.html');
+    private $_defaultIndexList = array('index.html');
 
     //代码文件根目录 array('www.lanecn.com' => '/var/www/')
     private $_documentRoot = array();
@@ -80,6 +81,20 @@ class Http extends MeepoPS
     }
 
     /**
+     * 设置默认页面
+     * @param $filenameList array 文件名
+     * @return bool
+     */
+    public function setDefaultIndexList(array $filenameList)
+    {
+        if (!$filenameList || !is_array($filenameList)) {
+            return false;
+        }
+        $this->_defaultIndexList = $filenameList;
+        return true;
+    }
+
+    /**
      * 设置http头
      * @param string $string 头字符串
      * @param bool $replace 是否用后面的头替换前面相同类型的头.即相同的多个头存在时,后来的会覆盖先来的.
@@ -119,6 +134,7 @@ class Http extends MeepoPS
 
     /**
      * 开启SESSION
+     * 功能类似session_start();
      * @return bool
      */
     public static function sessionStart()
@@ -127,27 +143,57 @@ class Http extends MeepoPS
     }
 
     /**
-     * 获取HTTP状态码及对应说明
-     * @return array
+     * 写入SESSION
+     * 默认情况下自动执行
+     * 功能类似session_write_close();
+     * @return bool
      */
-    public function getHttpCode()
+    public static function sessionWrite()
     {
-        return \MeepoPS\Core\Protocol\Http::getHttpCode();
+        self::$_sessionInstance->write();
     }
 
     /**
+     * 获取SESSION ID
+     * 功能类似session_id();
+     * @return bool
+     */
+    public static function sessionId()
+    {
+        self::$_sessionInstance->id();
+    }
+
+    /**
+     * SESSION
+     * 功能类似session_destroy();
+     * @return bool
+     */
+    public static function sessionDestroy()
+    {
+        self::$_sessionInstance->destroy();
+    }
+    
+    /**
      * 收到新消息的回调
      * @param $connect
-     * @param $data
+     * @param $data array
      */
     public function callbackNewData($connect, $data)
     {
+        if ($this->_userCallbackNewData) {
+            try {
+                call_user_func_array($this->_userCallbackNewData, array($connect, $data));
+            } catch (\Exception $e) {
+                Tcp::$statistics['exception_count']++;
+                Log::write('MeepoPS: execution callback function callbackNewData-' . $this->_userCallbackNewData . ' throw exception', 'ERROR');
+            }
+        }
         self::$_sessionInstance = new Session();
         //解析来访的URL
         $requestUri = parse_url($_SERVER['REQUEST_URI']);
         if (!$requestUri) {
             $this->setHeader('HTTP/1.1 400 Bad Request');
-            $this->_close($connect, $this->getErrorPage(400, 'Bad Request'));
+            $this->_close($connect, $this->_getErrorPage(400, 'Bad Request'));
             return;
         }
         $urlPath = $requestUri['path'];
@@ -159,8 +205,8 @@ class Http extends MeepoPS
         //如果是目录
         if (is_dir($filename)) {
             //如果缺省首页存在
-            if ($this->defaultIndexList) {
-                foreach ($this->defaultIndexList as $index) {
+            if ($this->_defaultIndexList) {
+                foreach ($this->_defaultIndexList as $index) {
                     $file = $filename . '/' . $index;
                     if (is_file($file)) {
                         $filename = $file;
@@ -169,20 +215,20 @@ class Http extends MeepoPS
                 }
             } else {
                 $this->setHeader("HTTP/1.1 403 Forbidden");
-                $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
+                $this->_close($connect, $this->_getErrorPage(403, 'Forbidden'));
                 return;
             }
         }
         //文件是否有效
         if (!is_file($filename)) {
             $this->setHeader("HTTP/1.1 404 Not Found");
-            $this->_close($connect, $this->getErrorPage(404, 'File not found'));
+            $this->_close($connect, $this->_getErrorPage(404, 'File not found'));
             return;
         }
         //文件是否可读
         if (!is_readable($filename)) {
             $this->setHeader("HTTP/1.1 403 Forbidden");
-            $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
+            $this->_close($connect, $this->_getErrorPage(403, 'Forbidden'));
             return;
         }
         //获取文件后缀
@@ -193,7 +239,7 @@ class Http extends MeepoPS
         $documentRootRealPath = realpath($documentRoot) . '/';
         if (!$realFilename || !$documentRootRealPath || strpos($realFilename, $documentRootRealPath) !== 0) {
             $this->setHeader("HTTP/1.1 403 Forbidden");
-            $this->_close($connect, $this->getErrorPage(403, 'Forbidden'));
+            $this->_close($connect, $this->_getErrorPage(403, 'Forbidden'));
             return;
         }
         //如果请求的是PHP文件
@@ -219,7 +265,7 @@ class Http extends MeepoPS
             //静态文件未改变.则返回304
             if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && $fileMtime === $_SERVER['HTTP_IF_MODIFIED_SINCE']) {
                 $this->setHeader('HTTP/1.1 304 Not Modified');
-                $this->_close($connect);
+                $this->_close($connect, null);
                 return;
             }
         }
@@ -246,18 +292,30 @@ class Http extends MeepoPS
         return $mimeTypeList[$ext];
     }
 
+    /**
+     * 设置HTTP错误页
+     * @param $httpCode int HTTP状态码
+     * @param $description string 该状态码时, 错误页的描述或自定义的错误页面路径
+     */
     public function setErrorPage($httpCode, $description)
     {
         $this->_errorPage[$httpCode] = $description;
     }
 
-    public function getErrorPage($httpCode, $message = '', $description = '')
+    /**
+     * 获取错误页面
+     * @param $httpCode
+     * @param string $message
+     * @param string $description
+     * @return bool|string
+     */
+    private function _getErrorPage($httpCode, $message = '', $description = '')
     {
         if (!$httpCode) {
             return false;
         }
         if (!isset($this->_errorPage[$httpCode])) {
-            $httpCodeArray = $this->getHttpCode();
+            $httpCodeArray = \MeepoPS\Core\Protocol\Http::getHttpCode();
             $message = $message ? $message : '';
             $description = $description ? $description : (isset($httpCodeArray[$httpCode]) ? $httpCodeArray[$httpCode] : '');
             $display = '<html><head><title>%s %s</title></head><body><center><h3>%s %s</h3><br>%s</center></body></html>';
@@ -269,7 +327,7 @@ class Http extends MeepoPS
                 include $this->_errorPage[$httpCode];
                 $display = ob_get_clean();
             } else {
-                $display = '<html><head><title>%s</title></head><body><center><h3>%</h3><br>%s</center></body></html>';
+                $display = '<html><head><title>%s</title></head><body><center><h3>%s</h3><br>%s</center></body></html>';
                 $display = sprintf($display, $httpCode, $httpCode, $this->_errorPage[$httpCode]);
             }
         }

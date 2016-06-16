@@ -13,18 +13,24 @@
 require_once 'MeepoPS/index.php';
 
 //使用文本传输的Api类
-$webServer = new \MeepoPS\Api\Http('0.0.0.0', '19910');
+$http = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
-$webServer->childProcessCount = 1;
+$http->childProcessCount = 1;
 
 //设置MeepoPS实例名称
-$webServer->instanceName = 'MeepoPS-Http';
+$http->instanceName = 'MeepoPS-Http';
 
 //设置根目录
-$webServer->setRoot('meepops.lanecn.com', __DIR__ . '/Test/Web');
+$http->setRoot('meepops.lanecn.com', __DIR__ . '/Test/Web');
 //设置默认首页
-$webServer->defaultIndexList = array('index.html', 'index.php');
+$http->setDefaultIndexList(array('index.html', 'index.php'));
+
+//设置错误页
+//404, 设置一个专门的页面来展示
+$http->setErrorPage('404', __DIR__ . '/Test/Web/404.html');
+//403, 使用默认样式(其实就是居中了一句话), 自定义错误描述
+$http->setErrorPage('403', '您没有被授权访问!');
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();

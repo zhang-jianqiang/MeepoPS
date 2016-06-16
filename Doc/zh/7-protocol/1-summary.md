@@ -4,7 +4,7 @@
 
 应用层协议可以是Telnet, HTTP, WebSocket等主流的协议, 也可以自行定义和开发.
 
-对普通开发者来讲, 不需要关心应用层协议的实现方式, 就像我们用LAMP/LNMP搭建网站的时候也不会关系HTTP协议的内容, 对于PHP来说$_GET和$_POST就足够了.
+对普通开发者来讲, 不需要关心应用层协议的实现方式, 就像我们用LAMP/LNMP搭建网站的时候也不会关心HTTP协议的内容, 对于PHP来说$_GET和$_POST就足够了.
 
 MeepoPS/Api/目录下的所有接口类, 都是在继承了MeepoPS的核心父类之后, 对不同应用层协议的实现. 比如MeepoPS/Api/Telnet.php就是继承了MeepoPS核心父类之后, 对外提供的Telnet协议的服务.
 

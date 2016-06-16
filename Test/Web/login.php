@@ -1,7 +1,7 @@
 <html>
 <form action="" method="post">
-    <input name="username" type="text" value="u"><br>
-    <input name="password" type="text" value="p"><br>
+    账号: <input name="username" type="text" value="MeepoPS"><br>
+    密码: <input name="password" type="password" value="meepops.lanecn.com"><br>
     <input type="submit">
 </form>
 </html>
