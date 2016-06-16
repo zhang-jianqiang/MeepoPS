@@ -1,6 +1,7 @@
 <?php
 /**
  * DEMO文件. 展示基于HTTP协议的WebServer
+ * Test/Web目录下有测试文件,包括登陆, SESSION, 跳转, 文件上传等
  * Created by Lane
  * User: lane
  * Date: 16/4/16
