@@ -51,6 +51,7 @@
   - [协议简介](7-protocol/1-summary.md)
   - [自定义协议](7-protocol/2-custom.md)
   - [Telnet协议](7-protocol/3-telnet.md)
+  - [HTTP协议](7-protocol/4-http.md)
 - 测试
   - [事件和子进程](8-test/1-event-and-child-proccess.md)
 - 建议
