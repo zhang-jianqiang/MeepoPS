@@ -82,8 +82,8 @@ $telnet = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 这是我们自行编写的代码: demo.php
 ```php
 <?php
-\MeepoPS\Api\Http::Http::setCookie('USERNAME', 'meepops');
-\MeepoPS\Api\Http::Http::setCookie('SEX', 'male');
+\MeepoPS\Api\Http::setCookie('USERNAME', 'meepops');
+\MeepoPS\Api\Http::setCookie('SEX', 'male');
 ```
 
 #### 开启SESSION \MeepoPS\Api\Http::sessionStart()
