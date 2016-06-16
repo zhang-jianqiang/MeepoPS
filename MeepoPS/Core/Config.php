@@ -56,8 +56,15 @@ define('MEEPO_PS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size
 
 //-------------------HTTP相关-------------------
 
+//域名和目录, 支持多组。 格式为: 域名1&路径1 | 域名2&路径2
+//每组中域名和路径用"&"分割, 多组间用"|"分割。 自动忽略空格换行。 域名必须包含端口, 80端口除外
+define('MEEPO_PS_HTTP_DOMAIN_DOCUMENT_LIST', $config['http']['http_domain_document_list']);
+
+//默认页, 多个用英文半角逗号分割。 自动忽略空格换行
+define('MEEPO_PS_HTTP_DEFAULT_PAGE', $config['http']['http_default_page']);
+
 //Session name
 define('MEEPO_PS_HTTP_SESSION_NAME', $config['http']['http_session_name']);
 
 //上传文件时, 是否只获取文件的内容, 而不需要生成临时文件。true是生成临时文件,同Nginx/Apache一样。false是只获取文件的内容。
-define('HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE', $config['http']['http_upload_file_generate_temp_file']);
+define('MEEPO_PS_HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE', $config['http']['http_upload_file_generate_temp_file']);

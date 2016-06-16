@@ -319,7 +319,7 @@ class Http implements ProtocolInterface
                     $_FILES[$name[1]]['name'] = $filename[1];
                     $_FILES[$name[1]]['size'] = strlen($postDataMap[1]);
                     $_FILES[$name[1]]['type'] = preg_match('/Content-Type: ?(.*);?/s', $postDataMap[0], $contentType) ? $contentType[1] : '';
-                    if (HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE && ($filename = tempnam(sys_get_temp_dir(), 'uf_'))
+                    if (MEEPO_PS_HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE && ($filename = tempnam(sys_get_temp_dir(), 'uf_'))
                         && $filename !== false && file_put_contents($filename, $postDataMap[1]) !== false
                     ) {
                         $_FILES[$name[1]]['tmp_name'] = $filename;

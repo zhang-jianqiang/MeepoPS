@@ -21,11 +21,6 @@ $http->childProcessCount = 1;
 //设置MeepoPS实例名称
 $http->instanceName = 'MeepoPS-Http';
 
-//设置根目录
-$http->setRoot('meepops.lanecn.com', __DIR__ . '/Test/Web');
-//设置默认首页
-$http->setDefaultIndexList(array('index.html', 'index.php'));
-
 //设置错误页
 //404, 设置一个专门的页面来展示
 $http->setErrorPage('404', __DIR__ . '/Test/Web/404.html');

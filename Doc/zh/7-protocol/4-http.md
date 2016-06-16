@@ -24,7 +24,7 @@ HTTP协议是一个应用层协议, 模拟Nginx/Apache的作用, 使用HTTP协�
 
 如果您需要SESSION共享, 请根据需要自行修改MeepoPS/Library/Session.php
 
-SESSION的GC在调用`\MeepoPS\Api\Http::sessionStart();`时执行, 触发机率和SESSION有效期请参考php.ini中的session.gc_probability, session.gc_divisor, session.gc_maxlifetime。
+SESSION的GC在调用`\MeepoPS\Api\Http::sessionStart();`时自动执行, 触发机率和SESSION有效期请参考php.ini中的session.gc_probability, session.gc_divisor, session.gc_maxlifetime。
 
 ##### header()函数
 MeepoPS的HTTP协议中, 不支持直接使用header()函数来设置头, 设置头信息时, 请使用`\MeepoPS\Api\Http::setHeader();`. 参数个数和含义与header()完全一致。

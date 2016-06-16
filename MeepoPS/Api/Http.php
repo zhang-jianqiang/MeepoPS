@@ -18,8 +18,7 @@ use MeepoPS\Library\Session;
 class Http extends MeepoPS
 {
     //默认页文件名
-    private $_defaultIndexList = array('index.html');
-
+    private $_defaultIndexList = array();
     //代码文件根目录 array('www.lanecn.com' => '/var/www/')
     private $_documentRoot = array();
     //错误页 array('404' => '页面不在', '503' => 'tpl/err_503.html')
@@ -41,6 +40,14 @@ class Http extends MeepoPS
             return;
         }
         parent::__construct('http', $host, $port, $contextOptionList);
+        //域名和目录
+        $domainDocumentList = explode('|', MEEPO_PS_HTTP_DOMAIN_DOCUMENT_LIST);
+        foreach($domainDocumentList as $domainDocument){
+            $domainDocument = explode('&', $domainDocument);
+            $this->_documentRoot[trim($domainDocument[0])] = trim($domainDocument[1]);
+        }
+        //默认页
+        $this->_defaultIndexList = explode(',', MEEPO_PS_HTTP_DEFAULT_PAGE);
     }
 
     /**
@@ -56,42 +63,6 @@ class Http extends MeepoPS
         $this->callbackNewData = array($this, 'callbackNewData');
         //运行MeepoPS
         parent::run();
-    }
-
-    /**
-     * 设置网站代码目录
-     * @param $domain string 域名
-     * @param $documentPath string 路径
-     */
-    public function setRoot($domain, $documentPath)
-    {
-        if (!$domain) {
-            Log::write('domain incorrect');
-            return;
-        }
-        if (!$documentPath) {
-            Log::write('documentPath incorrect');
-            return;
-        }
-        if (!file_exists($documentPath)) {
-            Log::write($documentPath . ' no exists');
-            return;
-        }
-        $this->_documentRoot[$domain] = $documentPath;
-    }
-
-    /**
-     * 设置默认页面
-     * @param $filenameList array 文件名
-     * @return bool
-     */
-    public function setDefaultIndexList(array $filenameList)
-    {
-        if (!$filenameList || !is_array($filenameList)) {
-            return false;
-        }
-        $this->_defaultIndexList = $filenameList;
-        return true;
     }
 
     /**
@@ -207,7 +178,7 @@ class Http extends MeepoPS
             //如果缺省首页存在
             if ($this->_defaultIndexList) {
                 foreach ($this->_defaultIndexList as $index) {
-                    $file = $filename . '/' . $index;
+                    $file = $filename . '/' . trim($index);
                     if (is_file($file)) {
                         $filename = $file;
                         break;
