@@ -9,6 +9,8 @@
  */
 namespace MeepoPS\Core;
 
+//-------------------系统相关-------------------
+
 //解析配置文件
 $config = parse_ini_file(MEEPO_PS_ROOT_PATH . 'config.ini', true);
 
@@ -36,14 +38,33 @@ define('MEEPO_PS_MASTER_PID_PATH', $config['file']['master_pid_path']);
 //统计信息存储文件路径
 define('MEEPO_PS_STATISTICS_PATH', $config['file']['statistics_path']);
 
+//-------------------TCP相关-------------------
+
 //TCP链接中默认最大的待发送缓冲区
 define('MEEPO_PS_TCP_CONNECT_SEND_MAX_BUFFER_SIZE', $config['connection']['tcp_send_max_buffer_size']);
 
 //TCP链接中所能接收的最大的数据包
 define('MEEPO_PS_TCP_CONNECT_READ_MAX_PACKET_SIZE', $config['connection']['tcp_read_max_packet_size']);
 
+//-------------------事件相关-------------------
+
 //SELECT事件轮询中的超时时间
 define('MEEPO_PS_EVENT_SELECT_POLL_TIMEOUT', $config['event']['event_select_poll_timeout']);
 
 //SELECT轮询事件最大监听资源数.此为PHP源码限制.默认为1024. MeepoPS最多接收1020. 如果要改变这个值,请重新编译PHP(--enable-fd-setsize=2048)
 define('MEEPO_PS_EVENT_SELECT_MAX_SIZE', $config['event']['event_select_max_size']);
+
+//-------------------HTTP相关-------------------
+
+//域名和目录, 支持多组。 格式为: 域名1&路径1 | 域名2&路径2
+//每组中域名和路径用"&"分割, 多组间用"|"分割。 自动忽略空格换行。 域名必须包含端口, 80端口除外
+define('MEEPO_PS_HTTP_DOMAIN_DOCUMENT_LIST', $config['http']['http_domain_document_list']);
+
+//默认页, 多个用英文半角逗号分割。 自动忽略空格换行
+define('MEEPO_PS_HTTP_DEFAULT_PAGE', $config['http']['http_default_page']);
+
+//Session name
+define('MEEPO_PS_HTTP_SESSION_NAME', $config['http']['http_session_name']);
+
+//上传文件时, 是否只获取文件的内容, 而不需要生成临时文件。true是生成临时文件,同Nginx/Apache一样。false是只获取文件的内容。
+define('MEEPO_PS_HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE', $config['http']['http_upload_file_generate_temp_file']);

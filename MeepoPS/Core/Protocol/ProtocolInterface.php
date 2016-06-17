@@ -10,11 +10,14 @@
  */
 namespace MeepoPS\Core\Protocol;
 
+use MeepoPS\Core\Transfer\TransferInterface;
+
 interface ProtocolInterface
 {
 
     /**
-     * 将输入的内容(包)进行检测.返回包的长度(可以为0,如果为0则等待下个数据包),如果失败返回false并关闭参数中的链接.
+     * 检测数据, 返回数据包的长度.
+     * 没有数据包或者数据包未结束,则返回0
      * @param string $data 数据包
      * @return mixed
      */
@@ -30,8 +33,9 @@ interface ProtocolInterface
     /**
      * 对接收到的数据进行decode. 例如将数据按照客户端约定的协议如Http/WebSocket/stream(json/text等)等进行解析
      * 本方法将会触发MeepoPS::$callbackNewData的回调函数
-     * @param $data string
+     * @param string $data 待解码的数据
+     * @param TransferInterface $connect 机遇传输层协议的链接
      * @return mixed
      */
-    public static function decode($data);
+    public static function decode($data, TransferInterface $connect);
 }

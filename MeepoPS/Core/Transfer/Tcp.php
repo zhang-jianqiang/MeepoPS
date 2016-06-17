@@ -116,8 +116,7 @@ class Tcp extends TransferInterface
         //如果接收到的数据不为空, 并且没有被暂停
         while (!empty($this->_readDate) && $this->_isPauseRead === false) {
             $applicationProtocolClassName = $this->_applicationProtocolClassName;
-            $this->_currentPackageSize = $applicationProtocolClassName::input($this->_readDate, $this);
-            $this->_currentPackageSize = intval($this->_currentPackageSize);
+            $this->_currentPackageSize = intval($applicationProtocolClassName::input($this->_readDate));
             //如果数据包未完, 则不处理
             if ($this->_currentPackageSize === 0) {
                 break;

@@ -59,4 +59,26 @@ event_select_poll_timeout = 100000000
 ; PHP的FD_SETSIZE最大可以等于操作系统所限制的打开文件最大数
 ; 请注意: 比如您重新编译了FD_SETSIZE为2048, 但是MeepoPS并不能感知这个值, 所以需要手动设置.
 event_select_max_size = 1020
+
+; HTTP协议相关
+[http]
+; 域名和目录, 支持多组。 格式为: 域名1&路径1 | 域名2&路径2. 域名必须包含端口, 80端口除外
+; 每组中域名和路径用"&"分割, 多组间用"|"分割。 自动忽略空格换行。
+; 如果访问的域名并不在列表当中, 比如localhost, 就会选择列表当中的第一个。
+http_domain_document_list = 'meepops.lanecn.com&/var/www/MeepoPS/Test/Web/ |
+                             www.lanecn.com:19910&/var/www/blog/ |
+                             lanewechat.lanecn.com:19910&/var/www/LaneWeChat'
+
+; 默认页, 多个用英文半角逗号分割。 自动忽略空格换行
+http_default_page = index.php, index.html
+
+; Session name
+http_session_name = MeepoPS-Session-Id
+
+; 上传文件时, 是要生成临时文件, 还是只获取文件内的数据。 
+; 值为true是同传统Web开发一样, 生成一个文件临时文件, 可使用$_FILE['表单字段']['tmp_name']使用。 但是在生成文件失败时, 将会返回文件内容。
+; 值为false是仅获取文件的内容, 不生成临时文件。可使用$_FILE['表单字段']['file_content']使用。
+; 因为TCP协议接收到的是文件内容和原文件名, 生成临时文件就是将内容写入到临时文件中, 你在移动为正式文件, 为何不只获取内容, 然后直接写到正式文件, 这些更高效。
+; 但是, 为了兼容性, 默认仍然是true, 生成临时文件。
+http_upload_file_generate_temp_file = true
 ```
