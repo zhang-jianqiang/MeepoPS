@@ -14,5 +14,6 @@ MeepoPS是免费的, 并且是永久免费.
 ![支付宝](Image/donation-alipay.jpeg?raw=true "支付宝")
 
 ### 捐赠列表
+- 林国锋 ￥10
 - YiHan ￥0.1
 - ★♂偉 ￥0.01
