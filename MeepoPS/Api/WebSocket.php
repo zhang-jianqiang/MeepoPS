@@ -15,10 +15,12 @@ use MeepoPS\Core\MeepoPS;
 class Websocket extends MeepoPS
 {
 
-    //回调函数 - 接收到PING的时候
-    public $callbackPing;
-    //回调函数 - 接收到PONG的时候
-    public $callbackPong;
+    //回调函数 - WebSocket专用 - 接收到PING的时候
+    public $callbackWSPing;
+    //回调函数 - WebSocket专用 - 接收到PONG的时候
+    public $callbackWSPong;
+    //回调函数 - WebSocket专用 - 断开连接时
+    public $callbackWSDisconnect;
 
     /**
      * Telnet constructor.

@@ -19,10 +19,11 @@ class Telnet implements ProtocolInterface
     /**
      * 检测数据, 返回数据包的长度.
      * 没有数据包或者数据包未结束,则返回0
-     * @param string $data
+     * @param string $data 数据包
+     * @param TransferInterface $connect 基于传输层协议的链接
      * @return int
      */
-    public static function input($data)
+    public static function input($data, TransferInterface $connect)
     {
         //获取首个数据包的大小(结尾的位置)
         $position = strpos($data, "\n");
@@ -37,9 +38,10 @@ class Telnet implements ProtocolInterface
     /**
      * 数据编码. 默认在发送数据前自动调用此方法. 不用您手动调用.
      * @param string $data 给数据流中发送的数据
+     * @param TransferInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function encode($data)
+    public static function encode($data, TransferInterface $connect)
     {
         return $data . "\n";
     }

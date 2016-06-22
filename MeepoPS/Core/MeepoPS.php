@@ -116,6 +116,10 @@ class MeepoPS
      */
     public function __construct($protocol = '', $host = '', $port = '', $contextOptionList = array())
     {
+        //验证端口
+        if($port > 65536){
+            Log::write('Port not more than 65536.', 'FATAL');
+        }
         //---每一个实例的属性---
         $this->_bindProtocol = $protocol;
         $this->_bindHost = $host;

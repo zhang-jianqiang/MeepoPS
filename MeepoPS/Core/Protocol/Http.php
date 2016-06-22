@@ -22,10 +22,11 @@ class Http implements ProtocolInterface
 
     /**
      * 将输入的内容(包)进行检测.返回包的长度(可以为0,如果为0则等待下个数据包),如果失败返回false并关闭参数中的链接.
-     * @param string $data
+     * @param string $data 数据包
+     * @param TransferInterface $connect 基于传输层协议的链接
      * @return int
      */
-    public static function input($data)
+    public static function input($data, TransferInterface $connect)
     {
         $position = strpos($data, "\r\n\r\n");
         //如果数据是\r\n\r\n开头,或者如果数据没有找到\r\n\r\n,表示数据未完.则不处理
@@ -57,10 +58,11 @@ class Http implements ProtocolInterface
 
     /**
      * 将数据封装为HTTP协议数据
-     * @param $data
+     * @param string $data 数据包
+     * @param TransferInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function encode($data)
+    public static function encode($data, TransferInterface $connect)
     {
         //状态码
         $header = isset(self::$_httpInstance->_httpHeader['Http-Code']) ? self::$_httpInstance->_httpHeader['Http-Code'] : 'HTTP/1.1 200 OK';
@@ -126,7 +128,7 @@ class Http implements ProtocolInterface
             }
             //将一条头分割为名字和值
             $header = explode(':', $header, 2);
-            $name = strtolower($header[0]);
+            $name = trim(strtolower($header[0]));
             $value = trim($header[1]);
             switch ($name) {
                 case 'host':
