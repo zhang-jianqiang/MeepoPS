@@ -18,10 +18,6 @@ class Websocket implements ProtocolInterface
 {
     //基础头长, 既1位的fin + 3位RSV + 4位opcode + 1位mask + 7位payloadLen + 32位maskingKey = 48位 = 6字节
     const BASE_HEADER_LENGTH = 6;
-    //大二进制类型 " "
-    const BINARY_TYPE_BLOB = "\x81";
-    //大二进制类型 "'"
-    const BINARY_TYPE_ARRAYBUFFER = "\x82";
 
     /**
      * 检测数据, 返回数据包的长度.
