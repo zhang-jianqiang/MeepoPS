@@ -16,7 +16,9 @@
 ```bash
 sudo php monitor_log_server.php start
 ```
-启动. 守护进程模式启动使用:
+启动. 
+
+守护进程模式启动使用:
 ```bash
 sudo php monitor_log_server.php start -d
 ```

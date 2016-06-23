@@ -161,7 +161,7 @@ $sessionId = \MeepoPS\Api\Http::sessionId()
 <?php
 //设置错误页
 //404, 设置一个专门的页面来展示
-$http->setErrorPage('404', __DIR__ . '/Test/Web/404.html');
+$http->setErrorPage('404', __DIR__ . '/Example/Web/404.html');
 //403, 使用默认样式(其实就是居中了一句话), 自定义错误描述
 $http->setErrorPage('403', '您没有被授权访问!');
 ```

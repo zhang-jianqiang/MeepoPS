@@ -65,7 +65,7 @@ event_select_max_size = 1020
 ; 域名和目录, 支持多组。 格式为: 域名1&路径1 | 域名2&路径2. 域名必须包含端口, 80端口除外
 ; 每组中域名和路径用"&"分割, 多组间用"|"分割。 自动忽略空格换行。
 ; 如果访问的域名并不在列表当中, 比如localhost, 就会选择列表当中的第一个。
-http_domain_document_list = 'meepops.lanecn.com&/var/www/MeepoPS/Test/Web/ |
+http_domain_document_list = 'meepops.lanecn.com&/var/www/MeepoPS/Example/Web/ |
                              www.lanecn.com:19910&/var/www/blog/ |
                              lanewechat.lanecn.com:19910&/var/www/LaneWeChat'
 

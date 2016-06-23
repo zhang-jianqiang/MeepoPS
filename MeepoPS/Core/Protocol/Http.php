@@ -73,6 +73,9 @@ class Http implements ProtocolInterface
         //Content-Type
         $header .= isset(self::$_httpInstance->_httpHeader['Content-Type']) ? self::$_httpInstance->_httpHeader['Content-Type'] : 'Content-Type: text/html; charset=utf-8';
         $header .= "\r\n";
+        unset(self::$_httpInstance->_httpHeader['Http-Code']);
+        unset(self::$_httpInstance->_httpHeader['Connection']);
+        unset(self::$_httpInstance->_httpHeader['Content-Type']);
         //其他部分
         foreach (self::$_httpInstance->_httpHeader as $name => $value) {
             if ($name === 'Set-Cookie' && is_array($value)) {

@@ -343,6 +343,7 @@ class Tcp extends TransferInterface
                 Log::write('MeepoPS: execution callback function callbackConnectClose-' . $this->instance->callbackConnectClose . ' throw exception', 'ERROR');
             }
         }
+        unset($this);
     }
 
     /**

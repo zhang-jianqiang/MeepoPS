@@ -11,7 +11,7 @@
  */
 
 //引入MeepoPS
-require_once 'MeepoPS/index.php';
+require_once '../../MeepoPS/index.php';
 
 //使用文本传输的Api类
 $http = new \MeepoPS\Api\Http('0.0.0.0', '19910');

@@ -6,7 +6,9 @@
 ```bash
 sudo php monitor_server_status_server.php start
 ```
-启动. 守护进程模式启动使用:
+启动. 
+
+守护进程模式启动使用:
 ```bash
 sudo php monitor_server_status_server.php start -d
 ```
