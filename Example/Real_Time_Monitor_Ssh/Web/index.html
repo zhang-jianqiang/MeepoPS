@@ -1,3 +1,11 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>空闲内存实时监控</title>
+    <meta http-equiv=content-type content="text/html; charset=utf-8">
+</head>
+<body>
 <script src="jquery.min.js"></script>
 <script src="highcharts.js"></script>
 <script src="exporting.js"></script>
@@ -101,8 +109,8 @@ $(function () {
             tooltip: {
                 formatter: function () {
                     return '<b>' + this.series.name + '</b><br/>' +
-                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
-                        Highcharts.numberFormat(this.y, 2);
+                            Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                            Highcharts.numberFormat(this.y, 2);
                 }
             },
             legend: {
@@ -116,8 +124,8 @@ $(function () {
                 data: (function () {
                     // generate an array
                     var data = [],
-                        time = (new Date()).getTime(),
-                        i;
+                            time = (new Date()).getTime(),
+                            i;
 
                     for (i = -19; i <= 0; i += 1) {
                         data.push({
@@ -131,14 +139,6 @@ $(function () {
         });
     });
 });
-//获取URL参数
-function getQueryString(name)
-{
-    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    if(r!=null){
-        return  unescape(r[2]);
-    }
-    return null;
-}
 </script>
+</body>
+</html>
