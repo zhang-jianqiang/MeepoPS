@@ -7,8 +7,13 @@ MeepoPS是免费的, 并且是永久免费.
 ### 捐赠方式
 - 微信:
 
-![微信](https://raw.githubusercontent.com/lixuancn/MeepoPS-PHP/dev/Doc/zh/1-summary/Image/donation-weixin.jpg "微信")
+![微信](Image/donation-weixin.jpg?raw=true "微信")
 
 - 支付宝
 
-![支付宝](https://raw.githubusercontent.com/lixuancn/MeepoPS-PHP/dev/Doc/zh/1-summary/Image/donation-alipay.jpeg "支付宝")
+![支付宝](Image/donation-alipay.jpeg?raw=true "支付宝")
+
+### 捐赠列表
+- 林国锋 ￥10
+- YiHan ￥0.1
+- ★♂偉 ￥0.01

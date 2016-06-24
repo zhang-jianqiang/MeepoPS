@@ -7,6 +7,7 @@
   - [计划](1-summary/4-planning.md)
   - [作者](1-summary/5-author.md)
   - [捐赠](1-summary/6-donation.md)
+  - [更新日志](1-summary/7-update-log.md)
 - 快速开始
   - [普通模式启动](2-quick-start/1-general-start.md)
   - [守护进程启动](2-quick-start/2-daemon-start.md)
@@ -31,6 +32,8 @@
   - [回调函数callbackError](3-api/12-callback-error.md)
   - [回调函数callbackSendBufferFull](3-api/13-callback-send-buffer-full.md)
   - [回调函数callbackSendBufferEmpty](3-api/14-callback-send-buffer-empty.md)
+  - [接口Telnet](3-api/101-telnet.md)
+  - [接口HTTP](3-api/102-http.md)
 - 链接
   - [链接简介](4-connect/1-summary.md)
   - [属性instance](4-connect/2-property-instance.md)
@@ -60,5 +63,3 @@
   - [子进程](9-suggest/3-child-proccess.md)
   - [服务端链接数](9-suggest/4-connect-num.md)
   - [客户端数量](9-suggest/5-client-num.md)
-- 更新日志
-  - 暂无

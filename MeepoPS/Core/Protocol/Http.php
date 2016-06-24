@@ -41,19 +41,21 @@ class Http implements ProtocolInterface
             $http[0] = preg_replace("/\r\nContent-Length: ?(\d+)/", "\r\nContent-Length: 0", $http[0]);
             Log::write('Http protocol: The received data size exceeds the maximum set of size', 'WARNING');
         }
-        //POST请求
-        if (strpos($http[0], "POST") === 0) {
-            if (preg_match("/\r\nContent-Length: ?(\d+)/", $http[0], $match)) {
-                //返回数据长度+头长度+4(\r\n\r\n)
-                return strlen($http[0]) + $match[1] + 4;
-            } else {
-                return 0;
-            }
-            //非POST请求
-        } else {
+        //非POST请求
+        if (strpos($http[0], "POST") !== 0) {
             //返回头长度+4(\r\n\r\n)
             return strlen($http[0]) + 4;
         }
+        //POST请求
+        if (!preg_match("/\r\nContent-Length: ?(\d+)/", $http[0], $match)) {
+            return 0;
+        }
+        //POST数据是否全部传输完毕。这里的验证是因为,在上传文件的时候, 可能HTTP header过来了, 但是HTTP body没过来
+        if(strlen($http[1]) != $match[1]){
+            return 0;
+        }
+        //返回数据长度+头长度+4(\r\n\r\n)
+        return strlen($http[0]) + $match[1] + 4;
     }
 
     /**
