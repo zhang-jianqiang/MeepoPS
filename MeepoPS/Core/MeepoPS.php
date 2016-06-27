@@ -165,14 +165,10 @@ class MeepoPS
         self::_createInstance();
         //给主进程安装信号处理函数
         self::_installSignal();
-        //重置输入输出
-        self::_redirectStdinAndStdout();
         //检测每个实例,并启动相应数量的子进程
         self::_checkInstanceListProcess();
-        //启动画面
-        self::_startScreen();
-        //监控子进程
-        self::_monitorChildProcess();
+        //主进程启动完成
+        self::_masterProcessComplete();
     }
 
     /**
@@ -387,6 +383,8 @@ class MeepoPS
             }
             //重新安装信号处理函数
             self::_reinstallSignalCallback();
+            //重置输入输出
+            self::_redirectStdinAndStdout();
             //初始化计时器任务,用事件轮询的方式
             Timer::init(self::$globalEvent);
             //执行系统开始启动工作时的回调函数
@@ -484,10 +482,25 @@ class MeepoPS
     }
 
     /**
-     * 监控子进程
+     * 主进程启动完成
+     */
+    private static function _masterProcessComplete(){
+        //输出启动成功字样
+        echo "MeepoPS Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
+        //重置输入输出
+        self::_redirectStdinAndStdout();
+        //启动画面
+        self::_startScreen();
+        //管理子进程
+        self::_monitorChildProcess();
+    }
+
+    /**
+     * 管理子进程
      */
     private static function _monitorChildProcess()
     {
+        //管理子进程
         while (true) {
             //调用等待信号的处理器.即收到信号后执行通过pcntl_signal安装的信号处理函数
             pcntl_signal_dispatch();
@@ -685,6 +698,7 @@ class MeepoPS
             }
             break;
         }
+        echo "MeepoPS Stop: \033[40G[\033[49;32;5mOK\033[0m]\n";
         exit();
     }
 
@@ -712,10 +726,11 @@ class MeepoPS
                 usleep(10000);
                 continue;
             }
-            if ($isDomain === true) {
-                self::$isDaemon = true;
-            }
             break;
+        }
+        echo "MeepoPS Stop: \033[40G[\033[49;32;5mOK\033[0m]\n";
+        if ($isDomain === true) {
+            self::_commandStart($isDomain);
         }
     }
 

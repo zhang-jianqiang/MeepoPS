@@ -17,8 +17,10 @@ $webServer->childProcessCount = 1;
 
 //设置MeepoPS实例名称
 $webServer->instanceName = 'MeepoPS-WebSocket';
-
 $webServer->callbackNewData = 'callbackNewData';
+$webServer->callbackWSDisconnect = function ($connect){
+    \MeepoPS\Core\Timer::delOne($connect->business['timer_id']);
+};
 
 //以下为回调函数, 业务相关.
 function callbackNewData($connect, $data){
@@ -49,6 +51,7 @@ function memfree($connect, $param){
  * @param $ip
  * @param $username
  * @param $password
+ * @return bool
  */
 function _connectServer($connect, $ip, $username, $password){
     try{
@@ -78,19 +81,19 @@ function _execCmd($connect, $cmd){
     try{
         $stream = @ssh2_exec($connect->business['ssh'], $cmd);
         if(!$stream){
-            $connect->send(returnJson('', 4, 'ssh2_exec failed.'));
+            $connect->send(returnJson('', 4, 'ssh2_exec failed.', $connect->business['timer_id']));
         }
         if(!@stream_set_blocking($stream, true)){
-            $connect->send(returnJson('', 5, 'stream_set_blocking failed.'));
+            $connect->send(returnJson('', 5, 'stream_set_blocking failed.', $connect->business['timer_id']));
         }
         $string = @fgets($stream, 1000);
         if(!@preg_match('/memfree:(.*)kb/', strtolower($string), $data)){
-            $connect->send(returnJson('', 6, 'No field MemFree, or units of measurement is not KB'));
+            $connect->send(returnJson('', 6, 'No field MemFree, or units of measurement is not KB', $connect->business['timer_id']));
             return;
         }
         $connect->send(returnJson(trim($data[1])));
     }catch (\Exception $e){
-        $connect->send(returnJson('', 7, 'Exec cmd failed: ' . json_encode($e)));
+        $connect->send(returnJson('', 7, 'Exec cmd failed: ' . json_encode($e), $connect->business['timer_id']));
     }
 }
 
@@ -101,9 +104,13 @@ function _execCmd($connect, $cmd){
  * @param $data string|array
  * @param int $errCode
  * @param string $errMsg
+ * @param string $delTimerId
  * @return string
  */
-function returnJson($data, $errCode=0, $errMsg=''){
+function returnJson($data, $errCode=0, $errMsg='', $delTimerId=0){
+    if(intval($delTimerId)){
+        \MeepoPS\Core\Timer::delOne($delTimerId);
+    }
     return json_encode(
         array('data' => $data, 'errcode' => $errCode, 'errmsg' => $errMsg)
     );
