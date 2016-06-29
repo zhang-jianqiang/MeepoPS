@@ -51,11 +51,11 @@ class Statistic{
             echo "##################################################################\n";
             $childStatistic = json_decode($childStatistic, true);
             echo 'Instance Name: ' . $childStatistic['instance_name'] . ' ( ' . $childStatistic['bind'] . " )\n";
-            echo 'Pid: ' . $childStatistic['pid'] . ' | Memory: ' . $childStatistic['memory'] . ' | Exception count: ' . $childStatistic['transfer_statistics']['exception_count'] . "\n";
-            echo 'Total Connect: ' . $childStatistic['transfer_statistics']['total_connect_count'] . "\n";
-            echo 'Total Read: ' . $childStatistic['transfer_statistics']['total_read_count'] . ' | Total Read Failed: ' . $childStatistic['transfer_statistics']['total_read_failed_count'] . "\n";
-            echo 'Total Read Package: ' . $childStatistic['transfer_statistics']['total_read_package_count'] . ' | Total Read Package Failed: ' . $childStatistic['transfer_statistics']['total_read_package_failed_count'] . "\n";
-            echo 'Total Send: ' . $childStatistic['transfer_statistics']['total_send_count'] . ' | Total Send Failed: ' . $childStatistic['transfer_statistics']['total_send_failed_count'] . "\n";
+            echo 'Pid: ' . $childStatistic['pid'] . ' | Memory: ' . $childStatistic['memory'] . ' | Exception count: ' . $childStatistic['transport_protocol_statistics']['exception_count'] . "\n";
+            echo 'Total Connect: ' . $childStatistic['transport_protocol_statistics']['total_connect_count'] . "\n";
+            echo 'Total Read: ' . $childStatistic['transport_protocol_statistics']['total_read_count'] . ' | Total Read Failed: ' . $childStatistic['transport_protocol_statistics']['total_read_failed_count'] . "\n";
+            echo 'Total Read Package: ' . $childStatistic['transport_protocol_statistics']['total_read_package_count'] . ' | Total Read Package Failed: ' . $childStatistic['transport_protocol_statistics']['total_read_package_failed_count'] . "\n";
+            echo 'Total Send: ' . $childStatistic['transport_protocol_statistics']['total_send_count'] . ' | Total Send Failed: ' . $childStatistic['transport_protocol_statistics']['total_send_failed_count'] . "\n";
         }
         echo "##################################################################\n";
     }

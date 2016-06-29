@@ -10,8 +10,8 @@
  */
 namespace MeepoPS\Core;
 
-use MeepoPS\Core\Transfer\TransferInterface;
-use MeepoPS\Core\Transfer\Tcp;
+use MeepoPS\Core\TransportProtocol\TransportProtocolInterface;
+use MeepoPS\Core\TransportProtocol\Tcp;
 use MeepoPS\Core\Event\EventInterface;
 
 class MeepoPS
@@ -63,13 +63,13 @@ class MeepoPS
      * 协议相关
      */
     //传输层协议
-    private $protocolTransfer = 'tcp';
+    private $_transportProtocol = 'tcp';
     //应用层协议
     private $_protocolApplication = '';
     //应用层协议处理类
     private $_protocolApplicationClassName = '';
     //传输层协议
-    private static $_protocolTransferList = array('tcp' => 'tcp');
+    private static $_transportProtocolList = array('tcp' => 'tcp');
 
     /**
      * 客户端相关
@@ -125,12 +125,12 @@ class MeepoPS
         $this->_bindHost = $host;
         $this->_bindPort = $port;
         //传入的协议是应用层协议还是传输层协议
-        if (isset(self::$_protocolTransferList[$protocol])) {
-            $this->protocolTransfer = self::$_protocolTransferList[$this->$protocol];
+        if (isset(self::$_transportProtocolList[$protocol])) {
+            $this->_transportProtocol = self::$_transportProtocolList[$this->$protocol];
             //不是传输层协议,则认为是应用层协议.直接new应用层协议类
         } else {
             $this->_protocolApplication = $protocol;
-            $this->_protocolApplicationClassName = '\MeepoPS\Core\Protocol\\' . ucfirst($this->_protocolApplication);
+            $this->_protocolApplicationClassName = '\MeepoPS\Core\ApplicationProtocol\\' . ucfirst($this->_protocolApplication);
             if (!class_exists($this->_protocolApplicationClassName)) {
                 Log::write('Application layer protocol calss not found.', 'FATAL');
             }
@@ -279,17 +279,17 @@ class MeepoPS
         if (!$this->_bindProtocol || !$this->_bindHost || !$this->_bindPort || $this->_masterSocket) {
             return;
         }
-        $listen = $this->protocolTransfer . '://' . $this->_bindHost . ':' . $this->_bindPort;
+        $listen = $this->_transportProtocol . '://' . $this->_bindHost . ':' . $this->_bindPort;
         $errno = 0;
         $errmsg = '';
-        $flags = $this->protocolTransfer === 'tcp' ? STREAM_SERVER_BIND | STREAM_SERVER_LISTEN : STREAM_SERVER_BIND;
+        $flags = $this->_transportProtocol === 'tcp' ? STREAM_SERVER_BIND | STREAM_SERVER_LISTEN : STREAM_SERVER_BIND;
         $this->_masterSocket = stream_socket_server($listen, $errno, $errmsg, $flags, $this->_streamContext);
         if (!$this->_masterSocket) {
             Log::write('stream_socket_server() error: errno=' . $errno . ' errmsg=' . $errmsg, 'FATAL');
         }
         //如果是TCP协议,打开长链接,并且禁用Nagle算法,默认为开启Nagle
         //Nagle是收集多个数据包一起发送.再实时交互场景(比如游戏)中,追求高实时性,要求一个包,哪怕再小,也要立即发送给服务端.因此我们禁用Nagle
-        if ($this->protocolTransfer === 'tcp' && function_exists('socket_import_stream')) {
+        if ($this->_transportProtocol === 'tcp' && function_exists('socket_import_stream')) {
             $socket = socket_import_stream($this->_masterSocket);
             @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
             @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
@@ -823,7 +823,7 @@ class MeepoPS
             $statistics['memory'] = round(memory_get_usage(true) / (1024 * 1024), 2);
             $statistics['instance_name'] = $instance->instanceName;
             $statistics['bind'] = $instance->_getBind();
-            $statistics['transfer_statistics'] = TransferInterface::$statistics;
+            $statistics['transport_protocol_statistics'] = TransportProtocolInterface::$statistics;
             file_put_contents(MEEPO_PS_STATISTICS_PATH . '_child_' . $statistics['pid'], json_encode($statistics));
         }
         unset($statistics);

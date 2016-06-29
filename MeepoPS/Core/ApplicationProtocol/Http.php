@@ -8,12 +8,12 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\Protocol;
+namespace MeepoPS\Core\ApplicationProtocol;
 
-use MeepoPS\Core\Transfer\TransferInterface;
+use MeepoPS\Core\TransportProtocol\TransportProtocolInterface;
 use MeepoPS\Core\Log;
 
-class Http implements ProtocolInterface
+class Http implements ApplicationProtocolInterface
 {
     //每一个链接对应一个实例, 每一个示例都是一个HTTP协议类
     private static $_httpInstance = null;
@@ -23,10 +23,10 @@ class Http implements ProtocolInterface
     /**
      * 将输入的内容(包)进行检测.返回包的长度(可以为0,如果为0则等待下个数据包),如果失败返回false并关闭参数中的链接.
      * @param string $data 数据包
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return int
      */
-    public static function input($data, TransferInterface $connect)
+    public static function input($data, TransportProtocolInterface $connect)
     {
         $position = strpos($data, "\r\n\r\n");
         //如果数据是\r\n\r\n开头,或者如果数据没有找到\r\n\r\n,表示数据未完.则不处理
@@ -61,10 +61,10 @@ class Http implements ProtocolInterface
     /**
      * 将数据封装为HTTP协议数据
      * @param string $data 数据包
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function encode($data, TransferInterface $connect)
+    public static function encode($data, TransportProtocolInterface $connect)
     {
         //状态码
         $header = isset(self::$_httpInstance->_httpHeader['Http-Code']) ? self::$_httpInstance->_httpHeader['Http-Code'] : 'HTTP/1.1 200 OK';
@@ -100,10 +100,10 @@ class Http implements ProtocolInterface
     /**
      * 将数据包根据HTTP协议解码
      * @param string $data 待解码的数据
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return array
      */
-    public static function decode($data, TransferInterface $connect)
+    public static function decode($data, TransportProtocolInterface $connect)
     {
         //实例化链接
         self::$_httpInstance = new Http();

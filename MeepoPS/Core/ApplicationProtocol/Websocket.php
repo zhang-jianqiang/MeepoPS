@@ -9,12 +9,12 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\Protocol;
+namespace MeepoPS\Core\ApplicationProtocol;
 
-use MeepoPS\Core\Transfer\TransferInterface;
+use MeepoPS\Core\TransportProtocol\TransportProtocolInterface;
 use MeepoPS\Core\Log;
 
-class Websocket implements ProtocolInterface
+class Websocket implements ApplicationProtocolInterface
 {
     //基础头长, 既1位的fin + 3位RSV + 4位opcode + 1位mask + 7位payloadLen + 32位maskingKey = 48位 = 6字节
     const BASE_HEADER_LENGTH = 6;
@@ -23,10 +23,10 @@ class Websocket implements ProtocolInterface
      * 检测数据, 返回数据包的长度.
      * 没有数据包或者数据包未结束,则返回0
      * @param string $data 数据包
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return bool|int
      */
-    public static function input($data, TransferInterface $connect)
+    public static function input($data, TransportProtocolInterface $connect)
     {
         //数据长度
         $dataLength = strlen($data);
@@ -69,10 +69,10 @@ class Websocket implements ProtocolInterface
     /**
      * 数据编码.在发送数据前调用此方法.
      * @param string $data 数据包
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function encode($data, TransferInterface $connect)
+    public static function encode($data, TransportProtocolInterface $connect)
     {
         $dataLength = strlen($data);
         if ($dataLength <= 125) {
@@ -88,10 +88,10 @@ class Websocket implements ProtocolInterface
     /**
      * 数据解码.在接收数据前调用此方法
      * @param string $data 单个完整的数据包 - 不使用,因为为减少计算,在input的时候将包的所有帧都整理到了一个数组中
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      * @return string
      */
-    public static function decode($data, TransferInterface $connect)
+    public static function decode($data, TransportProtocolInterface $connect)
     {
         $oriData = '';
         foreach($connect->wsPackageFrameList as $frame){
@@ -105,9 +105,9 @@ class Websocket implements ProtocolInterface
     /**
      * 进行首次建立链接的握手
      * @param string $data
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      */
-    private static function _handshake($data, TransferInterface $connect)
+    private static function _handshake($data, TransportProtocolInterface $connect)
     {
         //如果是policy-file-request. 在与Flash通信时, 三次握手之后客户端会发送一个<policy-file-request>
         if (strpos($data, '<policy') === 0) {
@@ -155,9 +155,9 @@ class Websocket implements ProtocolInterface
     /**
      * 协议HTTP协议头
      * @param $data
-     * @param TransferInterface $connect 基于传输层协议的链接
+     * @param TransportProtocolInterface $connect 基于传输层协议的链接
      */
-    private static function _parseHttpHeader($data, TransferInterface $connect)
+    private static function _parseHttpHeader($data, TransportProtocolInterface $connect)
     {
         //将超全局变量设为空.
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = $GLOBALS['HTTP_RAW_POST_DATA'] = array();

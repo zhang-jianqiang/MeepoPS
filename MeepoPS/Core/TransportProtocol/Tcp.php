@@ -8,13 +8,13 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\Transfer;
+namespace MeepoPS\Core\TransportProtocol;
 
 use MeepoPS\Core\Event\EventInterface;
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Log;
 
-class Tcp extends TransferInterface
+class Tcp extends TransportProtocolInterface
 {
     //一次最多读取多少个字节
     const READ_SIZE = 65535;
@@ -34,11 +34,11 @@ class Tcp extends TransferInterface
     //链接ID
     public $id = 0;
     //记录
-    private static $_recorderId = 1;
+    protected static $_recorderId = 1;
     //本次链接,是一个Socket资源
-    private $_connect;
+    protected $_connect;
     //待发送的缓冲区
-    private $_sendBuffer = '';
+    protected $_sendBuffer = '';
     //已接收到的数据
     private $_readDate = '';
     //当前包长

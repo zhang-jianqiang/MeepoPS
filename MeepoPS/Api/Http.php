@@ -12,7 +12,7 @@ namespace MeepoPS\Api;
 
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Log;
-use MeepoPS\Core\Transfer\Tcp;
+use MeepoPS\Core\TransportProtocol\Tcp;
 use MeepoPS\Library\Session;
 
 class Http extends MeepoPS
@@ -74,7 +74,7 @@ class Http extends MeepoPS
      */
     public static function setHeader($string, $replace = true, $httpResponseCode = 0)
     {
-        return \MeepoPS\Core\Protocol\Http::setHeader($string, $replace, $httpResponseCode);
+        return \MeepoPS\Core\ApplicationProtocol\Http::setHeader($string, $replace, $httpResponseCode);
     }
 
     /**
@@ -83,7 +83,7 @@ class Http extends MeepoPS
      */
     public static function delHttpHeader($name)
     {
-        \MeepoPS\Core\Protocol\Http::delHttpHeader($name);
+        \MeepoPS\Core\ApplicationProtocol\Http::delHttpHeader($name);
     }
 
     /**
@@ -100,7 +100,7 @@ class Http extends MeepoPS
      */
     public static function setCookie($name, $value = '', $maxage = 0, $path = '', $domain = '', $secure = false, $httpOnly = false)
     {
-        return \MeepoPS\Core\Protocol\Http::setCookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
+        return \MeepoPS\Core\ApplicationProtocol\Http::setCookie($name, $value, $maxage, $path, $domain, $secure, $httpOnly);
     }
 
     /**
@@ -286,7 +286,7 @@ class Http extends MeepoPS
             return false;
         }
         if (!isset($this->_errorPage[$httpCode])) {
-            $httpCodeArray = \MeepoPS\Core\Protocol\Http::getHttpCode();
+            $httpCodeArray = \MeepoPS\Core\ApplicationProtocol\Http::getHttpCode();
             $message = $message ? $message : '';
             $description = $description ? $description : (isset($httpCodeArray[$httpCode]) ? $httpCodeArray[$httpCode] : '');
             $display = '<html><head><title>%s %s</title></head><body><center><h3>%s %s</h3><br>%s</center></body></html>';

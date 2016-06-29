@@ -8,4 +8,4 @@
 
 MeepoPS/Api/目录下的所有接口类, 都是在继承了MeepoPS的核心父类之后, 对不同应用层协议的实现. 比如MeepoPS/Api/Telnet.php就是继承了MeepoPS核心父类之后, 对外提供的Telnet协议的服务.
 
-所有的应用层协议的实现都是一个PHP的类, 放在MeepoPS/Core/Protocol/目录下. 如Telnet协议就是在MeepoPS/Core/Protocol/Telnet.php文件中实现的. 如果我们想要自行开发一个应用层协议, 仿照MeepoPS/Core/Protocol/Telnet.php来实现, 并且仍然放置在MeepoPS/Core/Protocol/目录下.
+所有的应用层协议的实现都是一个PHP的类, 放在MeepoPS/Core/ApplicationProtocol/目录下. 如Telnet协议就是在MeepoPS/Core/ApplicationProtocol/Telnet.php文件中实现的. 如果我们想要自行开发一个应用层协议, 仿照MeepoPS/Core/ApplicationProtocol/Telnet.php来实现, 并且仍然放置在MeepoPS/Core/ApplicationProtocol/目录下.

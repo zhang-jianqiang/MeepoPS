@@ -19,14 +19,14 @@ MeepoPS目前提供的协议, 如Telnet, HTTP, WebSocket协议等, 如果不能�
 我们举个栗子, 比如我们采用文本化的JSON格式作为数据传输的格式. 那我们可以开发一个JSON协议.
 
 ### Json协议示例
-代码文件存放在MeepoPS/Core/Protocol/Json.php
+代码文件存放在MeepoPS/Core/ApplicationProtocol/Json.php
 ```php
 <?php
 /**
  * 从TCP数据流中解析Json协议
  * 每个数据包已\n来结尾.如果发现\n, 则\n之前为一个数据包.如果没有\n,则等待下次数据的到来
  */
-namespace MeepoPS\Core\Protocol;
+namespace MeepoPS\Core\ApplicationProtocol;
 
 class Json implements ProtocolInterface
 {

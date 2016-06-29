@@ -1,5 +1,6 @@
 <?php
 /**
+ * 传输曾协议接口(transport layer protocol)
  * 链接的抽象类.如TCP或UDP等
  * Created by Lane
  * User: lane
@@ -8,9 +9,9 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\Transfer;
+namespace MeepoPS\Core\TransportProtocol;
 
-abstract class TransferInterface
+abstract class TransportProtocolInterface
 {
 
     //统计信息
@@ -39,7 +40,7 @@ abstract class TransferInterface
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
      * @param $applicationProtocol string 应用层协议, 默认为空
      */
-    abstract public function __construct($socket, $clientAddress, $applicationProtocol = '');
+//    abstract public function __construct($socket, $clientAddress, $applicationProtocol = '');
 
     /**
      * 读取数据
