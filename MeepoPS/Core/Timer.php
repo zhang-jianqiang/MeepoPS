@@ -67,7 +67,7 @@ class Timer
         if (!is_null(self::$_event)) {
             self::$_event->delOne($timerId, EventInterface::EVENT_TYPE_TIMER);
         } else {
-            self::$_taskList[$timerId];
+            unset(self::$_taskList[$timerId]);
         }
     }
 

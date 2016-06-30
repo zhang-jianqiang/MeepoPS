@@ -151,7 +151,7 @@ class Http extends MeepoPS
      */
     public function callbackNewData($connect, $data)
     {
-        if ($this->_userCallbackNewData) {
+        if (!empty($this->_userCallbackNewData)) {
             try {
                 call_user_func_array($this->_userCallbackNewData, array($connect, $data));
             } catch (\Exception $e) {

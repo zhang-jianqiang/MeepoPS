@@ -28,7 +28,7 @@ class Tcp extends TransportProtocolInterface
     const CONNECT_STATUS_CLOSED = 8;
 
     //应用层协议
-    private $_applicationProtocolClassName;
+    protected $_applicationProtocolClassName;
     //属于哪个实例
     public $instance;
     //链接ID
@@ -151,7 +151,7 @@ class Tcp extends TransportProtocolInterface
                 $this->_readDate = substr($this->_readDate, $this->_currentPackageSize);
             }
             $this->_currentPackageSize = 0;
-            if ($this->instance->callbackNewData) {
+            if (!empty($this->instance->callbackNewData)) {
                 try {
                     call_user_func_array($this->instance->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
                 } catch (\Exception $e) {
@@ -173,7 +173,7 @@ class Tcp extends TransportProtocolInterface
         }
         self::$statistics['total_read_package_count']++;
         //触发接收到新数据的回调函数
-        if ($this->instance->callbackNewData) {
+        if (!empty($this->instance->callbackNewData)) {
             try {
                 call_user_func_array($this->instance->callbackNewData, array($this, $this->_readDate));
             } catch (\Exception $e) {
@@ -284,7 +284,7 @@ class Tcp extends TransportProtocolInterface
             Log::write('Write data failed. Possible socket resource has disabled or network problems', 'WARNING');
             self::$statistics['total_send_failed_count']++;
             //触发错误的回调函数
-            if ($this->instance->callbackError) {
+            if (!empty($this->instance->callbackError)) {
                 try {
                     call_user_func_array($this->instance->callbackError, array($this, MEEPO_PS_ERROR_CODE_SEND_SOCKET_INVALID, 'Send data failed. Possible socket resource has disabled'));
                 } catch (\Exception $e) {
@@ -331,11 +331,13 @@ class Tcp extends TransportProtocolInterface
         MeepoPS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_WRITE);
         @fclose($this->_connect);
         //从实例的客户端列表中移除
-        unset($this->instance->clientList[$this->id]);
+        if(!empty($this->instance->clientList)){
+            unset($this->instance->clientList[$this->id]);
+        }
         //变更状态为已经关闭
         $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
         //执行链接断开时的回调函数
-        if ($this->instance->callbackConnectClose) {
+        if (!empty($this->instance->callbackConnectClose)) {
             try {
                 call_user_func($this->instance->callbackConnectClose, $this);
             } catch (\Exception $e) {

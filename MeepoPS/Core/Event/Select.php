@@ -182,13 +182,20 @@ class Select implements EventInterface
         $uniqueId = (int)($resource);
         if ($type === self::EVENT_TYPE_READ) {
             unset($this->_readEventResourceList[$uniqueId]);
+            unset($this->_eventList[$type][$uniqueId]);
         } else if ($type === self::EVENT_TYPE_WRITE) {
             unset($this->_writeEventResourceList[$uniqueId]);
-        } else {
+            unset($this->_eventList[$type][$uniqueId]);
+        } else if($type === self::EVENT_TYPE_TIMER){
+            if(isset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId])){
+                unset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId]);
+            }else{
+                unset($this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId]);
+            }
+        }else{
             //将信号设置为忽略信号
             pcntl_signal($resource, SIG_IGN);
         }
-        unset($this->_eventList[$type][$uniqueId]);
     }
 
     /**
@@ -221,7 +228,7 @@ class Select implements EventInterface
             $writeList = $this->_writeEventResourceList;
             //监听读写事件列表,如果哪个有变化则发回变化数量.同时引用传入的两个列表将会变化
             //请注意:stream_select()最多只能接收1024个监听
-            $selectNum = stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
+            $selectNum = @stream_select($readList, $writeList, $e, 0, $this->_selectTimeout);
             //执行定时器队列
             if (!$this->_splPriorityQueue->isEmpty()) {
                 $this->_runTimerEvent();

@@ -65,9 +65,9 @@ class MeepoPS
     //传输层协议
     private $_transportProtocol = 'tcp';
     //应用层协议
-    private $_protocolApplication = '';
+    private $_applicationProtocol = '';
     //应用层协议处理类
-    private $_protocolApplicationClassName = '';
+    private $_applicationProtocolClassName = '';
     //传输层协议
     private static $_transportProtocolList = array('tcp' => 'tcp');
 
@@ -117,7 +117,7 @@ class MeepoPS
     public function __construct($protocol = '', $host = '', $port = '', $contextOptionList = array())
     {
         //验证端口
-        if($port > 65536){
+        if($port && $port > 65536){
             Log::write('Port not more than 65536.', 'FATAL');
         }
         //---每一个实例的属性---
@@ -125,26 +125,29 @@ class MeepoPS
         $this->_bindHost = $host;
         $this->_bindPort = $port;
         //传入的协议是应用层协议还是传输层协议
-        if (isset(self::$_transportProtocolList[$protocol])) {
-            $this->_transportProtocol = self::$_transportProtocolList[$this->$protocol];
-            //不是传输层协议,则认为是应用层协议.直接new应用层协议类
-        } else {
-            $this->_protocolApplication = $protocol;
-            $this->_protocolApplicationClassName = '\MeepoPS\Core\ApplicationProtocol\\' . ucfirst($this->_protocolApplication);
-            if (!class_exists($this->_protocolApplicationClassName)) {
-                Log::write('Application layer protocol calss not found.', 'FATAL');
+        if($protocol){
+            if (isset(self::$_transportProtocolList[$protocol])) {
+                $this->_transportProtocol = self::$_transportProtocolList[$this->$protocol];
+                //不是传输层协议,则认为是应用层协议.直接new应用层协议类
+            } else{
+                $this->_applicationProtocol = $protocol;
+                $this->_applicationProtocolClassName = '\MeepoPS\Core\ApplicationProtocol\\' . ucfirst($this->_applicationProtocol);
+                if (!class_exists($this->_applicationProtocolClassName)) {
+                    Log::write('Application layer protocol class not found.', 'FATAL');
+                }
             }
         }
         //给实例起名
         $this->instanceName = $this->instanceName ? $this->instanceName : $this->_getBind();
         //创建资源流上下文
-        $contextOptionList['socket']['backlog'] = !isset($contextOptionList['socket']['backlog']) ? MEEPO_PS_BACKLOG : $contextOptionList['socket']['backlog'];
-        if ($protocol && $this->_bindHost && $this->_bindPort) {
+        if ($this->_bindProtocol && $this->_bindHost && $this->_bindPort) {
+            $contextOptionList['socket']['backlog'] = !isset($contextOptionList['socket']['backlog']) ? MEEPO_PS_BACKLOG : $contextOptionList['socket']['backlog'];
             $this->_streamContext = stream_context_create($contextOptionList);
         }
         //---全局共享信息---
         $this->_instanceId = spl_object_hash($this);
         self::$_instanceList[$this->_instanceId] = $this;
+//        print_r(self::$_instanceList);
         self::$_instancePidList[$this->_instanceId] = array();
     }
 
@@ -266,14 +269,14 @@ class MeepoPS
     {
         foreach (self::$_instanceList as &$instance) {
             //每个实例开始监听
-            $instance->_listen();
+            $instance->listen();
         }
     }
 
     /**
      * 监听
      */
-    private function _listen()
+    public function listen()
     {
         //如果没有监听的IP,端口,或者已经建立了socket链接.则不再继续监听
         if (!$this->_bindProtocol || !$this->_bindHost || !$this->_bindPort || $this->_masterSocket) {
@@ -418,7 +421,7 @@ class MeepoPS
      */
     public static function checkShutdownErrors()
     {
-        Log::write('MeepoPS check shutdown errors');
+        Log::write('MeepoPS check shutdown reason');
         if (self::$_currentStatus != MEEPO_PS_STATUS_SHUTDOWN) {
             $errno = error_get_last();
             if (is_null($errno)) {
@@ -647,7 +650,7 @@ class MeepoPS
             return;
         }
         //TCP协议链接
-        $tcpConnect = new Tcp($connect, $peerName, $this->_protocolApplicationClassName);
+        $tcpConnect = new Tcp($connect, $peerName, $this->_applicationProtocolClassName);
         //给Tcp链接对象的属性赋值
         $this->clientList[$tcpConnect->id] = $tcpConnect;
         $tcpConnect->instance = $this;

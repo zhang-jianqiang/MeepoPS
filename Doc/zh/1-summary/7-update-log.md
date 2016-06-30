@@ -1,11 +1,12 @@
 # 更新日志
 
-### 发布V0.0.4
+### 发布V0.0.5
 - 新增WebSocket接口、WebSocket协议。
 - 新增WebSocket示例: 一个长链接, 每秒推送一次新数据, 动态绘制折线图。
 - 启动/重启/停止时输出画面完善。
-- 修复HTTP协议在304时不返回HTTP头的BUG。
 - 规范目录结构, MeepoPS/Core/Protocol更名为MeepoPS/Core/ApplicationProtocol, MeepoPS/Core/Transfer更名为MeepoPS/Core/TransportProtocol
+- 修复HTTP协议在304时不返回HTTP头的Bug。
+- 修复Select和Libevent调用delOne()方法时的Bug。
 
 ### 2016-06-17 发布V0.0.3
 - 提供HTTP接口, 可以解析HTTP协议。 使得MeepoPS成为了一个简单的WebServer。在简单场景下, 可以取代Apache/Nginx来提供Web服务。

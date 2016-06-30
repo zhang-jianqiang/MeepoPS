@@ -50,7 +50,7 @@ function callbackConnect($connect)
 
     //定时器
 //    \MeepoPS\Core\Timer::add(function($connect){
-//        $connect->send('PING');
+//        $connect->send('PIN广播');
 //    }, array($connect), 5, true);
 
     var_dump('收到新链接. UniqueId=' . $connect->id . "\n");
