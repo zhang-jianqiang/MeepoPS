@@ -1,6 +1,6 @@
 <?php
 /**
- * 汇聚层
+ * 汇聚管理层
  * 集中管理Transfer和Business的在线/离线状态。提供离线踢出, 上线推送等功能。
  * Created by lixuan-it@360.cn
  * User: lane
@@ -91,7 +91,7 @@ class Confluence extends MeepoPS{
      */
     public function callbackConfluenceConnectClose($connect){
         if(isset($this->_transferList[$connect->id])){
-            unset($this->_transferList[$connect->id]);    
+            unset($this->_transferList[$connect->id]);
             $this->_broadcastToBusiness();
         }else{
             unset($this->_businessList[$connect->id]);       

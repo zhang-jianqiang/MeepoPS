@@ -85,7 +85,7 @@ class ThreeLayerMould
             default:
                 $this->_initConfluence();
                 $this->_initTransfer();
-//                $this->_initBusiness();
+                $this->_initBusiness();
                 break;
         }
     }

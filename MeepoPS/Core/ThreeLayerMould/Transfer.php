@@ -55,6 +55,8 @@ class Transfer {
         $this->_apiClass->$name = $value;
     }
 
+    //------------Transfer层自身的交互部分-------------
+    
     /**
      * 进程启动时, 监听端口, 提供给Business, 同时, 链接到Confluence
      * @param $instance
@@ -76,8 +78,6 @@ class Transfer {
         $this->_transfer->callbackConnectClose = array($this, 'callbackBusinessConnectClose');
         $this->_transfer->listen();
     }
-
-    //------------Transfer层自身的交互部分-------------
 
     /**
      * 向中心机(Confluence层)发送自己的地址和端口, 以便Business感知。
