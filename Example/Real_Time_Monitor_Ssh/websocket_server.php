@@ -1,7 +1,7 @@
 <?php
 /**
  * WebSocket负责实时收集数据
- * Created by lixuan-it@360.cn
+ * Created by Lane
  * User: lane
  * Date: 16/6/22
  * Time: 下午6:20
