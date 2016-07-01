@@ -13,15 +13,15 @@
 require_once 'MeepoPS/index.php';
 
 //使用文本传输的Api类
-$webServer = new \MeepoPS\Api\Websocket('0.0.0.0', '19910');
+$webSocket = new \MeepoPS\Api\Websocket('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
-$webServer->childProcessCount = 1;
+$webSocket->childProcessCount = 1;
 
 //设置MeepoPS实例名称
-$webServer->instanceName = 'MeepoPS-WebSocket';
+$webSocket->instanceName = 'MeepoPS-WebSocket';
 
-$webServer->callbackNewData = 'callbackNewData';
+$webSocket->callbackNewData = 'callbackNewData';
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();
