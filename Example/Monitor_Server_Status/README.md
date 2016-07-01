@@ -1,4 +1,4 @@
-# 监控系统数据采集
+# 监控系统数据采集(Agent)
 监控系统数据采集是指, 一台服务器作为服务端, 启动monitor_server_status_server.php. 然后, 在待采集的机器上, 全部启动monitor_server_status_client.php.
 
 ### monitor_server.php 是服务端.
