@@ -34,6 +34,7 @@
   - [回调函数callbackSendBufferEmpty](3-api/14-callback-send-buffer-empty.md)
   - [接口Telnet](3-api/101-telnet.md)
   - [接口HTTP](3-api/102-http.md)
+  - [接口WebSocket](3-api/103-websocket.md)
 - 链接
   - [链接简介](4-connect/1-summary.md)
   - [属性instance](4-connect/2-property-instance.md)
@@ -55,6 +56,7 @@
   - [自定义协议](7-protocol/2-custom.md)
   - [Telnet协议](7-protocol/3-telnet.md)
   - [HTTP协议](7-protocol/4-http.md)
+  - [WebSocket协议](7-protocol/5-websocket.md)
 - 测试
   - [事件和子进程](8-test/1-event-and-child-proccess.md)
 - 建议
