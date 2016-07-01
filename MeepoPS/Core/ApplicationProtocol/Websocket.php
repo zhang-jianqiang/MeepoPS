@@ -131,7 +131,7 @@ class Websocket implements ApplicationProtocolInterface
         //解析HTTP协议头
         self::_parseHttpHeader($data, $connect);
         //WebSocket版本不能低于13
-        if($_SERVER['Sec-WebSocket-Version'] < 13){
+        if(empty($_SERVER['Sec-WebSocket-Version']) || $_SERVER['Sec-WebSocket-Version'] < 13){
             $connect->send("HTTP/1.1 400 Bad Request\r\n\r\nSec-WebSocket-Version can not be less than 13", true);
             self::_disConnect($connect);
             return;
