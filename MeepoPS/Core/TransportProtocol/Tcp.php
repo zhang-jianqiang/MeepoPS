@@ -44,7 +44,7 @@ class Tcp extends TransportProtocolInterface
     //当前包长
     private $_currentPackageSize = 0;
     //当前链接状态
-    private $_currentStatus = self::CONNECT_STATUS_ESTABLISH;
+    protected $_currentStatus = self::CONNECT_STATUS_ESTABLISH;
     //客户端地址
     private $_clientAddress = '';
     //是否暂停读取
@@ -93,14 +93,16 @@ class Tcp extends TransportProtocolInterface
             self::$statistics['total_read_count']++;
             $buffer = fread($connect, self::READ_SIZE);
             $buffer === false ? self::$statistics['total_read_failed_count']++ : null;
-            if ($buffer === false || $buffer === '' || feof($connect) === true) {
+            if ($buffer === '' || $buffer === false || feof($connect) === true) {
                 break;
             }
             $isAlreadyReaded = true;
             $this->_readDate .= $buffer;
         }
+//        var_dump($connect);
+//        var_dump('readData:' . $this->_readDate);
         //检测连接是否关闭
-        if ($isAlreadyReaded === false && $ifDestroy === true) {
+        if ($isAlreadyReaded === false && $ifDestroy) {
             $this->destroy();
             return;
         }
@@ -210,7 +212,7 @@ class Tcp extends TransportProtocolInterface
         }
         //如果待发送的缓冲区为空,直接发送本次需要发送的数据
         if (empty($this->_sendBuffer)) {
-            $length = $this->_sendAction($this->_connect, $data);
+            $length = $this->sendAction($this->_connect, $data);
             //全部发送成功
             if ($length > 0 && $length === strlen($data)) {
                 return $length;
@@ -241,7 +243,7 @@ class Tcp extends TransportProtocolInterface
     public function sendEvent()
     {
         //给socket资源中写入数据
-        $length = $this->_sendAction($this->_connect, $this->_sendBuffer);
+        $length = $this->sendAction($this->_connect, $this->_sendBuffer);
         //写入失败
         if (!is_int($length) || intval($length) <= 0) {
             return;
@@ -276,7 +278,7 @@ class Tcp extends TransportProtocolInterface
      * @param $socket resource Socket资源
      * @return int|bool
      */
-    private function _sendAction($socket, $data)
+    public function sendAction($socket, $data)
     {
         self::$statistics['total_send_count']++;
         $length = @fwrite($socket, $data);

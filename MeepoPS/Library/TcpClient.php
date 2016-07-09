@@ -17,10 +17,9 @@ use MeepoPS\Core\TransportProtocol\Tcp;
 class TcpClient extends Tcp{
 
     public $callbackConnect;
-    private $_static = self::CONNECT_STATUS_CLOSING;
     private $_protocol;
-    private $_host;
-    private $_port;
+    public $host;
+    public $port;
     private $_isAsync;
 
     /**
@@ -33,15 +32,15 @@ class TcpClient extends Tcp{
     public function __construct($protocol, $host, $port, $isAsync=false){
         //传入的协议是应用层协议还是传输层协议
         $protocol = '\MeepoPS\Core\ApplicationProtocol\\' . ucfirst($protocol);
-        if (class_exists($protocol, false)) {
+        if (class_exists($protocol)) {
             $this->_protocol = '\MeepoPS\Core\ApplicationProtocol\\' . $protocol;
         } else {
             Log::write('Application layer protocol class not found. portocol:' . $protocol, 'FATAL');
         }
         $this->_applicationProtocolClassName = $protocol;
         //属性赋值
-        $this->_host = $host;
-        $this->_port = $port;
+        $this->host = $host;
+        $this->port = $port;
         $this->id = self::$_recorderId++;
         $this->_isAsync = $isAsync ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNECT;
         //更改统计信息
@@ -49,7 +48,7 @@ class TcpClient extends Tcp{
     }
 
     public function connect(){
-        $this->_connect = stream_socket_client('tcp://' . $this->_host . ':' . $this->_port, $errno, $errmsg, 5, $this->_isAsync);
+        $this->_connect = stream_socket_client('tcp://' . $this->host . ':' . $this->port, $errno, $errmsg, 5, $this->_isAsync);
         if(!$this->_connect){
             $this->_connect->close();
             $this->_static = self::CONNECT_STATUS_CLOSED;
@@ -77,7 +76,7 @@ class TcpClient extends Tcp{
         }
         MeepoPS::$globalEvent->add(array($this, 'read'), array(), $tcpConnect, EventInterface::EVENT_TYPE_READ);
         if($this->_sendBuffer){
-            MeepoPS::$globalEvent->add(array($this, 'fwrite'), array(), $tcpConnect, EventInterface::EVENT_TYPE_WRITE);
+            MeepoPS::$globalEvent->add(array($this, 'sendAction'), array(), $tcpConnect, EventInterface::EVENT_TYPE_WRITE);
         }
         $this->_static = self::CONNECT_STATUS_ESTABLISH;
     }

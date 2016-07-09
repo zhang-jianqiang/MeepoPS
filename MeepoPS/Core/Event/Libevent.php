@@ -97,31 +97,24 @@ class Libevent implements EventInterface
             case self::EVENT_TYPE_WRITE:
             case self::EVENT_TYPE_SIGNAL:
                 $event = !empty($this->_eventList[$type][$uniqueId]) ? $this->_eventList[$type][$uniqueId] : '';
-                if (!empty($event)) {
-                    event_del($event);
-                    unset($this->_eventList[$type][$uniqueId]);
-                }
                 break;
             case self::EVENT_TYPE_TIMER:
             case self::EVENT_TYPE_TIMER_ONCE:
-                $event = !empty($this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId][2]) ? $this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId][2] : '';
-                if (!empty($event)) {
-                    event_del($event);
-                    unset($this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId]);
-                    break;
-                }
-                $event = !empty($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId][2]) ? $this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId][2] : '';
-                if (!empty($event)) {
-                    event_del($event);
-                    unset($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId]);
-                    break;
+                $event = '';
+                if(!empty($this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId][2])){
+                    $event = $this->_eventList[self::EVENT_TYPE_TIMER][$uniqueId][2];
+                }else if(!empty($this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId][2])){
+                    $event = $this->_eventList[self::EVENT_TYPE_TIMER_ONCE][$uniqueId][2];
                 }
                 break;
             default:
                 Log::write('Libevent: del one failed. ' . $type . ' is unrecognized type', 'WARNING');
                 return;
         }
-
+        if (!empty($event)) {
+            event_del($event);
+            unset($this->_eventList[$type][$uniqueId]);
+        }
     }
 
     /**

@@ -21,12 +21,6 @@ class Confluence extends MeepoPS{
     private $_businessList = array();
     //所有的Transfer列表
     private $_transferList = array();
-    //新链接加入时, 等待权限校验的超时时间
-    private $_waitVerifyTimeout = 10;
-    //PING的时间间隔
-    public $pingInterval = 1;
-    //PING没有收到响应的限制次数, 超出限制将断开连接
-    public $pingNoResponseLimit = 1;
 
     public function __construct($protocol, $host, $port, array $contextOptionList=array())
     {
@@ -47,7 +41,7 @@ class Confluence extends MeepoPS{
         $connect->confluence['waiter_verify_timer_id'] = Timer::add(function ($connect){
             Log::write('Confluence: Wait for token authentication timeout', 'ERROR');
             $this->_close($connect);
-        }, array($connect), 3, false);
+        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
 
     /**
@@ -58,31 +52,35 @@ class Confluence extends MeepoPS{
      */
     public function callbackConfluenceNewData($connect, $data){
         //token校验
-        if($this->_verifyAuth($data['token']) !== true){
+        if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
             Log::write('Confluence: New link token validation failed', 'ERROR');
             $this->_close($connect);
             return;
         }
-        //新的Transfer加入
         switch($data['msg_type']){
+            //PING
             case MsgTypeConst::MSG_TYPE_PONG:
                 $this->_pong($connect, $data);
                 break;
+            //新的Transfer加入
             case MsgTypeConst::MSG_TYPE_ADD_TRANSFER:
-                $this->_addTransfer($connect, $data);
+                if($this->_addTransfer($connect, $data)){
+                    //删除等待校验超时的定时器
+                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+                }
                 break;
+            //新的Business加入
             case MsgTypeConst::MSG_TYPE_ADD_BUSINESS:
-                $this->_addBusiness($connect, $data);
+                if($this->_addBusiness($connect, $data)){
+                    //删除等待校验超时的定时器
+                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+                }
                 break;
             default:
                 Log::write('Confluence: New link message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
                 $this->_close($connect);
                 return;
         }
-        //删除等待校验超时的定时器
-        Timer::delOne($connect->confluence['waiter_verify_timer_id']);
-        //告知对方, 已经收到消息, 并且已经添加成功了
-        $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>'OK'));
     }
 
     /**
@@ -99,39 +97,63 @@ class Confluence extends MeepoPS{
     }
 
     /**
-     * 新增一个Business
-     * @param $connect
-     * @param $data
-     * @return bool
-     */
-    private function _addBusiness($connect, $data){
-        $this->_businessList[$connect->id] = array(
-            'ip' => $data['msg_content']['ip'],
-            'port' => $data['msg_content']['port'],
-        );
-        $this->_broadcastToBusiness($connect);
-    }
-
-    /**
      * 新增一个Transfer
      * @param $connect
      * @param $data
      * @return bool
      */
     private function _addTransfer($connect, $data){
+        if(empty($data['msg_content']['ip']) || empty($data['msg_content']['port'])) {
+            return false;
+        }
         $this->_transferList[$connect->id] = array(
             'ip' => $data['msg_content']['ip'],
             'port' => $data['msg_content']['port'],
         );
+        //初始化发送PING未收到PONG的次数
+        $connect->confluence['ping_no_response_count'] = 0;
         //设定PING的定时器
         $connect->confluence['ping_timer_id'] = Timer::add(function ($connect){
-            $connect->confluence['ping_no_response_count'] = empty($connect->confluence['ping_no_response_count']) ? 0 : $connect->confluence['ping_no_response_count']++;
             $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PING, 'msg_content'=>'PING'));
-        }, array($connect), $this->pingInterval);
+        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         //检测PING回复情况
-        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), $this->pingInterval);
+        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         $this->_broadcastToBusiness();
+        //告知对方, 已经收到消息, 并且已经添加成功了
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>'OK'));
     }
+
+    /**
+     * 新增一个Business
+     * @param $connect
+     * @param $data
+     * @return bool
+     */
+    private function _addBusiness($connect, $data){
+        $connect->confluence['ping_no_response_count'] = 0;
+        $this->_businessList[$connect->id] = $connect;
+        //设定PING的定时器
+        $connect->confluence['ping_timer_id'] = Timer::add(function ($connect){
+            $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PING, 'msg_content'=>'PING'));
+        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        //检测PING回复情况
+        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        $this->_broadcastToBusiness($connect);
+        //告知对方, 已经收到消息, 并且已经添加成功了
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS, 'msg_content'=>'OK'));
+    }
+
+    /**
+     * 接收到消息PONG
+     * @param $connect
+     * @param $data string
+     */
+    private function _pong($connect, $data){
+        if($data['msg_content'] === 'PONG'){
+            $connect->confluence['ping_no_response_count']--;
+        }
+    }
+
 
     /**
      * 检测PING的回复情况
@@ -140,7 +162,7 @@ class Confluence extends MeepoPS{
     public function checkPingLimit($connect){
         $connect->confluence['ping_no_response_count']++;
         //超出无响应次数限制时断开连接
-        if( ($connect->confluence['ping_no_response_count'] - 1) >= $this->pingNoResponseLimit){
+        if( ($connect->confluence['ping_no_response_count'] - 1) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
             $conn = '';
             if(isset($this->_businessList[$connect->id])){
                 $conn = $this->_businessList[$connect->id];
@@ -151,18 +173,7 @@ class Confluence extends MeepoPS{
             $this->_close($connect);
         }
     }
-
-    /**
-     * 验证token
-     * @param $token
-     * @return bool
-     */
-    private function _verifyAuth($token){
-        if(!empty($token)){
-        }
-        return true;
-    }
-
+    
     /**
      * 关闭连接
      * @param $connect
@@ -179,32 +190,34 @@ class Confluence extends MeepoPS{
         }
         $connect->close();
     }
-    /**
-     * 接收到消息PONG
-     * @param $connect
-     * @param $data string
-     */
-    private function _pong($connect, $data){
-        if($data['msg_content'] === 'PONG'){
-            $connect->confluence['ping_no_response_count']--;
-        }
-    }
 
     /**
      * 给Business发送消息
-     * @param null $connect
+     * @param null $connect resource
      */
     private function _broadcastToBusiness($connect=null){
-
         $message = array();
         $message['msg_type'] = MsgTypeConst::MSG_TYPE_RESET_TRANSFER_LIST;
-        $message['msg_content']['transfer_list'] = array_unique($this->_transferList);
+        $message['msg_content']['transfer_list'] = $this->_transferList;
         //新增Business时, 只给指定的Business发送
         if(!is_null($connect)){
             $connect->send($message);
             return;
         }
-        //给所有的Business发送
+        //新增Transfer时, 给所有的Business发送
+        foreach($this->_businessList as $business){
+            $business->send($message);
+        }
+    }
+
+    /**
+     * 定时器广播给Business。
+     * 定时向所有Business更新一次全量的Transfer
+     */
+    public function _timerBroadcastToBusiness(){
+        $message = array();
+        $message['msg_type'] = MsgTypeConst::MSG_TYPE_RESET_TRANSFER_LIST;
+        $message['msg_content']['transfer_list'] = $this->_transferList;
         foreach($this->_businessList as $business){
             $business->send($message);
         }

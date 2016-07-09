@@ -17,30 +17,29 @@ use MeepoPS\Core\ThreeLayerMould\Transfer;
 
 class ThreeLayerMould
 {
-    public $confluenceHost = '0.0.0.0';
+    public $confluenceIp = '0.0.0.0';
     public $confluencePort = '19910';
     public $confluenceInnerIp = '127.0.0.1';
-    public $confluenceChildProcessCount = 1;
     public $confluenceName = 'MeepoPS-ThreeLayerMould-Confluence';
-    public $confluencePingInterval = 1;
-    public $confluencePingNoResponseLimit = 2;
-    private $_confluenceProtocol = 'telnetjson';
+    private $_confluenceChildProcessCount = 1;
 
-    public $transferHost = '0.0.0.0';
-    public $transferPort = '19911';
+    private $_transferHost = '0.0.0.0';
+    private $_transferPort = '19911';
     public $transferChildProcessCount = 1;
     public $transferName = 'MeepoPS-ThreeLayerMould-Transfer';
-    public $transferInnerIp = '127.0.0.1';
-    public $transferInnerPort = '19912';
-    private $_transferInnerProtocol = 'telnetjson';
 
     public $businessChildProcessCount = 1;
     public $businessName = 'MeepoPS-ThreeLayerMould-Business';
 
+    public $transferInnerIp = '0.0.0.0';
+    public $transferInnerPort = '19912';
+
     private $_contextOptionList = array();
-    private $_apiName = '';
+    private $_transferApiName = '';
     private $_container = '';
 
+    const INNER_PROTOCOL = 'telnetjson';
+    
     /**
      * ThreeLayerMould constructor.
      * @param string $apiName string Api类名
@@ -51,28 +50,34 @@ class ThreeLayerMould
      */
     public function __construct($apiName, $host, $port, $contextOptionList = array(), $container='')
     {
-        $this->_apiName = !$apiName ? '' : '\MeepoPS\Api\\' . ucfirst($apiName);
-        $this->transferHost = $host;
-        $this->transferPort = $port;
-        $this->_container = $container;
-        $this->_contextOptionList = $contextOptionList;
-        //如果是启动Transfer, 或者全部启动时, 需要判断参数
-        if($container !== 'confluence' && $container !== 'business'){
+        //参数合法性校验
+        if($container && (!in_array($container, array('confluence', 'business', 'transfer')))){
+            Log::write('Container must is confluence | business | transfer', 'FATAL');
+        }
+        //如果是启动Transfer或者全部启动时, 需要判断参数
+        $apiName = $apiName ? '\MeepoPS\Api\\' . ucfirst($apiName) : '';
+        if($container != 'confluence' || $container != 'business'){
             if (!$apiName || !$host || !$port) {
                 Log::write('$apiName and $host and $port can not be empty.', 'FATAL');
             }
             //接口是否存在
-            if(!class_exists($this->_apiName)){
+            if(!class_exists($apiName)){
                 Log::write('Api class not exists. api=' . $apiName, 'FATAL');
             }
         }
+        $this->_transferApiName = $apiName;
+        $this->_transferHost = $host;
+        $this->_transferPort = $port;
+        $this->_container = strtolower($container);
+        $this->_contextOptionList = $contextOptionList;
+
         //启动
         $this->_run();
     }
 
     private function _run(){
         //根据容器选项启动, 如果为空, 则全部启动
-        switch(strtolower($this->_container)){
+        switch($this->_container){
             case 'confluence':
                 $this->_initConfluence();
                 break;
@@ -84,28 +89,28 @@ class ThreeLayerMould
                 break;
             default:
                 $this->_initConfluence();
+                sleep(1);
                 $this->_initTransfer();
+                sleep(1);
                 $this->_initBusiness();
                 break;
         }
     }
 
     private function _initConfluence(){
-        $confluence = new Confluence($this->_confluenceProtocol, $this->confluenceHost, $this->confluencePort);
-        $confluence->childProcessCount = $this->confluenceChildProcessCount;
-        $confluence->pingInterval = $this->confluencePingInterval;
-        $confluence->pingNoResponseLimit = $this->confluencePingNoResponseLimit;
+        $confluence = new Confluence(self::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort);
+        $confluence->childProcessCount = $this->_confluenceChildProcessCount;
         $confluence->instanceName = $this->confluenceName;
     }
 
     private function _initTransfer(){
-        $transfer = new Transfer($this->_apiName, $this->transferHost, $this->transferPort, $this->_contextOptionList);
+        $transfer = new Transfer($this->_transferApiName, $this->_transferHost, $this->_transferPort, $this->_contextOptionList);
         $transfer->innerIp = $this->transferInnerIp;
         $transfer->innerPort = $this->transferInnerPort;
-        $transfer->innerProtocol = $this->_transferInnerProtocol;
+
         $transfer->confluenceIp = $this->confluenceInnerIp;
         $transfer->confluencePort = $this->confluencePort;
-        $transfer->confluenceProtocol = $this->_confluenceProtocol;
+
         $transfer->setApiClassProperty('childProcessCount', $this->transferChildProcessCount);
         $transfer->setApiClassProperty('instanceName', $this->transferName);
     }
@@ -114,5 +119,8 @@ class ThreeLayerMould
         $business = new Business();
         $business->childProcessCount = $this->businessChildProcessCount;
         $business->instanceName = $this->businessName;
+
+        $business->confluenceIp = $this->confluenceInnerIp;
+        $business->confluencePort = $this->confluencePort;
     }
 }
