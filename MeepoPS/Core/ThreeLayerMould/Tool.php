@@ -14,11 +14,11 @@ class Tool{
         return true;
     }
 
-    public function encodeTransferAddress($ip, $port){
+    public static function encodeTransferAddress($ip, $port){
         return $ip . '_' . $port;
     }
 
-    public function decodeTransferAddress($key){
+    public static function decodeTransferAddress($key){
         return explode('_', $key);
     }
 }

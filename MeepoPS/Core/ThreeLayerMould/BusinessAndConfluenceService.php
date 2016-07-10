@@ -21,6 +21,11 @@ class BusinessAndConfluenceService{
     public $confluencePort;
 
     private $_confluence;
+    private $_businessAndTranferService;
+
+    public function __construct(){
+        $this->_businessAndTranferService = new BusinessAndTransferService();
+    }
 
     /**
      * 向中心机(Confluence层)通知自己, 表示新的Business进程已经上线, 并定时获得Confluence推送的消息。
@@ -33,7 +38,11 @@ class BusinessAndConfluenceService{
         $this->_confluence->instance->callbackConnectClose = array($this, 'callbackConfluenceConnectClose');
         $this->_confluence->confluence = array();
         $this->_confluence->connect();
-        $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS));
+        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS));
+        if($result === false){
+            Log::write('Business: add confluence failed.' . 'WARNING');
+            $this->_closeConfluence();
+        }
     }
 
     /**
@@ -50,7 +59,7 @@ class BusinessAndConfluenceService{
                 $this->_receivePingFromConfluence($connect, $data);
                 break;
             case MsgTypeConst::MSG_TYPE_RESET_TRANSFER_LIST:
-//                $this->_resetTransferList($connect, $data);
+                $this->_businessAndTranferService->resetTransferList($data);
                 break;
         }
     }
@@ -76,6 +85,7 @@ class BusinessAndConfluenceService{
                 $this->_closeConfluence();
             }
         }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        Log::write('Business: add Confluence success. ' . $this->confluenceIp . ':' . $this->confluencePort);
     }
 
     /**

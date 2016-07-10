@@ -164,7 +164,7 @@ class Transfer {
             if(isset($this->_businessList[$connect->id])){
                 $conn = $this->_businessList[$connect->id];
             }
-            Log::write('Business: PING no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
+            Log::write('Transfer: PING no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
             $this->_closeBusiness($connect);
         }
     }

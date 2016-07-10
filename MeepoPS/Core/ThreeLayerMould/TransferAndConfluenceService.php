@@ -10,6 +10,7 @@
 namespace MeepoPS\Core\ThreeLayerMould;
 
 use MeepoPS\Api\ThreeLayerMould;
+use MeepoPS\Core\Log;
 use MeepoPS\Core\Timer;
 use MeepoPS\Library\TcpClient;
 
@@ -33,11 +34,16 @@ class TransferAndConfluenceService{
         $this->_confluence->instance->callbackConnectClose = array($this, 'callbackConfluenceConnectClose');
         $this->_confluence->confluence = array();
         $this->_confluence->connect();
-        $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>array('ip'=>$this->transferIp, 'port'=>$this->transferPort)));
+        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>array('ip'=>$this->transferIp, 'port'=>$this->transferPort)));
+        if($result === false){
+            Log::write('Transfer: add confluence failed.' . $this->transferIp . ':' . $this->transferPort . 'WARNING');
+            $this->_closeConfluence();
+        }
     }
 
     /**
-     * 收到Confluence发来的消息时
+     * 回调函数 - 收到Confluence发来新消息时
+     * 只接受新增Business、PING两种消息
      * @param $connect
      * @param $data
      */
@@ -69,10 +75,11 @@ class TransferAndConfluenceService{
         //添加计时器, 如果一定时间内没有收到中心机发来的PING, 则断开本次链接并重新向中心机发起注册
         $this->_confluence->confluence['waiter_confluence_ping_timer_id'] = Timer::add(function(){
             if((++$this->_confluence->confluence['confluence_no_ping_limit']) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
-                //重连
+                //断开连接
                 $this->_closeConfluence();
             }
         }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        Log::write('Transfer: add Confluence success. ' . $this->confluenceIp . ':' . $this->confluencePort);
     }
 
     /**

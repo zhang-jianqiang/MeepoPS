@@ -153,7 +153,7 @@ class Business extends MeepoPS{
             $business->close();
         }
         if($result === false){
-            Log::write('Business: Link transfer failed.' . $ip . ':' . $port . 'WARNING');
+            Log::write('Business: add transfer failed.' . $ip . ':' . $port , 'WARNING');
         }
     }
 
@@ -193,7 +193,8 @@ class Business extends MeepoPS{
         $connect->business['transfer_no_ping_limit'] = 0;
         //添加计时器, 如果一定时间内没有收到Transfer发来的PING, 则断开本次链接并重新链接到Transfer
         $connect->business['waiter_transfer_ping_timer_id'] = Timer::add(function()use($connect){
-            if((++$connect['transfer_no_ping_limit']) >= $this->confluencePingNoResponseLimit){
+            $connect->business['transfer_no_ping_limit']++;
+            if($connect->business['transfer_no_ping_limit'] >= $this->confluencePingNoResponseLimit){
                 //重连
                 $this->_reConnectTransfer($connect);
             }

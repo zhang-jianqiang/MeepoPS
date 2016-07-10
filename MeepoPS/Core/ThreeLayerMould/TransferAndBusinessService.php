@@ -106,7 +106,7 @@ class TransferAndBusinessService{
         //检测PING回复情况
         $connect->business['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         //告知对方, 已经收到消息, 并且已经添加成功了
-        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS, 'msg_content'=>'OK'));
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS, 'msg_content'=>'OK', 'msg_attachment'=>array('ip' => $this->transferIp, 'port'=>$this->transferPort)));
     }
 
     /**
@@ -132,7 +132,7 @@ class TransferAndBusinessService{
             if(isset($this->businessList[$connect->id])){
                 $conn = $this->businessList[$connect->id];
             }
-            Log::write('Business: PING no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
+            Log::write('Transfer: PING Business no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
             $this->_close($connect);
         }
     }
