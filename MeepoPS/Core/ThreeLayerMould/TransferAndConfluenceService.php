@@ -55,6 +55,10 @@ class TransferAndConfluenceService{
             case MsgTypeConst::MSG_TYPE_PING:
                 $this->_receivePingFromConfluence($connect, $data);
                 break;
+            default:
+                Log::write('Transfer: Confluence message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                $this->_closeConfluence();
+                return;
         }
     }
 

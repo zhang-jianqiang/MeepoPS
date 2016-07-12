@@ -22,12 +22,20 @@ class Transfer {
     public $innerIp = '0.0.0.0';
     //和Business通讯的内部端口(Business链接到这个端口)
     public $innerPort = 19912;
-    
+
+    //客户端列表
+    public static $clientList = array();
     //本类只操作API,不操作$this。因为本类并没有继承MeepoPS
     private $_apiClass;
+    //TransferAndBusinessService对象
+    private $_transferAndBusinessService;
+    //TransferAndConfluenceService对象
+    private $_transferAndConfluenceService;
 
     public function __construct($apiName, $host, $port, array $contextOptionList=array())
     {
+        $this->_transferAndBusinessService = new TransferAndBusinessService();
+        $this->_transferAndConfluenceService = new TransferAndConfluenceService();
         $this->_apiClass = new $apiName($host, $port, $contextOptionList);
         $this->_apiClass->callbackStartInstance = array($this, 'callbackTransferStartInstance');
         $this->_apiClass->callbackConnect = array($this, 'callbackTransferConnect');
@@ -42,22 +50,44 @@ class Transfer {
     /**
      * 进程启动时, 监听端口, 提供给Business, 同时, 链接到Confluence
      */
-    public function callbackTransferStartInstance(){
+    public function callbackTransferStartInstance($instance){
+        $this->innerPort = $this->innerPort + $instance->id;
         //监听一个端口, 用来做内部通讯(Business会链接这个端口)。
-        $transferAndConfluence = new TransferAndBusinessService();
-        $transferAndConfluence->transferIp = $this->innerIp;
-        $transferAndConfluence->transferPort = $this->innerPort;
-        $transferAndConfluence->listenBusiness();
+        $this->_transferAndBusinessService->transferIp = $this->innerIp;
+        $this->_transferAndBusinessService->transferPort = $this->innerPort;
+        $this->_transferAndBusinessService->listenBusiness();
         //向中心机(Confluence层)发送自己的地址和端口, 以便Business感知。
-        $transferAndConfluence = new TransferAndConfluenceService();
-        $transferAndConfluence->transferIp = $this->innerIp;
-        $transferAndConfluence->transferPort = $this->innerPort;
-        $transferAndConfluence->confluenceIp = $this->confluenceIp;
-        $transferAndConfluence->confluencePort = $this->confluencePort;
-        $transferAndConfluence->connectConfluence();
+        $this->_transferAndConfluenceService->transferIp = $this->innerIp;
+        $this->_transferAndConfluenceService->transferPort = $this->innerPort;
+        $this->_transferAndConfluenceService->confluenceIp = $this->confluenceIp;
+        $this->_transferAndConfluenceService->confluencePort = $this->confluencePort;
+        $this->_transferAndConfluenceService->connectConfluence();
     }
 
-    public function callbackTransferConnect(){}
-    public function callbackTransferNewData($connect, $data){}
-    public function callbackTransferConnectClose($connect){}
+    /**
+     * 回调函数 - 客户端的新链接
+     * @param $connect
+     */
+    public function callbackTransferConnect($connect){
+        var_dump(Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id));
+        self::$clientList[$connect->id] = $connect;
+    }
+
+    /**
+     * 回调函数 - 客户端发来的新消息
+     * @param $connect
+     * @param $data
+     */
+    public function callbackTransferNewData($connect, $data){
+        //把消息转发给Business层处理
+        $this->_transferAndBusinessService->sendToBusiness($connect, $data);
+    }
+
+    /**
+     * 回调函数 - 客户端断开链接
+     * @param $connect
+     */
+    public function callbackTransferConnectClose($connect){
+        var_dump($connect->id);
+    }
 }

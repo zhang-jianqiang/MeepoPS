@@ -51,9 +51,24 @@ class TcpClient extends Tcp{
         $this->_connect = stream_socket_client('tcp://' . $this->host . ':' . $this->port, $errno, $errmsg, 5, $this->_isAsync);
         if(!$this->_connect){
             $this->_connect->close();
-            $this->_static = self::CONNECT_STATUS_CLOSED;
+            $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
             return;
         }
+
+        stream_set_blocking($this->_connect, 0);
+        if (function_exists('socket_import_stream')) {
+            $socket = socket_import_stream($this->_connect);
+            @socket_set_option($socket, SOL_SOCKET, SO_KEEPALIVE, 1);
+            @socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
+        }
+        MeepoPS::$globalEvent->add(array($this, 'read'), array(), $this->_connect, EventInterface::EVENT_TYPE_READ);
+        if($this->_sendBuffer){
+            MeepoPS::$globalEvent->add(array($this, 'sendAction'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
+        }
+        $this->_currentStatus = self::CONNECT_STATUS_ESTABLISH;
+
+        return;
+
         //监听此链接
         MeepoPS::$globalEvent->add(array($this, 'checkConnection'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
     }
@@ -78,6 +93,6 @@ class TcpClient extends Tcp{
         if($this->_sendBuffer){
             MeepoPS::$globalEvent->add(array($this, 'sendAction'), array(), $tcpConnect, EventInterface::EVENT_TYPE_WRITE);
         }
-        $this->_static = self::CONNECT_STATUS_ESTABLISH;
+        $this->_currentStatus = self::CONNECT_STATUS_ESTABLISH;
     }
 }

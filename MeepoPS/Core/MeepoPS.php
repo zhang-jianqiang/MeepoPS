@@ -147,7 +147,6 @@ class MeepoPS
         //---全局共享信息---
         $this->_instanceId = spl_object_hash($this);
         self::$_instanceList[$this->_instanceId] = $this;
-//        print_r(self::$_instanceList);
         self::$_instancePidList[$this->_instanceId] = array();
     }
 

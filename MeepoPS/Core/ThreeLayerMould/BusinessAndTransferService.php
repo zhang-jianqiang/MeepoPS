@@ -20,8 +20,8 @@ class BusinessAndTransferService{
     public $confluenceIp;
     public $confluencePort;
 
-    private $_transferList;
-    private $_connectingTransferList;
+    public static $transferList;
+    private $_connectingTransferList = array();
 
     /**
      * 批量更新Transfer的链接
@@ -29,10 +29,10 @@ class BusinessAndTransferService{
      */
     public function resetTransferList($data){
         if(empty($data['msg_content']['transfer_list'])){
-            Log::write('Business: Transfer sent by the Confluence is empty ', 'ERROR');
+            Log::write('Business: Transfer sent by the Confluence is empty ', 'INFO');
         }
-        $transferList = $this->_transferList;
-        $this->_transferList = array();
+        $transferList = self::$transferList;
+        self::$transferList = array();
         foreach($data['msg_content']['transfer_list'] as $transfer){
             if(empty($transfer['ip']) || empty($transfer['port'])){
                 continue;
@@ -40,15 +40,11 @@ class BusinessAndTransferService{
             //之前是否已经链接好了
             $transferKey = Tool::encodeTransferAddress($transfer['ip'], $transfer['port']);
             if(isset($transferList[$transferKey])){
-                $this->_transferList[$transferKey] = array('ip' => $transfer['ip'], 'port' => $transfer['port']);
+                self::$transferList[$transferKey] = $transferList[$transferKey];
                 continue;
             }
             //新链接到Transfer
-            $result = $this->_connectTransfer($transfer['ip'], $transfer['port']);
-            if($result === false){
-                continue;
-            }
-            $this->_connectingTransferList[$transferKey] = array('ip' => $transfer['ip'], 'port' => $transfer['port']);
+            $this->_connectTransfer($transfer['ip'], $transfer['port']);
         }
     }
 
@@ -57,7 +53,7 @@ class BusinessAndTransferService{
      *
      */
     private function _connectTransfer($ip, $port){
-        $transfer = new TcpClient(ThreeLayerMould::INNER_PROTOCOL, $ip, $port, true);
+        $transfer = new TcpClient(ThreeLayerMould::INNER_PROTOCOL, $ip, $port, false);
         //实例化一个空类
         $transfer->instance = new \stdClass();
         $transfer->instance->callbackNewData = array($this, 'callbackTransferNewData');
@@ -68,8 +64,15 @@ class BusinessAndTransferService{
         if($result === false){
             Log::write('Business: Link transfer failed.' . $ip . ':' . $port , 'WARNING');
             $this->_close($transfer);
+            return false;
         }
+        $transferKey = Tool::encodeTransferAddress($ip, $port);
+        $this->_connectingTransferList[$transferKey] = array('ip' => $ip, 'port' => $port);
         return $result;
+    }
+
+    public function callbackTransferConnectClose($connect){
+        Timer::add(array($this, 'reConnectTransfer'), array($connect->host, $connect->port), 1, false);
     }
 
     /**
@@ -86,6 +89,13 @@ class BusinessAndTransferService{
             case MsgTypeConst::MSG_TYPE_PING:
                 $this->_receiveTransferPing($connect, $data);
                 break;
+            case MsgTypeConst::MSG_TYPE_APP_MSG:
+                $this->_appMessage($connect, $data);
+                break;
+            default:
+                Log::write('Business: Transfer message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                $this->_close($connect);
+                return;
         }
     }
 
@@ -111,7 +121,7 @@ class BusinessAndTransferService{
                 $this->_close($connect);
             }
         }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
-        $this->_transferList[$transferKey] = array('ip' => $data['msg_attachment']['ip'], 'port' => $data['msg_attachment']['port']);
+        self::$transferList[$transferKey] = $connect;
         Log::write('Business: link Transfer success. ' . $connect->host . ':' . $connect->port);
     }
 
@@ -125,11 +135,7 @@ class BusinessAndTransferService{
         $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PONG, 'msg_content'=>'PONG'));
     }
 
-    public function callbackTransferConnectClose($connect){
-        $this->_reConnectTransfer($connect);
-    }
-
-    private function _reConnectTransfer($connect){
+    public function reConnectTransfer($connect){
         $this->_close($connect);
         $this->_connectTransfer($connect->host, $connect->port);
     }
@@ -139,5 +145,42 @@ class BusinessAndTransferService{
             Timer::delOne($connect->business['waiter_transfer_ping_timer_id']);
         }
         $connect->close();
+    }
+
+    /**
+     * 业务逻辑
+     * @param $connect
+     * @param $data
+     */
+    private function _appMessage($connect, $data){
+        if(empty(ThreeLayerMould::$callbackList['callbackNewData']) || !is_callable(ThreeLayerMould::$callbackList['callbackNewData'])){
+            return;
+        }
+        $_SERVER['MEEPO_PS_MSG_TYPE'] = $data['msg_type'];
+        $_SERVER['MEEPO_PS_TRANSFER_IP'] = $data['transfer_ip'];
+        $_SERVER['MEEPO_PS_TRANSFER_PORT'] = $data['transfer_port'];
+        $_SERVER['MEEPO_PS_CLIENT_IP'] = $data['client_ip'];
+        $_SERVER['MEEPO_PS_CLIENT_PORT'] = $data['client_port'];
+        $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'] = $data['client_connect_id'];
+        $_SERVER['MEEPO_PS_CLIENT_ID'] = $data['client_id'];
+        call_user_func_array(ThreeLayerMould::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
+    }
+
+    /**
+     * 发送给Business的消息格式
+     * @param $data mixed
+     * @return array
+     */
+    public static function formatMessageToTransfer($data){
+        return array(
+            'msg_type' => $_SERVER['MEEPO_PS_MSG_TYPE'],
+            'msg_content' => $data,
+            'transfer_ip' => $_SERVER['MEEPO_PS_TRANSFER_IP'],
+            'transfer_port' => $_SERVER['MEEPO_PS_TRANSFER_PORT'],
+            'client_ip' => $_SERVER['MEEPO_PS_CLIENT_IP'],
+            'client_port' => $_SERVER['MEEPO_PS_CLIENT_PORT'],
+            'client_connect_id' => $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'],
+            'client_id' => $_SERVER['MEEPO_PS_CLIENT_ID'],
+        );
     }
 }

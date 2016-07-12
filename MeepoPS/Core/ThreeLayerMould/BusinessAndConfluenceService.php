@@ -61,6 +61,10 @@ class BusinessAndConfluenceService{
             case MsgTypeConst::MSG_TYPE_RESET_TRANSFER_LIST:
                 $this->_businessAndTranferService->resetTransferList($data);
                 break;
+            default:
+                Log::write('Business: Confluence message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                $this->_closeConfluence();
+                return;
         }
     }
 
@@ -108,7 +112,7 @@ class BusinessAndConfluenceService{
      * 如果Business和Confluence的链接断开, 则尝试重连
      */
     public function callbackConfluenceConnectClose(){
-        $this->_reConnectConfluence();
+        Timer::add(array($this, 'connectConfluence'), array(), 1, false);
     }
 
     /**

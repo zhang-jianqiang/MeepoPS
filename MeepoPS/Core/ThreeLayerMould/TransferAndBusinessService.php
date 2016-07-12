@@ -15,11 +15,14 @@ use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Timer;
 
 class TransferAndBusinessService{
-
+    //本Transfer的内部通讯的IP
     public $transferIp;
+    //本Transfer的内部通讯的端口
     public $transferPort;
 
-    public $businessList = array();
+    //与本Transfer链接的所有Business的列表
+    private $_businessList = array();
+    //用户内部通讯的Transfer的MeepoPS对象, 监听端口, 和Business通信
     private $_transfer;
 
     /**
@@ -42,7 +45,7 @@ class TransferAndBusinessService{
      */
     public function callbackBusinessConnect($connect){
         $connect->business['waiter_verify_timer_id'] = Timer::add(function ($connect){
-            Log::write('Transfer: Wait for token authentication timeout', 'ERROR');
+            Log::write('Transfer: Wait Business for token authentication timeout', 'ERROR');
             $this->_close($connect);
         }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
@@ -70,8 +73,14 @@ class TransferAndBusinessService{
             case MsgTypeConst::MSG_TYPE_PONG:
                 $this->_receivePongFromBusiness($connect, $data);
                 break;
+            case MsgTypeConst::MSG_TYPE_SEND_ALL:
+                $this->_sendAll($data);
+                break;
+            case MsgTypeConst::MSG_TYPE_SEND_ONE:
+                $this->_sendOne($data);
+                break;
             default:
-                Log::write('Confluence: New link message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Transfer: Business message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
                 $this->_close($connect);
                 return;
         }
@@ -82,10 +91,10 @@ class TransferAndBusinessService{
      * @param $connect
      */
     public function callbackBusinessConnectClose($connect){
-        if(isset($this->businessList[$connect->id])){
-            unset($this->businessList[$connect->id]);
+        if(isset($this->_businessList[$connect->id])){
+            unset($this->_businessList[$connect->id]);
         }else{
-            unset($this->businessList[$connect->id]);
+            unset($this->_businessList[$connect->id]);
         }
     }
 
@@ -96,7 +105,7 @@ class TransferAndBusinessService{
      * @return bool
      */
     private function _addBusiness($connect, $data){
-        $this->businessList[$connect->id] = $connect;
+        $this->_businessList[$connect->id] = $connect;
         //初始化发送PING未收到PONG的次数
         $connect->business['ping_no_response_count'] = 0;
         //设定PING的定时器
@@ -129,8 +138,8 @@ class TransferAndBusinessService{
         //超出无响应次数限制时断开连接
         if( ($connect->business['ping_no_response_count'] - 1) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
             $conn = '';
-            if(isset($this->businessList[$connect->id])){
-                $conn = $this->businessList[$connect->id];
+            if(isset($this->_businessList[$connect->id])){
+                $conn = $this->_businessList[$connect->id];
             }
             Log::write('Transfer: PING Business no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
             $this->_close($connect);
@@ -148,5 +157,67 @@ class TransferAndBusinessService{
             Timer::delOne($connect->business['check_ping_timer_id']);
         }
         $connect->close();
+    }
+    
+    
+    //----------------Transfer To Business----------
+    
+    public function sendToBusiness($connect, $data){
+        $business = $this->_selectBusiness();
+        if($business === false){
+            return false;
+        }
+        $message = $this->_formatMessageToBusiness($connect, $data);
+        $result = $business->send($message);
+        return $result;
+    }
+
+    /**
+     * 选择一个Business
+     * @return bool|mixed
+     */
+    private function _selectBusiness(){
+        if(empty($this->_businessList)){
+            return false;
+        }
+        $businessKey = array_rand($this->_businessList);
+        if($businessKey === false || !isset($this->_businessList[$businessKey])){
+            return false;
+        }
+        return $this->_businessList[$businessKey];
+    }
+
+    /**
+     * 发送给Business的消息格式
+     */
+    private function _formatMessageToBusiness(&$connect, &$data){
+        $clientAddress = $connect->getClientAddress();
+        return array(
+            'msg_type' => MsgTypeConst::MSG_TYPE_APP_MSG,
+            'msg_content' => $data,
+            'transfer_ip' => $this->transferIp,
+            'transfer_port' => $this->transferPort,
+            'client_ip' => $clientAddress[0],
+            'client_port' => $clientAddress[1],
+            'client_connect_id' => $connect->id,
+            'client_id' => Tool::encodeClientId($this->transferIp, $this->transferPort, $connect->id),
+        );
+    }
+
+    private function _sendAll($data){
+        foreach(Transfer::$clientList as $client){
+            $clientId = Tool::encodeClientId($this->transferIp, $this->transferPort, $client->id);
+            if($clientId !== $data['client_id']){
+                $client->send($data['msg_content']);
+            }
+        }
+    }
+
+    private function _sendOne($data){
+        if(!isset(Transfer::$clientList[$data['to_client_connect_id']])){
+            return;
+        }
+        $clientConnect = Transfer::$clientList[$data['to_client_connect_id']];
+        $clientConnect->send($data['msg_content']);
     }
 }

@@ -23,8 +23,8 @@ class ThreeLayerMould
     public $confluenceName = 'MeepoPS-ThreeLayerMould-Confluence';
     private $_confluenceChildProcessCount = 1;
 
-    private $_transferHost = '0.0.0.0';
-    private $_transferPort = '19911';
+    private $_transferHost;
+    private $_transferPort;
     public $transferChildProcessCount = 1;
     public $transferName = 'MeepoPS-ThreeLayerMould-Transfer';
 
@@ -37,6 +37,8 @@ class ThreeLayerMould
     private $_contextOptionList = array();
     private $_transferApiName = '';
     private $_container = '';
+
+    public static $callbackList = array();
 
     const INNER_PROTOCOL = 'telnetjson';
     
@@ -70,12 +72,12 @@ class ThreeLayerMould
         $this->_transferPort = $port;
         $this->_container = strtolower($container);
         $this->_contextOptionList = $contextOptionList;
-
-        //启动
-        $this->_run();
     }
 
-    private function _run(){
+    /**
+     * 启动三层模型
+     */
+    public function run(){
         //根据容器选项启动, 如果为空, 则全部启动
         switch($this->_container){
             case 'confluence':
@@ -89,11 +91,27 @@ class ThreeLayerMould
                 break;
             default:
                 $this->_initConfluence();
+                echo "MeepoPS Confluence Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
                 sleep(1);
+                //输出启动成功字样
                 $this->_initTransfer();
+                echo "MeepoPS Transfer Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
                 sleep(1);
                 $this->_initBusiness();
+                echo "MeepoPS Business Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
                 break;
+        }
+    }
+
+    /**
+     * __set
+     * @param $name
+     * @param $value
+     */
+    public function __set($name, $value){
+        //如果是回调函数系列, 则允许赋值
+        if(preg_match('/callback/', $name)){
+            self::$callbackList[$name] = $value;
         }
     }
 
