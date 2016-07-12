@@ -1,4 +1,9 @@
-# 一个WebServer
+# 人机聊天
+
+后端采用MeepoPS三层模型。
+
+前端采用[LayIM1.0](http://www.w3cdream.com/content-sort-21-article-521.html)
+
 一个WebServer是指, 一台服务器作为服务端, 启动webserver_server.php. 此时, 启动了WebServer实例.
 
 WebServer实例监听19910端口, 充当Web服务器(替代Apache/Nginx).

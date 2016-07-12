@@ -28,7 +28,7 @@ $webSocket->callbackNewData = 'callbackNewData';
 
 function callbackNewData($connect, $data){
     $msg = $connect->id . ': ' . $data;
-    var_dump($connect->id . ': ' . $data);
+    var_dump($msg);
     foreach($connect->instance->clientList as $client){
         $client->send($msg);
     } 

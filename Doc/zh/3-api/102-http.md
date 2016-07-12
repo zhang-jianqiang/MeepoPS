@@ -180,4 +180,19 @@ $http->setErrorPage('404', __DIR__ . '/Test/Web/404.html');
 $http->setErrorPage('403', '您没有被授权访问!');
 ```
 
+#### 设置域名和路径: setDocument($domain, $path)
+- 名称: setDocument();
+- 参数1: $domain。域名(包含端口, 80可省略)
+- 参数2: $path。代码根目录。
+- 返回: bool 
+- 描述: 新增自V0.0.5。设置不同域名的不同代码根目录。
+
+###### 示例:
+这是我们自行编写的代码: demo.php
+```php
+<?php
+$http = new \MeepoPS\Api\Http('0.0.0.0', '8080');
+$http->setDocument('localhost:8080', '/var/www/MeepoPS/Example/Web_Server/Web');
+```
+
 了解HTTP协议是什么, 这里是 [传送门](../7-protocol/4-http.md)

@@ -11,7 +11,7 @@
  */
 
 //引入MeepoPS
-require_once 'MeepoPS/index.php';
+require_once '../../MeepoPS/index.php';
 
 //使用文本传输的Api类
 $telnet = new \MeepoPS\Api\ThreeLayerMould('telnet', '0.0.0.0', '19911');
@@ -52,6 +52,16 @@ $telnet->callbackNewData = function($connect, $data){
 
 //启动三层模型
 $telnet->run();
+
+
+//Web端
+//使用文本传输的Api类
+$http = new \MeepoPS\Api\Http('0.0.0.0', '8080');
+//启动的子进程数量. 通常为CPU核心数
+$http->childProcessCount = 1;
+//设置MeepoPS实例名称
+$http->instanceName = 'MeepoPS-Http';
+$http->setDocument('localhost:8080', '/var/www/MeepoPS/Example/Chat_Robot/layim');
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();

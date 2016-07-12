@@ -66,6 +66,23 @@ class Http extends MeepoPS
     }
 
     /**
+     * 设置域名和路径
+     * @param $domain
+     * @param $path
+     * @return bool
+     */
+    public function setDocument($domain, $path){
+        if(!$domain || !$path){
+            return false;
+        }
+        if(!file_exists($path) || !is_dir($path)){
+            return false;
+        }
+        $this->_documentRoot[$domain] = $path;
+        return true;
+    }
+
+    /**
      * 设置http头
      * @param string $string 头字符串
      * @param bool $replace 是否用后面的头替换前面相同类型的头.即相同的多个头存在时,后来的会覆盖先来的.
