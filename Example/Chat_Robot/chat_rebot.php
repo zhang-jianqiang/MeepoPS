@@ -1,6 +1,6 @@
 <?php
 /**
- * DEMO文件. 展示基于Telnet协议的数据传输
+ * DEMO文件. 展示基于WebSocket协议的机器人聊天
  * producer - consumer
  * Created by Lane
  * User: lane
@@ -24,10 +24,10 @@ $smsMysql = '';
 
 function callbackStartInstance($instance){
     global $misFaqMysql;
-    $misFaqMysql = mysqli_connect('10.115.132.149', 'mis', 'Qihoo360!', 'mis_faq');
+    $misFaqMysql = mysqli_connect('127.0.0.1', 'mis', '123', 'tableName');
     mysqli_query($misFaqMysql, 'set names utf8');
     global $smsMysql;
-    $smsMysql = mysqli_connect('10.115.132.149', 'mis', 'Qihoo360!', 'sms');
+    $smsMysql = mysqli_connect('127.0.0.1', 'mis', '123', 'tableName');
     mysqli_query($smsMysql, 'set names utf8');
 }
 
@@ -109,65 +109,6 @@ function getRelevant($data, $fields='app_id,question,answer', $limit=10, $appId=
     }
     return $message;
 }
-return;
-
-//引入MeepoPS
-require_once '../../MeepoPS/index.php';
-
-//使用文本传输的Api类
-$telnet = new \MeepoPS\Api\ThreeLayerMould('telnet', '0.0.0.0', '19911');
-
-$telnet->confluenceIp = '0.0.0.0';
-$telnet->confluencePort = '19910';
-$telnet->confluenceInnerIp = '127.0.0.1';
-
-$telnet->transferInnerIp = '0.0.0.0';
-$telnet->transferInnerPort = '19912';
-$telnet->transferChildProcessCount = 2;
-
-$telnet->businessChildProcessCount = 3;
-
-$telnet->callbackNewData = function($connect, $data){
-    $data = json_decode($data, true);
-    if(empty($data['type'])){
-        return;
-    }
-    $data['type'] = strtoupper($data['type']);
-     switch($data['type']){
-         case 'SEND_ALL':
-             if(empty($data['content'])){
-                 return;
-             }
-             $message = '收到群发消息: ' . $data['content'];
-             \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToAll($message);
-             break;
-         case 'SEND_ONE':
-             $message = '收到私聊消息: ' . $data['content'] . '(From: ' . $_SERVER['MEEPO_PS_CLIENT_ID'] . ')';
-             $clientId = $data['send_to_one'];
-             \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToOne($message, $clientId);
-             break;
-         default:
-             return;
-     }
-};
-
-//启动三层模型
-$telnet->run();
-
-
-//Web端
-//使用文本传输的Api类
-$http = new \MeepoPS\Api\Http('0.0.0.0', '8080');
-//启动的子进程数量. 通常为CPU核心数
-$http->childProcessCount = 1;
-//设置MeepoPS实例名称
-$http->instanceName = 'MeepoPS-Http';
-$http->setDocument('localhost:8080', '/var/www/MeepoPS/Example/Chat_Robot/layim');
-
-//启动MeepoPS
-\MeepoPS\runMeepoPS();
-
-
 
 function curl($param){
     $url = 'http://mis.ops.corp.qihoo.net:22777/xunsearch.php';
