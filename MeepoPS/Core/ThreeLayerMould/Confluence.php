@@ -2,7 +2,7 @@
 /**
  * 汇聚管理层
  * 集中管理Transfer和Business的在线/离线状态。提供离线踢出, 上线推送等功能。
- * Created by lixuan-it@360.cn
+ * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/6/29
  * Time: 下午3:20

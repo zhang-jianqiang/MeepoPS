@@ -2,7 +2,7 @@
 /**
  * 业务逻辑层
  * 接收Transfer发来的请求, 进行业务逻辑处理, 返回给Transfer, 最后Transfer返回给用户。
- * Created by lixuan-it@360.cn
+ * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/7/9
  * Time: 下午11:35

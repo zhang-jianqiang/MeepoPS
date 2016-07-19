@@ -3,7 +3,7 @@
  * 传输层
  * 只接受用户的链接, 不做任何的业务逻辑。
  * 接收用户发送的数据转发给Business层, 再将Business层返回的结果发送给用户
- * Created by lixuan-it@360.cn
+ * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/6/29
  * Time: 下午3:20

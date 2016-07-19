@@ -17,18 +17,18 @@ require_once '../../MeepoPS/index.php';
 $webSocket = new \MeepoPS\Api\Websocket('0.0.0.0', '19910');
 $webSocket->callbackStartInstance = 'callbackStartInstance';
 $webSocket->callbackNewData = 'callbackNewData';
-$misFaqMysql = '';
-$smsMysql = '';
+$mysql1 = '';
+$mysql2 = '';
 //启动MeepoPS
 \MeepoPS\runMeepoPS();
 
 function callbackStartInstance($instance){
-    global $misFaqMysql;
-    $misFaqMysql = mysqli_connect('127.0.0.1', 'mis', '123', 'tableName');
-    mysqli_query($misFaqMysql, 'set names utf8');
-    global $smsMysql;
-    $smsMysql = mysqli_connect('127.0.0.1', 'mis', '123', 'tableName');
-    mysqli_query($smsMysql, 'set names utf8');
+    global $mysql1;
+    $mysql1 = mysqli_connect('127.0.0.1', 'meepops', 'MeepoPS', 'databases1');
+    mysqli_query($mysql1, 'set names utf8');
+    global $mysql2;
+    $mysql2 = mysqli_connect('127.0.0.1', 'meepops', 'MeepoPS', 'databases2');
+    mysqli_query($mysql2, 'set names utf8');
 }
 
 function callbackNewData($connect, $data){
@@ -58,9 +58,9 @@ function send($connect, $message){
 
 function getMobile($mobile, $date){
     $message = '没有查询到相关问题';
-    global $smsMysql;
-    $sql = 'SELECT * FROM sms_msg_' . date('md', strtotime($date)) . ' WHERE mobile="' . $mobile . '"' ;
-    $result = mysqli_query($smsMysql, $sql);
+    global $mysql2;
+    $sql = 'SELECT * FROM order' . date('md', strtotime($date)) . ' WHERE mobile="' . $mobile . '"' ;
+    $result = mysqli_query($mysql2, $sql);
     if($result){
         $message = array();
         while($row = mysqli_fetch_assoc($result)){
@@ -74,9 +74,9 @@ function getMobile($mobile, $date){
 
 function getById($id){
     $message = array();
-    global $misFaqMysql;
+    global $mysql1;
     $sql = 'SELECT * FROM robot_question WHERE id=' . $id;
-    $result = mysqli_query($misFaqMysql, $sql);
+    $result = mysqli_query($mysql1, $sql);
     if($result){
         $row = mysqli_fetch_assoc($result);
         if($row){
