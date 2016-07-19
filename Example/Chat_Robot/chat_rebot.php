@@ -111,7 +111,7 @@ function getRelevant($data, $fields='app_id,question,answer', $limit=10, $appId=
 }
 
 function curl($param){
-    $url = 'http://mis.ops.corp.qihoo.net:22777/xunsearch.php';
+    $url = 'http://www.lanecn.com:22777/xunsearch.php';
     if (!empty($param)) {
         $url .= (strpos($url, '?') === false) ? '?' : '&';
         $url .= is_array($param) ? http_build_query($param) : $param;
