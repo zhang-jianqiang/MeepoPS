@@ -28,17 +28,6 @@ $webSocket->callbackNewData = 'callbackNewData';
 
 function callbackNewData($connect, $data){
     $msg = $connect->id . ': ' . $data;
-    var_dump($msg);
-    $data = array(
-        'errcode' => 0,
-        'errmsg' => '',
-        'data' => array(
-            'create_time' => date('Y-m-d H:i:s'),
-            'content' => '收到消息: ' . $msg,
-        ),
-    );
-    $connect->send(json_encode($data));
-    return;
     foreach($connect->instance->clientList as $client){
         $client->send($msg);
     } 
