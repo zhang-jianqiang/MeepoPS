@@ -65,6 +65,9 @@
   - [子进程](9-suggest/3-child-proccess.md)
   - [服务端链接数](9-suggest/4-connect-num.md)
   - [客户端数量](9-suggest/5-client-num.md)
+- 集成到其他框架
+  - [集成简介](10-framework/1-summary.md)
+  - [ThinkPHP](10-framework/2-thinkphp.md)
 - 示例
   - [基于Telnet的监控集群日志](../../Example/Monitor_Log/README.md)
   - [部署Agent的服务器数据抓取](../../Example/Monitor_Server_Status/README.md)
