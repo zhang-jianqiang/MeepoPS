@@ -15,10 +15,7 @@ require_once '../../MeepoPS/index.php';
 
 //使用WebSocket协议传输的Api类
 $webSocket = new \MeepoPS\Api\Websocket('0.0.0.0', '19910');
-$webSocket->callbackStartInstance = 'callbackStartInstance';
 $webSocket->callbackNewData = 'callbackNewData';
-$mysql1 = '';
-$mysql2 = '';
 //启动MeepoPS
 \MeepoPS\runMeepoPS();
 
