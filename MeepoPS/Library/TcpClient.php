@@ -1,5 +1,6 @@
 <?php
 /**
+ * 基于TCP的客户端链接
  * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/6/27
@@ -17,9 +18,10 @@ use MeepoPS\Core\TransportProtocol\Tcp;
 class TcpClient extends Tcp{
 
     public $callbackConnect;
-    private $_protocol;
     public $host;
     public $port;
+
+    private $_protocol;
     private $_isAsync;
 
     /**

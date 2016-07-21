@@ -12,7 +12,7 @@
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 
-//使用文本传输的Api类
+//使用文本协议传输的Api类
 $telnet = new \MeepoPS\Api\Telnet('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
