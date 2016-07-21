@@ -3,14 +3,14 @@
 
 ### MeepoPS如何集成到ThinkPHP
 
-##### 环境说明
+#### 环境说明
 
 - 使用ThinkPHP的项目目录: /var/www/appName/
 - MeepoPS目录: /var/www/appName/ThinkPHP/Library/Vendor/MeepoPS
 - 使用MeepoPS的机器人客服项目目录: /var/www/appName/RobotChat/
 - 启动MeepoPS的代码路径: /var/www/appName/RobotChat/Controller/MeepoPSController.class.php
 
-##### MeepoPSController的代码
+#### MeepoPSController的代码
 ```php
 <?php
 namespace RobotChat\Controller;
@@ -39,12 +39,12 @@ class MeepoPSController extends Controller{
 }
 ```
 
-##### 启动MeepoPS
+#### 启动MeepoPS
 
 - 进入项目目录: `cd /var/www/appName/`
 - 启动MeepoPS: `sudo php index.php RobotChat/MeepoPS/start start`
 
-##### 代码里为什么要处理$argv
+#### 代码里为什么要处理$argv
 
 $argv是系统变量, 为什么要特殊处理一下?
 
