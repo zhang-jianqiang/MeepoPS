@@ -48,7 +48,7 @@ var config = {
     })(),
     json: function(url, data, callback, error){
         return $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: url,
             data: data,
             dataType: 'json',
@@ -251,7 +251,7 @@ xxim.popchat = function(param){
                 +'</li>';
         };
         log.imarea = xxim.chatbox.find('#layim_area'+ keys);
-
+        
         log.imarea.append(log.html({
             time: response.data.create_time,
             name: xxim.nowchat.name,
