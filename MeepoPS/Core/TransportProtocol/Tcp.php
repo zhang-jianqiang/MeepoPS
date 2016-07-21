@@ -55,7 +55,7 @@ class Tcp extends TransportProtocolInterface
      * Tcp constructor.
      * @param $socket resource 由stream_socket_accept()返回
      * @param $clientAddress string 由stream_socket_accept()的第三个参数$peerName
-     * @param $applicationProtocol string 应用层协议所使用的类, 默认为空
+     * @param $applicationProtocolClassname string 应用层协议所使用的类, 默认为空
      */
     public function __construct($socket, $clientAddress, $applicationProtocolClassname = '')
     {
@@ -70,11 +70,14 @@ class Tcp extends TransportProtocolInterface
         $this->_connect = $socket;
 
         $this->_clientAddress = $clientAddress;
-        if (!class_exists($applicationProtocolClassname)) {
-            $applicationProtocolClassname = '';
-            Log::write('Application protocol class: ' . $this->_applicationProtocolClassName . ' not exists', 'FATAL');
+
+        if($applicationProtocolClassname){
+            if (!class_exists($applicationProtocolClassname)) {
+                Log::write('Application protocol class: ' . $applicationProtocolClassname . ' not exists', 'FATAL');
+            }
+            $this->_applicationProtocolClassName = $applicationProtocolClassname;
         }
-        $this->_applicationProtocolClassName = $applicationProtocolClassname;
+
         stream_set_blocking($this->_connect, 0);
         //监听此链接
         MeepoPS::$globalEvent->add(array($this, 'read'), array(), $this->_connect, EventInterface::EVENT_TYPE_READ);

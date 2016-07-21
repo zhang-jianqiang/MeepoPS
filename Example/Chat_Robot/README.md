@@ -1,5 +1,7 @@
 # 人机聊天
 
+新增于V0.0.5
+
 后端采用MeepoPS三层模型。
 
 前端采用[LayIM1.0](http://www.w3cdream.com/content-sort-21-article-521.html)

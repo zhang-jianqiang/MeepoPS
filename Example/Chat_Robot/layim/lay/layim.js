@@ -251,31 +251,12 @@ xxim.popchat = function(param){
                 +'</li>';
         };
         log.imarea = xxim.chatbox.find('#layim_area'+ keys);
-        //解析json
-        var response = JSON.parse(e.data);
-        //判断错误码
-        if(Number(response.errcode) !== 0) {
-            alert('出错啦!' + String(response.errmsg));
-            return;
-        }
-        //判断服务端返回值
-        //如果是response.data.content是字符串
-        if(toString.apply(response.data.content) === '[object Array]') {
-            if (response.data.content.length == 0) {
-                response.data.content = '没有查询到相关问题, 请咨询人工客服';
-            } else {
-                var content = '';
-                for (var i = 0; i < response.data.content.length; i++) {
-                    content += '[' + response.data.content[i].question_id + ']' + response.data.content[i].question + '<br>';
-                }
-                response.data.content = content;
-            }
-        }
+
         log.imarea.append(log.html({
             time: response.data.create_time,
             name: xxim.nowchat.name,
             face: xxim.nowchat.face,
-            content:response.data.content
+            content:e.data
         }));
         log.imarea.scrollTop(log.imarea[0].scrollHeight);
     };
