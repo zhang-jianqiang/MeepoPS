@@ -21,5 +21,9 @@ $webSocket->callbackNewData = 'callbackNewData';
 
 function callbackNewData($connect, $data){
     $msg = '收到消息: ' . $data;
-    $connect->send($msg);
+    $message = array(
+        'data' => $msg,
+        'create_time' => date('Y-m-d H:i:s'),
+    );
+    $connect->send($message);
 }
