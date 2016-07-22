@@ -25,5 +25,5 @@ function callbackNewData($connect, $data){
         'data' => $msg,
         'create_time' => date('Y-m-d H:i:s'),
     );
-    $connect->send($message);
+    $connect->send(json_encode($message));
 }
