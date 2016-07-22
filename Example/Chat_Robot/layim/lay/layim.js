@@ -48,7 +48,7 @@ var config = {
     })(),
     json: function(url, data, callback, error){
         return $.ajax({
-            type: 'GET',
+            type: 'POST',
             url: url,
             data: data,
             dataType: 'json',
@@ -252,11 +252,14 @@ xxim.popchat = function(param){
         };
         log.imarea = xxim.chatbox.find('#layim_area'+ keys);
 
+        //解析json
+        var response = JSON.parse(e.data);
+
         log.imarea.append(log.html({
-            time: response.data.create_time,
+            time: response.create_time,
             name: xxim.nowchat.name,
             face: xxim.nowchat.face,
-            content:e.data
+            content:response.data
         }));
         log.imarea.scrollTop(log.imarea[0].scrollHeight);
     };
