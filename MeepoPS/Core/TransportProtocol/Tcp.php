@@ -161,7 +161,7 @@ class Tcp extends TransportProtocolInterface
                     call_user_func_array($this->instance->callbackNewData, array($this, $applicationProtocolClassName::decode($requestBuffer, $this)));
                 } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->instance->callbackNewData) . ' throw exception', 'ERROR');
+                    Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->instance->callbackNewData) . ' throw exception' . json_encode($e), 'ERROR');
                 }
             }
         }
@@ -183,7 +183,7 @@ class Tcp extends TransportProtocolInterface
                 call_user_func_array($this->instance->callbackNewData, array($this, $this->_readDate));
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->instance->callbackNewData) . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->instance->callbackNewData) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
         $this->_readDate = '';
@@ -262,7 +262,7 @@ class Tcp extends TransportProtocolInterface
                     call_user_func($this->instance->callbackSendBufferEmpty, $this);
                 } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('MeepoPS: execution callback function callbackSendBufferEmpty-' . json_encode($this->instance->callbackSendBufferEmpty) . ' throw exception', 'ERROR');
+                    Log::write('MeepoPS: execution callback function callbackSendBufferEmpty-' . json_encode($this->instance->callbackSendBufferEmpty) . ' throw exception' . json_encode($e), 'ERROR');
                 }
             }
             //如果是正在关闭中的状态(平滑断开链接会发送完待发送缓冲区的所有数据后再销毁资源)
@@ -294,7 +294,7 @@ class Tcp extends TransportProtocolInterface
                     call_user_func_array($this->instance->callbackError, array($this, MEEPO_PS_ERROR_CODE_SEND_SOCKET_INVALID, 'Send data failed. Possible socket resource has disabled'));
                 } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('MeepoPS: execution callback function callbackError-' . json_encode($this->instance->callbackError) . ' throw exception', 'ERROR');
+                    Log::write('MeepoPS: execution callback function callbackError-' . json_encode($this->instance->callbackError) . ' throw exception' . json_encode($e), 'ERROR');
                 }
             }
             //强制销毁
@@ -347,7 +347,7 @@ class Tcp extends TransportProtocolInterface
                 call_user_func($this->instance->callbackConnectClose, $this);
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
-                Log::write('MeepoPS: execution callback function callbackConnectClose-' . json_encode($this->instance->callbackConnectClose) . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackConnectClose-' . json_encode($this->instance->callbackConnectClose) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
         unset($this);
@@ -430,7 +430,7 @@ class Tcp extends TransportProtocolInterface
                     call_user_func($this->instance->callbackSendBufferFull, $this);
                 } catch (\Exception $e) {
                     self::$statistics['exception_count']++;
-                    Log::write('MeepoPS: execution callback function callbackSendBufferFull-' . json_encode($this->instance->callbackSendBufferFull) . ' throw exception', 'ERROR');
+                    Log::write('MeepoPS: execution callback function callbackSendBufferFull-' . json_encode($this->instance->callbackSendBufferFull) . ' throw exception' . json_encode($e), 'ERROR');
                 }
                 return true;
             }

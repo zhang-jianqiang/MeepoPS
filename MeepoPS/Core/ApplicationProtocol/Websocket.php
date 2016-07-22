@@ -410,7 +410,7 @@ class Websocket implements ApplicationProtocolInterface
                     try {
                         call_user_func($connect->instance->callbackWSPing, $connect);
                     } catch (\Exception $e) {
-                        Log::write('MeepoPS: execution callback function callbackWSPing-' . json_encode($connect->instance->callbackWSPing) . ' throw exception', 'ERROR');
+                        Log::write('MeepoPS: execution callback function callbackWSPing-' . json_encode($connect->instance->callbackWSPing) . ' throw exception' . json_encode($e), 'ERROR');
                     }
                 } else {
                     $connect->send(pack('H*', '8a00'));
@@ -427,7 +427,7 @@ class Websocket implements ApplicationProtocolInterface
                     try {
                         call_user_func($connect->instance->callbackWSPong, $connect);
                     } catch (\Exception $e) {
-                        Log::write('MeepoPS: execution callback function callbackWSPong-' . json_encode($connect->instance->callbackWSPong) . ' throw exception', 'ERROR');
+                        Log::write('MeepoPS: execution callback function callbackWSPong-' . json_encode($connect->instance->callbackWSPong) . ' throw exception' . json_encode($e), 'ERROR');
                     }
                 }
                 //如果数据中消息的长度为假,则从接收数据缓冲区中删除规定的消息头部分.
@@ -452,7 +452,7 @@ class Websocket implements ApplicationProtocolInterface
             try {
                 call_user_func($connect->instance->callbackWSDisconnect, $connect);
             } catch (\Exception $e) {
-                Log::write('MeepoPS: execution callback function callbackWSDisconnect-' . json_encode($connect->instance->callbackWSDisconnect) . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackWSDisconnect-' . json_encode($connect->instance->callbackWSDisconnect) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
         $connect->close();

@@ -174,7 +174,7 @@ class Libevent implements EventInterface
         try {
             call_user_func_array($timer[0], $timer[1]);
         } catch (\Exception $e) {
-            Log::write('MeepoPS: execution callback function timer callback-' . $timer[0] . ' throw exception', 'ERROR');
+            Log::write('MeepoPS: execution callback function timer callback-' . $timer[0] . ' throw exception' . json_encode($e), 'ERROR');
         }
     }
 }
