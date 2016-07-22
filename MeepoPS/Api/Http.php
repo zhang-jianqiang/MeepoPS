@@ -173,7 +173,7 @@ class Http extends MeepoPS
                 call_user_func_array($this->_userCallbackNewData, array($connect, $data));
             } catch (\Exception $e) {
                 Tcp::$statistics['exception_count']++;
-                Log::write('MeepoPS: execution callback function callbackNewData-' . $this->_userCallbackNewData . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->_userCallbackNewData) . ' throw exception', 'ERROR');
             }
         }
         self::$_sessionInstance = new Session();

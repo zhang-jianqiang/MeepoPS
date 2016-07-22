@@ -394,7 +394,7 @@ class MeepoPS
                 try {
                     call_user_func($this->callbackStartInstance, $this);
                 } catch (\Exception $e) {
-                    Log::write('MeepoPS: execution callback function callbackStartInstance-' . $this->callbackStartInstance . ' throw exception', 'ERROR');
+                    Log::write('MeepoPS: execution callback function callbackStartInstance-' . json_encode($this->callbackStartInstance) . ' throw exception', 'ERROR');
                 }
             }
             //开启事件轮询
@@ -626,7 +626,7 @@ class MeepoPS
             try {
                 call_user_func($this->callbackInstanceStop, $this);
             } catch (\Exception $e) {
-                Log::write('MeepoPS: execution callback function callbackInstanceStop-' . $this->callbackInstanceStop . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackInstanceStop-' . json_encode($this->callbackInstanceStop) . ' throw exception', 'ERROR');
             }
         }
         //删除这个实例相关的所有事件监听
@@ -658,7 +658,7 @@ class MeepoPS
             try {
                 call_user_func($this->callbackConnect, $tcpConnect);
             } catch (\Exception $e) {
-                Log::write('MeepoPS: execution callback function callbackConnect-' . $this->callbackConnect . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackConnect-' . json_encode($this->callbackConnect) . ' throw exception', 'ERROR');
             }
         }
     }
