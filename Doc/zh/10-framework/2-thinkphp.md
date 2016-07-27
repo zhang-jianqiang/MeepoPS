@@ -76,17 +76,23 @@ ThinkPHP链接到Mysql, 如果这个链接一定时间内不活跃, 那么Mysql�
 
 ##### 修改步骤: 
 
-1.在这个文件的类的最下面, 写一个方法, 代码如下:
+1.在这个文件的类的最下面, 写一个方法, 意思是如果PDO异常码是2006或者2013, 那么就删除之前的存储链接的变量, 重新链接。代码如下:
 ```php
 public function executeException($e, $str, $fetchSql)
 {
-        if ($e->errorInfo[1] == 2006 || $e->errorInfo[1] == 2013) {
-            $this->close();
-            $this->connect();
-            $this->execute($str, $fetchSql);
-            $log = 'executeException: ' . json_encode($e);
-            Log::write($log, Log::WARN);
+    if ($e->errorInfo[1] == 2006 || $e->errorInfo[1] == 2013) {
+        $log = 'executeException: ' . json_encode($e);
+        Log::write($log, Log::WARN);
+        $linkIdList = array_keys($this->linkID, $this->_linkID);
+        if($linkIdList && is_array($linkIdList)){
+            foreach($linkIdList as $linkId){
+                unset($this->linkID[$linkId]);
+            }
         }
+        $this->close();
+        $this->initConnect();
+        $this->execute($str, $fetchSql);
+    }
 }
 ```
 
