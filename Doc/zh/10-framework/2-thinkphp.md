@@ -63,3 +63,76 @@ $argv[2] = !empty($argv[3]) ? $argv[3] : '';
 而在ThinkPHP中, 启动命令是`sudo php index.php RobotChat/MeepoPS/start start`, 这时的关键字"start"是$argv[2], 启动文件名"index.php"是$argv[0]和$argv[1]共同获得。
 
 因此, 就需要进行特殊处理了。否则MeepoPS会拿$argv[1], 也就是"RobotChat/MeepoPS/start"去选择执行的命令, 然而MeepoPS发现, 命令不是"start|stop|restart|kill", 就会提示错误。
+
+### MeepoPS在ThinkPHP中完美运行的建议
+
+#### Mysql不活跃链接超时
+
+ThinkPHP链接到Mysql, 如果这个链接一定时间内不活跃, 那么Mysql就会关闭这个链接。此时, 我们再使用这个链接的时候, 会报错["HY000",2006,"MySQL server has gone away"]
+
+我们的目的是报这个错误的时候重新发起Mysql的链接, 并且再次执行SQL。
+
+我们需要略微修改ThinkPHP的代码, 只需要修改一个文件就OK。代码文件路径: ThinkPHP/Library/Think/Db/Driver.class.php
+
+##### 修改步骤: 
+
+1.在这个文件的类的最下面, 写一个方法, 代码如下:
+```php
+public function executeException($e, $str, $fetchSql)
+{
+        if ($e->errorInfo[1] == 2006 || $e->errorInfo[1] == 2013) {
+            $this->close();
+            $this->connect();
+            $this->execute($str, $fetchSql);
+            $log = 'executeException: ' . json_encode($e);
+            Log::write($log, Log::WARN);
+        }
+}
+```
+
+2.修改query()方法public function query($str, $fetchSql = false)。将这个方法中所有代码剪切, 写一个try catch, 把旧代码复制到try中。
+```php
+public function query($str, $fetchSql = false){
+    try{
+        $this->initConnect(false);
+        if (!$this->_linkID) return false;
+        ......此处省略100000字......
+        // 调试结束
+        $this->debug(false);
+        if (false === $result) {
+            $this->error();
+            return false;
+        } else {
+            return $this->getResult();
+        }
+    }catch (\PDOException $e){
+        $this->executeException($e, $str, $fetchSql);
+    }
+}
+```
+
+3.修改execute()方法。public function execute($str, $fetchSql = false)。将这个方法中所有代码剪切, 写一个try catch, 把旧代码复制到try中。
+```php
+public function execute($str, $fetchSql = false){
+    try{
+        $this->initConnect(false);
+        if (!$this->_linkID) return false;
+        ......此处省略100000字......
+        $this->debug(false);
+        if (false === $result) {
+            $this->error();
+            return false;
+        } else {
+            $this->numRows = $this->PDOStatement->rowCount();
+            if (preg_match("/^\s*(INSERT\s+INTO|REPLACE\s+INTO)\s+/i", $str)) {
+                $this->lastInsID = $this->_linkID->lastInsertId();
+            }
+            return $this->numRows;
+        }
+    }catch (\PDOException $e){
+        $this->executeException($e, $str, $fetchSql);
+    }
+}
+```
+
+经过这三步, 就搞定啦~
