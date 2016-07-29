@@ -23,7 +23,7 @@ cd Example/Chat_Robot
 sudo php webserver_server.php start -d
 ```
 
-启动后, MeepoPS会有两个实例, 一个实例作为WebSocket的服务端, 坚挺19910端口, 等待接受WebSocket链接并进行业务逻辑的处理。另一个实例是WebServer, 监听19911端口, 充当Nginx/Apache的功能。
+启动后, MeepoPS会有两个实例, 一个实例作为WebSocket的服务端, 监听19910端口, 等待接受WebSocket链接并进行业务逻辑的处理。另一个实例是WebServer, 监听19911端口, 充当Nginx/Apache的功能。
 
 ![WebSocket人机聊天启动](show2.png?raw=true "WebSocket人机聊天启动")
 
