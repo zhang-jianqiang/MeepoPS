@@ -34,7 +34,7 @@ class TransferAndConfluenceService{
         $this->_confluence->instance->callbackConnectClose = array($this, 'callbackConfluenceConnectClose');
         $this->_confluence->confluence = array();
         $this->_confluence->connect();
-        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>array('ip'=>$this->transferIp, 'port'=>$this->transferPort)));
+        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE, 'msg_content'=>array('ip'=>$this->transferIp, 'port'=>$this->transferPort)));
         if($result === false){
             Log::write('Transfer: add confluence failed.' . $this->transferIp . ':' . $this->transferPort . 'WARNING');
             $this->_closeConfluence();
@@ -49,7 +49,7 @@ class TransferAndConfluenceService{
      */
     public function callbackConfluenceNewData($connect, $data){
         switch($data['msg_type']){
-            case MsgTypeConst::MSG_TYPE_ADD_TRANSFER:
+            case MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE:
                 $this->_addConfluenceResponse($connect, $data);
                 break;
             case MsgTypeConst::MSG_TYPE_PING:

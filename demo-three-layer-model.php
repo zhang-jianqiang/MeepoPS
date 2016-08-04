@@ -22,9 +22,9 @@ $telnet->confluenceInnerIp = '127.0.0.1';
 
 $telnet->transferInnerIp = '0.0.0.0';
 $telnet->transferInnerPort = '19912';
-$telnet->transferChildProcessCount = 2;
+$telnet->transferChildProcessCount = 1;
 
-$telnet->businessChildProcessCount = 3;
+$telnet->businessChildProcessCount = 1;
 
 $telnet->callbackNewData = function($connect, $data){
     $data = json_decode($data, true);
@@ -41,7 +41,7 @@ $telnet->callbackNewData = function($connect, $data){
              \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToAll($message);
              break;
          case 'SEND_ONE':
-             $message = '收到私聊消息: ' . $data['content'] . '(From: ' . $_SERVER['MEEPO_PS_CLIENT_ID'] . ')';
+             $message = '收到私聊消息: ' . $data['content'] . '(From: ' . $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] . ')';
              $clientId = $data['send_to_one'];
              \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToOne($message, $clientId);
              break;

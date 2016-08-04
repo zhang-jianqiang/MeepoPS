@@ -69,8 +69,9 @@ class Transfer {
      * @param $connect
      */
     public function callbackTransferConnect($connect){
-        var_dump(Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id));
+        $connect->unique_id = Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id);
         self::$clientList[$connect->id] = $connect;
+        $connect->send('UniqueId=' . $connect->unique_id);
     }
 
     /**
@@ -88,6 +89,6 @@ class Transfer {
      * @param $connect
      */
     public function callbackTransferConnectClose($connect){
-        var_dump($connect->id);
+
     }
 }

@@ -46,7 +46,7 @@ class Tcp extends TransportProtocolInterface
     //当前链接状态
     protected $_currentStatus = self::CONNECT_STATUS_ESTABLISH;
     //客户端地址
-    private $_clientAddress = '';
+    protected $_clientAddress = '';
     //是否暂停读取
     private $_isPauseRead = false;
 
@@ -61,6 +61,7 @@ class Tcp extends TransportProtocolInterface
     {
         //更改统计信息
         self::$statistics['total_connect_count']++;
+        self::$statistics['current_connect_count']++;
         //属性赋值
         $this->id = self::$_recorderId++;
         if (!is_resource($socket)) {
@@ -86,9 +87,9 @@ class Tcp extends TransportProtocolInterface
     /**
      * 读取数据
      * @param $connect resource 是一个Socket的资源
-     * @param $ifDestroy bool 如果fread()读取到的是空数据或者false的话,是否销毁链接.默认为true
+     * @param $isDestroy bool 如果fread()读取到的是空数据或者false的话,是否销毁链接.默认为true
      */
-    public function read($connect, $ifDestroy = true)
+    public function read($connect, $isDestroy = true)
     {
         //是否读取到了数据
         $isAlreadyReaded = false;
@@ -103,9 +104,9 @@ class Tcp extends TransportProtocolInterface
             $this->_readDate .= $buffer;
         }
 //        var_dump($connect);
-//        var_dump('readData:' . $this->_readDate);
+//        var_dump($connect.'  readData:' . $this->_readDate);
         //检测连接是否关闭
-        if ($isAlreadyReaded === false && $ifDestroy) {
+        if ($isAlreadyReaded === false && $isDestroy) {
             $this->destroy();
             return;
         }
@@ -143,7 +144,7 @@ class Tcp extends TransportProtocolInterface
                 $this->destroy();
                 return;
             }
-            //处理完整长度的数据包
+            //读取完整数据包的个数
             self::$statistics['total_read_package_count']++;
             //如果缓冲区的所有数据是一个完整的包
             if ($this->_currentPackageSize == strlen($this->_readDate)) {
@@ -193,12 +194,12 @@ class Tcp extends TransportProtocolInterface
      * 发送数据
      * @param mixed string 待发送的数据
      * @param $isEncode bool 发送前是否根据应用层协议转码
-     * @return int|bool 拒绝发送为0, 发送成功为发送成功的数据长度.加入待发送缓冲区延迟发送为-1 发送失败为false.
+     * @return int|bool 拒绝发送为0, 发送成功为发送成功的数据长度. 部分成功则是成功发送的长度, 加入待发送缓冲区延迟发送为-1 发送失败为false.
      */
     public function send($data, $isEncode = true)
     {
         //如果需要根据协议转码, 并且应用层协议类存在
-        if ($isEncode === true && $this->_applicationProtocolClassName && class_exists($this->_applicationProtocolClassName)) {
+        if ($isEncode === true && $this->_applicationProtocolClassName) {
             $applicationProtocolClassname = $this->_applicationProtocolClassName;
             $data = $applicationProtocolClassname::encode($data, $this);
             if (!$data) {
@@ -208,34 +209,33 @@ class Tcp extends TransportProtocolInterface
         //如果状态是链接中.
         if ($this->_currentStatus === self::CONNECT_STATUS_CONNECTING) {
             $this->_sendBuffer .= $data;
-            return 0;
-            //如果状态是正在关闭或者和已经关闭
+            return -1;
+        //如果状态是正在关闭或者和已经关闭
         } else if ($this->_currentStatus === self::CONNECT_STATUS_CLOSING || $this->_currentStatus === self::CONNECT_STATUS_CLOSED) {
             return 0;
         }
-        //如果待发送的缓冲区为空,直接发送本次需要发送的数据
-        if (empty($this->_sendBuffer)) {
-            $length = $this->sendAction($this->_connect, $data);
-            //全部发送成功
-            if ($length > 0 && $length === strlen($data)) {
-                return $length;
-                //部分发送成功
-            } else if ($length > 0 && $length !== strlen($data)) {
-                $this->_sendBuffer = substr($data, $length);
-                //因为没有全部发送成功,则将发送事件加入到事件监听列表中
-                MeepoPS::$globalEvent->add(array($this, 'sendEvent'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
-                //检测队列是否为空
-                $this->_sendBufferIsFull();
-                return -1;
-                //发送失败
-            } else {
-                return false;
-            }
-            //如果待发送队列有值.
-        } else {
+        //如果待发送队列有值.
+        if (!empty($this->_sendBuffer)) {
             $this->_sendBuffer .= $data;
             $this->_sendBufferIsFull();
             return -1;
+        }
+        //如果待发送的缓冲区为空,直接发送本次需要发送的数据
+        $length = $this->_sendAction($this->_connect, $data);
+        //全部发送成功
+        if ($length > 0 && $length === strlen($data)) {
+            return $length;
+            //部分发送成功
+        } else if ($length > 0 && $length !== strlen($data)) {
+            $this->_sendBuffer = substr($data, $length);
+            //因为没有全部发送成功,则将发送事件加入到事件监听列表中
+            MeepoPS::$globalEvent->add(array($this, 'sendEvent'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
+            //检测队列是否为空
+            $this->_sendBufferIsFull();
+            return $length;
+            //发送失败
+        } else {
+            return false;
         }
     }
 
@@ -246,7 +246,7 @@ class Tcp extends TransportProtocolInterface
     public function sendEvent()
     {
         //给socket资源中写入数据
-        $length = $this->sendAction($this->_connect, $this->_sendBuffer);
+        $length = $this->_sendAction($this->_connect, $this->_sendBuffer);
         //写入失败
         if (!is_int($length) || intval($length) <= 0) {
             return;
@@ -257,7 +257,7 @@ class Tcp extends TransportProtocolInterface
             MeepoPS::$globalEvent->delOne($this->_connect, EventInterface::EVENT_TYPE_WRITE);
             $this->_sendBuffer = '';
             //触发待发送缓冲区为空的队列
-            if ($this->instance->callbackSendBufferEmpty) {
+            if (!empty($this->instance->callbackSendBufferEmpty)) {
                 try {
                     call_user_func($this->instance->callbackSendBufferEmpty, $this);
                 } catch (\Exception $e) {
@@ -281,7 +281,7 @@ class Tcp extends TransportProtocolInterface
      * @param $socket resource Socket资源
      * @return int|bool
      */
-    public function sendAction($socket, $data)
+    private function _sendAction($socket, $data)
     {
         self::$statistics['total_send_count']++;
         $length = @fwrite($socket, $data);
@@ -341,6 +341,8 @@ class Tcp extends TransportProtocolInterface
         }
         //变更状态为已经关闭
         $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
+        //变更统计信息
+        self::$statistics['current_connect_count']--;
         //执行链接断开时的回调函数
         if (!empty($this->instance->callbackConnectClose)) {
             try {

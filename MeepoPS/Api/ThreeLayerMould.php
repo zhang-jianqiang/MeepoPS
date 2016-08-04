@@ -92,12 +92,9 @@ class ThreeLayerMould
             default:
                 $this->_initConfluence();
                 echo "MeepoPS Confluence Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
-                sleep(1);
                 //输出启动成功字样
                 $this->_initTransfer();
                 echo "MeepoPS Transfer Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
-                return;
-                sleep(1);
                 $this->_initBusiness();
                 echo "MeepoPS Business Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
                 break;

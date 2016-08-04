@@ -32,6 +32,8 @@ abstract class TransportProtocolInterface
         'total_send_failed_count' => 0,
         //异常数
         'exception_count' => 0,
+        //当前链接数
+        'current_connect_count' => 0,
     );
 
     /**
@@ -45,9 +47,9 @@ abstract class TransportProtocolInterface
     /**
      * 读取数据
      * @param $connect resource 由stream_socket_accept()返回
-     * @param $ifDestroy bool 如果fread读取到的是空数据或者false的话,是否销毁链接.默认为true
+     * @param $isDestroy bool 如果fread读取到的是空数据或者false的话,是否销毁链接.默认为true
      */
-    abstract public function read($connect, $ifDestroy = true);
+    abstract public function read($connect, $isDestroy = true);
 
     /**
      * 发送数据

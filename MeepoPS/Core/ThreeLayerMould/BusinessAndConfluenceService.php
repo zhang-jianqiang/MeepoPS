@@ -38,7 +38,7 @@ class BusinessAndConfluenceService{
         $this->_confluence->instance->callbackConnectClose = array($this, 'callbackConfluenceConnectClose');
         $this->_confluence->confluence = array();
         $this->_confluence->connect();
-        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS));
+        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE));
         if($result === false){
             Log::write('Business: add confluence failed.' . 'WARNING');
             $this->_closeConfluence();
@@ -52,7 +52,7 @@ class BusinessAndConfluenceService{
      */
     public function callbackConfluenceNewData($connect, $data){
         switch($data['msg_type']){
-            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS:
+            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE:
                 $this->_addConfluenceResponse($connect, $data);
                 break;
             case MsgTypeConst::MSG_TYPE_PING:

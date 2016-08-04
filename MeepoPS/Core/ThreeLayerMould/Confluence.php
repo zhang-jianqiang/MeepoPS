@@ -78,7 +78,7 @@ class Confluence extends MeepoPS{
     public function callbackConfluenceNewData($connect, $data){
         switch($data['msg_type']){
             //新的Transfer加入
-            case MsgTypeConst::MSG_TYPE_ADD_TRANSFER:
+            case MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE:
                 //token校验
                 if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
                     Log::write('Confluence: New link token validation failed', 'ERROR');
@@ -91,7 +91,7 @@ class Confluence extends MeepoPS{
                 }
                 break;
             //新的Business加入
-            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS:
+            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE:
                 //token校验
                 if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
                     Log::write('Confluence: New link token validation failed', 'ERROR');
@@ -151,7 +151,7 @@ class Confluence extends MeepoPS{
         $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         $this->broadcastToBusiness();
         //告知对方, 已经收到消息, 并且已经添加成功了
-        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER, 'msg_content'=>'OK'));
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE, 'msg_content'=>'OK'));
     }
 
     /**
@@ -171,7 +171,7 @@ class Confluence extends MeepoPS{
         $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         $this->broadcastToBusiness($connect);
         //告知对方, 已经收到消息, 并且已经添加成功了
-        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS, 'msg_content'=>'OK'));
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE, 'msg_content'=>'OK'));
     }
 
     /**

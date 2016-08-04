@@ -11,9 +11,6 @@
 namespace MeepoPS\Core\ThreeLayerMould;
 
 class AppBusiness{
-    public static $clientList = array();
-    public static $businessList = array();
-    public static $transferList = array();
 
     public static function sendToAll($message){
         $message = BusinessAndTransferService::formatMessageToTransfer($message);

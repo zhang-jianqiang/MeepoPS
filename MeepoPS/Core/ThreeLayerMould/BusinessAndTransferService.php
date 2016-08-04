@@ -17,9 +17,6 @@ use MeepoPS\Library\TcpClient;
 
 class BusinessAndTransferService{
 
-    public $confluenceIp;
-    public $confluencePort;
-
     public static $transferList;
     private $_connectingTransferList = array();
 
@@ -60,7 +57,7 @@ class BusinessAndTransferService{
         $transfer->instance->callbackConnectClose = array($this, 'callbackTransferConnectClose');
         $transfer->transfer = array();
         $transfer->connect();
-        $result = $transfer->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS));
+        $result = $transfer->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER));
         if($result === false){
             Log::write('Business: Link transfer failed.' . $ip . ':' . $port , 'WARNING');
             $this->_close($transfer);
@@ -83,7 +80,7 @@ class BusinessAndTransferService{
      */
     public function callbackTransferNewData($connect, $data){
         switch($data['msg_type']){
-            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS:
+            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER:
                 $this->_addTransferResponse($connect, $data);
                 break;
             case MsgTypeConst::MSG_TYPE_PING:
@@ -162,7 +159,7 @@ class BusinessAndTransferService{
         $_SERVER['MEEPO_PS_CLIENT_IP'] = $data['client_ip'];
         $_SERVER['MEEPO_PS_CLIENT_PORT'] = $data['client_port'];
         $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'] = $data['client_connect_id'];
-        $_SERVER['MEEPO_PS_CLIENT_ID'] = $data['client_id'];
+        $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] = $data['client_unique_id'];
         call_user_func_array(ThreeLayerMould::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
     }
 
@@ -180,7 +177,7 @@ class BusinessAndTransferService{
             'client_ip' => $_SERVER['MEEPO_PS_CLIENT_IP'],
             'client_port' => $_SERVER['MEEPO_PS_CLIENT_PORT'],
             'client_connect_id' => $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'],
-            'client_id' => $_SERVER['MEEPO_PS_CLIENT_ID'],
+            'client_unique_id' => $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'],
         );
     }
 }

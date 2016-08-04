@@ -39,7 +39,7 @@ class TransferAndBusinessService{
     /**
      * 回调函数 - 收到新链接时
      * 新链接加入时, 先不做处理, 等待token验证通过后再处理
-     * token的验证是收到token后校验, 因此会进入callbackConfluenceNewData方法中
+     * token的验证是收到token后校验, 因此会进入callbackBusinessNewData方法中
      * 再此处加入一次性的定时器, 如果N秒后仍然未通过验证, 则断开链接。
      * @param $connect
      */
@@ -58,10 +58,10 @@ class TransferAndBusinessService{
      */
     public function callbackBusinessNewData($connect, $data){
         switch($data['msg_type']){
-            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS:
+            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER:
                 //token校验
                 if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
-                    Log::write('Confluence: New link token validation failed', 'ERROR');
+                    Log::write('Transfer: New link token validation failed', 'ERROR');
                     $this->_close($connect);
                     return;
                 }
@@ -115,7 +115,7 @@ class TransferAndBusinessService{
         //检测PING回复情况
         $connect->business['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
         //告知对方, 已经收到消息, 并且已经添加成功了
-        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS, 'msg_content'=>'OK', 'msg_attachment'=>array('ip' => $this->transferIp, 'port'=>$this->transferPort)));
+        return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER, 'msg_content'=>'OK', 'msg_attachment'=>array('ip' => $this->transferIp, 'port'=>$this->transferPort)));
     }
 
     /**
@@ -200,14 +200,14 @@ class TransferAndBusinessService{
             'client_ip' => $clientAddress[0],
             'client_port' => $clientAddress[1],
             'client_connect_id' => $connect->id,
-            'client_id' => Tool::encodeClientId($this->transferIp, $this->transferPort, $connect->id),
+            'client_unique_id' => $connect->unique_id,
         );
     }
 
     private function _sendAll($data){
         foreach(Transfer::$clientList as $client){
             $clientId = Tool::encodeClientId($this->transferIp, $this->transferPort, $client->id);
-            if($clientId !== $data['client_id']){
+            if($clientId !== $data['client_unique_id']){
                 $client->send($data['msg_content']);
             }
         }
