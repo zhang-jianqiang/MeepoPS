@@ -69,6 +69,7 @@
   - [集成简介](10-framework/1-summary.md)
   - [ThinkPHP](10-framework/2-thinkphp.md)
 - 示例
+  - [基于WebSocket的智能客服](../../Example/Real_Time_Monitor_Ssh/README.md)
   - [基于Telnet的监控集群日志](../../Example/Monitor_Log/README.md)
   - [部署Agent的服务器数据抓取](../../Example/Monitor_Server_Status/README.md)
   - [基于WebSocket的实时监控](../../Example/Real_Time_Monitor_Ssh/README.md)
