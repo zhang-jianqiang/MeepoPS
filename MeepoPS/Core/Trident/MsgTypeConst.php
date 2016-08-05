@@ -7,7 +7,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\ThreeLayerMould;
+namespace MeepoPS\Core\Trident;
 
 class MsgTypeConst{
     //PING

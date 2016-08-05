@@ -7,9 +7,9 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\ThreeLayerMould;
+namespace MeepoPS\Core\Trident;
 
-use MeepoPS\Api\ThreeLayerMould;
+use MeepoPS\Api\Trident;
 use MeepoPS\Core\Log;
 use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Timer;
@@ -25,11 +25,14 @@ class TransferAndBusinessService{
     //用户内部通讯的Transfer的MeepoPS对象, 监听端口, 和Business通信
     private $_transfer;
 
+    //Transfer回复数据给客户端的时候转码函数
+    public $encodeFunction;
+
     /**
      * 监听一个端口, 用来做内部通讯(Business会链接这个端口)。
      */
     public function listenBusiness(){
-        $this->_transfer = new MeepoPS(ThreeLayerMould::INNER_PROTOCOL, $this->transferIp, $this->transferPort);
+        $this->_transfer = new MeepoPS(Trident::INNER_PROTOCOL, $this->transferIp, $this->transferPort);
         $this->_transfer->callbackConnect = array($this, 'callbackBusinessConnect');
         $this->_transfer->callbackNewData = array($this, 'callbackBusinessNewData');
         $this->_transfer->callbackConnectClose = array($this, 'callbackBusinessConnectClose');
@@ -73,15 +76,8 @@ class TransferAndBusinessService{
             case MsgTypeConst::MSG_TYPE_PONG:
                 $this->_receivePongFromBusiness($connect, $data);
                 break;
-            case MsgTypeConst::MSG_TYPE_SEND_ALL:
-                $this->_sendAll($data);
-                break;
-            case MsgTypeConst::MSG_TYPE_SEND_ONE:
-                $this->_sendOne($data);
-                break;
             default:
-                Log::write('Transfer: Business message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
-                $this->_close($connect);
+                $this->_appMessage($connect, $data);
                 return;
         }
     }
@@ -126,6 +122,24 @@ class TransferAndBusinessService{
     private function _receivePongFromBusiness($connect, $data){
         if($data['msg_content'] === 'PONG'){
             $connect->business['ping_no_response_count']--;
+        }
+    }
+
+    /**
+     * 接收到业务相关的消息
+     * @param $connect
+     * @param $data string
+     */
+    private function _appMessage($connect, $data){
+        switch($data['msg_type']){
+            case MsgTypeConst::MSG_TYPE_SEND_ALL:
+                $this->_sendAll($data);
+                break;
+            case MsgTypeConst::MSG_TYPE_SEND_ONE:
+                $this->_sendOne($data);
+                break;
+            default:
+                Log::write('Transfer: Business message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
         }
     }
 
@@ -208,16 +222,21 @@ class TransferAndBusinessService{
         foreach(Transfer::$clientList as $client){
             $clientId = Tool::encodeClientId($this->transferIp, $this->transferPort, $client->id);
             if($clientId !== $data['client_unique_id']){
-                $client->send($data['msg_content']);
+                $this->_send($client, $data['msg_content']);
             }
         }
     }
 
     private function _sendOne($data){
-        if(!isset(Transfer::$clientList[$data['to_client_connect_id']])){
+        if(empty($data['to_client_connect_id']) || !isset(Transfer::$clientList[$data['to_client_connect_id']])){
             return;
         }
         $clientConnect = Transfer::$clientList[$data['to_client_connect_id']];
-        $clientConnect->send($data['msg_content']);
+        $this->_send($clientConnect, $data['msg_content']);
+    }
+
+    private function _send($connect, $data){
+        $data = call_user_func($this->encodeFunction, $data);
+        $connect->send($data);
     }
 }

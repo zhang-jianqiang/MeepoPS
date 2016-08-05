@@ -10,7 +10,7 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\ThreeLayerMould;
+namespace MeepoPS\Core\Trident;
 
 class Transfer {
     //confluence的IP
@@ -22,6 +22,8 @@ class Transfer {
     public $innerIp = '0.0.0.0';
     //和Business通讯的内部端口(Business链接到这个端口)
     public $innerPort = 19912;
+    //Transfer回复数据给客户端的时候转码函数
+    public $encodeFunction;
 
     //客户端列表
     public static $clientList = array();
@@ -55,6 +57,7 @@ class Transfer {
         //监听一个端口, 用来做内部通讯(Business会链接这个端口)。
         $this->_transferAndBusinessService->transferIp = $this->innerIp;
         $this->_transferAndBusinessService->transferPort = $this->innerPort;
+        $this->_transferAndBusinessService->encodeFunction = $this->encodeFunction;
         $this->_transferAndBusinessService->listenBusiness();
         //向中心机(Confluence层)发送自己的地址和端口, 以便Business感知。
         $this->_transferAndConfluenceService->transferIp = $this->innerIp;
@@ -71,7 +74,6 @@ class Transfer {
     public function callbackTransferConnect($connect){
         $connect->unique_id = Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id);
         self::$clientList[$connect->id] = $connect;
-//        $connect->send('UniqueId=' . $connect->unique_id);
     }
 
     /**

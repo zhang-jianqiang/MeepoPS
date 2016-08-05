@@ -7,56 +7,61 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\ThreeLayerMould;
+namespace MeepoPS\Core\Trident;
 
-use MeepoPS\Api\ThreeLayerMould;
+use MeepoPS\Api\Trident;
 use MeepoPS\Core\Log;
 use MeepoPS\Core\Timer;
 use MeepoPS\Library\TcpClient;
 
-class TransferAndConfluenceService{
+class BusinessAndConfluenceService{
 
-    public $transferIp;
-    public $transferPort;
     public $confluenceIp;
     public $confluencePort;
 
     private $_confluence;
+    private $_businessAndTranferService;
+
+    public function __construct(){
+        $this->_businessAndTranferService = new BusinessAndTransferService();
+    }
 
     /**
-     * 向中心机(Confluence层)发送自己的地址和端口, 以便Business感知。
+     * 向中心机(Confluence层)通知自己, 表示新的Business进程已经上线, 并定时获得Confluence推送的消息。
      */
     public function connectConfluence(){
-        $this->_confluence = new TcpClient(ThreeLayerMould::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort, true);
+        $this->_confluence = new TcpClient(Trident::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort, true);
         //实例化一个空类
         $this->_confluence->instance = new \stdClass();
         $this->_confluence->instance->callbackNewData = array($this, 'callbackConfluenceNewData');
         $this->_confluence->instance->callbackConnectClose = array($this, 'callbackConfluenceConnectClose');
         $this->_confluence->confluence = array();
         $this->_confluence->connect();
-        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE, 'msg_content'=>array('ip'=>$this->transferIp, 'port'=>$this->transferPort)));
+        $result = $this->_confluence->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE));
         if($result === false){
-            Log::write('Transfer: add confluence failed.' . $this->transferIp . ':' . $this->transferPort . 'WARNING');
+            Log::write('Business: add confluence failed.' . 'WARNING');
             $this->_closeConfluence();
         }
     }
 
     /**
-     * 回调函数 - 收到Confluence发来新消息时
-     * 只接受新增Business、PING两种消息
+     * 收到Confluence发来的消息时
      * @param $connect
      * @param $data
      */
     public function callbackConfluenceNewData($connect, $data){
         switch($data['msg_type']){
-            case MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE:
+            case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE:
                 $this->_addConfluenceResponse($connect, $data);
                 break;
             case MsgTypeConst::MSG_TYPE_PING:
                 $this->_receivePingFromConfluence($connect, $data);
                 break;
+            case MsgTypeConst::MSG_TYPE_RESET_TRANSFER_LIST:
+                $this->_businessAndTranferService->resetTransferList($data);
+                break;
             default:
-                Log::write('Transfer: Confluence message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Business: Confluence message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
                 $this->_closeConfluence();
                 return;
         }
@@ -79,11 +84,11 @@ class TransferAndConfluenceService{
         //添加计时器, 如果一定时间内没有收到中心机发来的PING, 则断开本次链接并重新向中心机发起注册
         $this->_confluence->confluence['waiter_confluence_ping_timer_id'] = Timer::add(function(){
             if((++$this->_confluence->confluence['confluence_no_ping_limit']) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
-                //断开连接
+                //断开链接
                 $this->_closeConfluence();
             }
         }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
-        Log::write('Transfer: add Confluence success. ' . $this->confluenceIp . ':' . $this->confluencePort);
+        Log::write('Business: add Confluence success. ' . $this->confluenceIp . ':' . $this->confluencePort);
     }
 
     /**
@@ -103,10 +108,10 @@ class TransferAndConfluenceService{
     }
 
     /**
-     * 如果Transfer和Confluence的链接断开, 则尝试重连
+     * 如果Business和Confluence的链接断开, 则尝试重连
      */
     public function callbackConfluenceConnectClose(){
-        $this->_reConnectConfluence();
+        Timer::add(array($this, 'connectConfluence'), array(), 1, false);
     }
 
     /**

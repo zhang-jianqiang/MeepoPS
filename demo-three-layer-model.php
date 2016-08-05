@@ -14,7 +14,7 @@
 require_once 'MeepoPS/index.php';
 
 //使用基于三层网络模型的文本传输的Api类
-$telnet = new \MeepoPS\Api\ThreeLayerMould('telnet', '0.0.0.0', '19910');
+$telnet = new \MeepoPS\Api\Trident('telnet', '0.0.0.0', '19910');
 
 $telnet->confluenceIp = '0.0.0.0';
 $telnet->confluencePort = '19911';
@@ -38,12 +38,12 @@ $telnet->callbackNewData = function($connect, $data){
                  return;
              }
              $message = '收到群发消息: ' . $data['content'];
-             \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToAll($message);
+             \MeepoPS\Core\Trident\AppBusiness::sendToAll($message);
              break;
          case 'SEND_ONE':
              $message = '收到私聊消息: ' . $data['content'] . '(From: ' . $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] . ')';
              $clientId = $data['send_to_one'];
-             \MeepoPS\Core\ThreeLayerMould\AppBusiness::sendToOne($message, $clientId);
+             \MeepoPS\Core\Trident\AppBusiness::sendToOne($message, $clientId);
              break;
          default:
              return;

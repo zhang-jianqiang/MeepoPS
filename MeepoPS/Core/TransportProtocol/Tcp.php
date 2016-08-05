@@ -103,8 +103,6 @@ class Tcp extends TransportProtocolInterface
             $isAlreadyReaded = true;
             $this->_readDate .= $buffer;
         }
-//        var_dump($connect);
-//        var_dump($connect.'  readData:' . $this->_readDate);
         //检测连接是否关闭
         if ($isAlreadyReaded === false && $isDestroy) {
             $this->destroy();

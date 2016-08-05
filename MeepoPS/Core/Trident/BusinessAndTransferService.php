@@ -7,11 +7,10 @@
  * E-mail: lixuan868686@163.com
  * WebSite: http://www.lanecn.com
  */
-namespace MeepoPS\Core\ThreeLayerMould;
+namespace MeepoPS\Core\Trident;
 
-use MeepoPS\Api\ThreeLayerMould;
+use MeepoPS\Api\Trident;
 use MeepoPS\Core\Log;
-use MeepoPS\Core\MeepoPS;
 use MeepoPS\Core\Timer;
 use MeepoPS\Library\TcpClient;
 
@@ -50,7 +49,7 @@ class BusinessAndTransferService{
      *
      */
     private function _connectTransfer($ip, $port){
-        $transfer = new TcpClient(ThreeLayerMould::INNER_PROTOCOL, $ip, $port, false);
+        $transfer = new TcpClient(Trident::INNER_PROTOCOL, $ip, $port, false);
         //实例化一个空类
         $transfer->instance = new \stdClass();
         $transfer->instance->callbackNewData = array($this, 'callbackTransferNewData');
@@ -91,7 +90,6 @@ class BusinessAndTransferService{
                 break;
             default:
                 Log::write('Business: Transfer message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
-                $this->_close($connect);
                 return;
         }
     }
@@ -150,7 +148,7 @@ class BusinessAndTransferService{
      * @param $data
      */
     private function _appMessage($connect, $data){
-        if(empty(ThreeLayerMould::$callbackList['callbackNewData']) || !is_callable(ThreeLayerMould::$callbackList['callbackNewData'])){
+        if(empty(Trident::$callbackList['callbackNewData']) || !is_callable(Trident::$callbackList['callbackNewData'])){
             return;
         }
         $_SERVER['MEEPO_PS_MSG_TYPE'] = $data['msg_type'];
@@ -160,7 +158,7 @@ class BusinessAndTransferService{
         $_SERVER['MEEPO_PS_CLIENT_PORT'] = $data['client_port'];
         $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'] = $data['client_connect_id'];
         $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] = $data['client_unique_id'];
-        call_user_func_array(ThreeLayerMould::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
+        call_user_func_array(Trident::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
     }
 
     /**

@@ -11,25 +11,27 @@
 namespace MeepoPS\Api;
 
 use MeepoPS\Core\Log;
-use MeepoPS\Core\ThreeLayerMould\Confluence;
-use MeepoPS\Core\ThreeLayerMould\Business;
-use MeepoPS\Core\ThreeLayerMould\Transfer;
+use MeepoPS\Core\Trident\Confluence;
+use MeepoPS\Core\Trident\Business;
+use MeepoPS\Core\Trident\Transfer;
 
-class ThreeLayerMould
+class Trident
 {
     public $confluenceIp = '0.0.0.0';
     public $confluencePort = '19911';
     public $confluenceInnerIp = '127.0.0.1';
-    public $confluenceName = 'MeepoPS-ThreeLayerMould-Confluence';
+    public $confluenceName = 'MeepoPS-Trident-Confluence';
     private $_confluenceChildProcessCount = 1;
 
     private $_transferHost;
     private $_transferPort;
     public $transferChildProcessCount = 1;
-    public $transferName = 'MeepoPS-ThreeLayerMould-Transfer';
+    public $transferName = 'MeepoPS-Trident-Transfer';
+    //Transfer回复数据给客户端的时候转码函数
+    public $transferEncodeFunction = 'json_encode';
 
     public $businessChildProcessCount = 1;
-    public $businessName = 'MeepoPS-ThreeLayerMould-Business';
+    public $businessName = 'MeepoPS-Trident-Business';
 
     public $transferInnerIp = '0.0.0.0';
     public $transferInnerPort = '19912';
@@ -43,7 +45,7 @@ class ThreeLayerMould
     const INNER_PROTOCOL = 'telnetjson';
     
     /**
-     * ThreeLayerMould constructor.
+     * Trident constructor.
      * @param string $apiName string Api类名
      * @param string $host string 需要监听的地址
      * @param string $port string 需要监听的端口
@@ -123,6 +125,8 @@ class ThreeLayerMould
         $transfer = new Transfer($this->_transferApiName, $this->_transferHost, $this->_transferPort, $this->_contextOptionList);
         $transfer->innerIp = $this->transferInnerIp;
         $transfer->innerPort = $this->transferInnerPort;
+
+        $transfer->encodeFunction = $this->transferEncodeFunction;
 
         $transfer->confluenceIp = $this->confluenceInnerIp;
         $transfer->confluencePort = $this->confluencePort;

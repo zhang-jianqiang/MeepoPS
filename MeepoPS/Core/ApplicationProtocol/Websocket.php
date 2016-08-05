@@ -49,6 +49,10 @@ class Websocket implements ApplicationProtocolInterface
         $connect->wsPackageFrameList = array();
         while(true){
             $frameLength = self::_unWrap($allFrameLength, $data, $connect, $dataLength);
+            //不需要后续处理的
+            if($frameLength === null){
+                return 0;
+            }
             //有不完整的帧
             if($frameLength === 0){
                 return 0;
@@ -299,7 +303,8 @@ class Websocket implements ApplicationProtocolInterface
             return 0;
         }
         //执行opcode的操作
-        if(self::_opCode($opcode, $connect, $payLoadLen) === false){
+        $opCodeResult = self::_opCode($opcode, $connect, $payLoadLen);
+        if($opCodeResult === false){
             return false;
         }
         //默认头长。 如果payloadLen小于126, 头长度是默认, $payLoadLen是就是数据大小
@@ -331,6 +336,10 @@ class Websocket implements ApplicationProtocolInterface
         //当前收到的数据小于当前帧的完成长度(数据不全)
         if($dataLength < $frameLength){
             return 0;
+        }
+        if($opCodeResult === null){
+            $connect->substrReadData($frameLength);
+            return null;
         }
         //本数据包所有帧的头+数据的长度
         $allFrameLength += $frameLength;
@@ -402,7 +411,7 @@ class Websocket implements ApplicationProtocolInterface
             //请求关闭链接
             case 0x8:
                 self::_disConnect($connect);
-                break;
+                return null;
             //ping
             case 0x9:
                 //执行Ping时的回调函数
@@ -419,7 +428,7 @@ class Websocket implements ApplicationProtocolInterface
                 if (!$payLoadLen) {
                     $connect->substrReadData(self::BASE_HEADER_LENGTH);
                 }
-                break;
+                return null;
             //Pong
             case 0xa:
                 //执行Pong时的回调函数
@@ -434,7 +443,7 @@ class Websocket implements ApplicationProtocolInterface
                 if (!$payLoadLen) {
                     $connect->substrReadData(self::BASE_HEADER_LENGTH);
                 }
-                break;
+                return null;
             default :
                 Log::write('opcode ' . $opCode . ' incorrect', 'WARNING');
                 self::_disConnect($connect);
