@@ -71,7 +71,7 @@ class Transfer {
     public function callbackTransferConnect($connect){
         $connect->unique_id = Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id);
         self::$clientList[$connect->id] = $connect;
-        $connect->send('UniqueId=' . $connect->unique_id);
+//        $connect->send('UniqueId=' . $connect->unique_id);
     }
 
     /**

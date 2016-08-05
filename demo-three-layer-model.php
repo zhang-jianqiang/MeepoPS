@@ -14,10 +14,10 @@
 require_once 'MeepoPS/index.php';
 
 //使用基于三层网络模型的文本传输的Api类
-$telnet = new \MeepoPS\Api\ThreeLayerMould('telnet', '0.0.0.0', '19911');
+$telnet = new \MeepoPS\Api\ThreeLayerMould('telnet', '0.0.0.0', '19910');
 
 $telnet->confluenceIp = '0.0.0.0';
-$telnet->confluencePort = '19910';
+$telnet->confluencePort = '19911';
 $telnet->confluenceInnerIp = '127.0.0.1';
 
 $telnet->transferInnerIp = '0.0.0.0';

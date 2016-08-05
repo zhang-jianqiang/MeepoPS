@@ -18,7 +18,7 @@ use MeepoPS\Core\ThreeLayerMould\Transfer;
 class ThreeLayerMould
 {
     public $confluenceIp = '0.0.0.0';
-    public $confluencePort = '19910';
+    public $confluencePort = '19911';
     public $confluenceInnerIp = '127.0.0.1';
     public $confluenceName = 'MeepoPS-ThreeLayerMould-Confluence';
     private $_confluenceChildProcessCount = 1;
