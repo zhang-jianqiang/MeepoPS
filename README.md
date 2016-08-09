@@ -50,6 +50,7 @@
 ```
 docker pull xyzasd01/meepops-0.0.5-dev
 ```
+MeepoPS部署在/usr/local/MeepoPS目录下
 
 ##### 客户端使用方法:
 
