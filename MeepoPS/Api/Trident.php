@@ -94,7 +94,6 @@ class Trident
             default:
                 $this->_initConfluence();
                 echo "MeepoPS Confluence Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
-                //输出启动成功字样
                 $this->_initTransfer();
                 echo "MeepoPS Transfer Start: \033[40G[\033[49;32;5mOK\033[0m]\n";
                 $this->_initBusiness();
