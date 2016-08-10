@@ -50,7 +50,7 @@ class TransferAndBusinessService{
         $connect->business['waiter_verify_timer_id'] = Timer::add(function ($connect){
             Log::write('Transfer: Wait Business for token authentication timeout', 'ERROR');
             $this->_close($connect);
-        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_WAIT_VERIFY_TIMEOUT, false);
+        }, array($connect), MEEPO_PS_TRIDENT_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
 
     /**
@@ -107,9 +107,9 @@ class TransferAndBusinessService{
         //设定PING的定时器
         $connect->business['ping_timer_id'] = Timer::add(function ($connect){
             $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PING, 'msg_content'=>'PING'));
-        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        }, array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         //检测PING回复情况
-        $connect->business['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        $connect->business['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         //告知对方, 已经收到消息, 并且已经添加成功了
         return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER, 'msg_content'=>'OK', 'msg_attachment'=>array('ip' => $this->transferIp, 'port'=>$this->transferPort)));
     }
@@ -150,7 +150,7 @@ class TransferAndBusinessService{
     public function checkPingLimit($connect){
         $connect->business['ping_no_response_count']++;
         //超出无响应次数限制时断开连接
-        if( ($connect->business['ping_no_response_count'] - 1) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
+        if( ($connect->business['ping_no_response_count'] - 1) >= MEEPO_PS_TRIDENT_SYS_PING_NO_RESPONSE_LIMIT){
             $conn = '';
             if(isset($this->_businessList[$connect->id])){
                 $conn = $this->_businessList[$connect->id];

@@ -111,11 +111,11 @@ class BusinessAndTransferService{
         //添加计时器, 如果一定时间内没有收到Transfer发来的PING, 则断开本次链接并重新链接到Transfer
         $connect->business['waiter_transfer_ping_timer_id'] = Timer::add(function()use($connect){
             $connect->business['transfer_no_ping_limit']++;
-            if( $connect->business['transfer_no_ping_limit'] >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
+            if( $connect->business['transfer_no_ping_limit'] >= MEEPO_PS_TRIDENT_SYS_PING_NO_RESPONSE_LIMIT){
                 //断开连接
                 $this->_close($connect);
             }
-        }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        }, array(), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         self::$transferList[$transferKey] = $connect;
         Log::write('Business: link Transfer success. ' . $connect->host . ':' . $connect->port);
     }

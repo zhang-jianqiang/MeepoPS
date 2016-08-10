@@ -83,11 +83,11 @@ class BusinessAndConfluenceService{
         $this->_confluence->confluence['confluence_no_ping_limit'] = 0;
         //添加计时器, 如果一定时间内没有收到中心机发来的PING, 则断开本次链接并重新向中心机发起注册
         $this->_confluence->confluence['waiter_confluence_ping_timer_id'] = Timer::add(function(){
-            if((++$this->_confluence->confluence['confluence_no_ping_limit']) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
+            if((++$this->_confluence->confluence['confluence_no_ping_limit']) >= MEEPO_PS_TRIDENT_SYS_PING_NO_RESPONSE_LIMIT){
                 //断开链接
                 $this->_closeConfluence();
             }
-        }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        }, array(), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         Log::write('Business: add Confluence success. ' . $this->confluenceIp . ':' . $this->confluencePort);
     }
 

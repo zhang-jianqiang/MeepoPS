@@ -39,7 +39,7 @@ class Confluence extends MeepoPS{
         //设置定时器, 每段时间强制发送所有的Transfer给所有的Business
         Timer::add(function (){
             $this->broadcastToBusiness();
-        }, array(), MEEPO_PS_THREE_LAYER_MOULD_SYS_CONFLUENCE_BROADCAST_INTERVAL);
+        }, array(), MEEPO_PS_TRIDENT_SYS_CONFLUENCE_BROADCAST_INTERVAL);
     }
 
     /**
@@ -66,7 +66,7 @@ class Confluence extends MeepoPS{
         $connect->confluence['waiter_verify_timer_id'] = Timer::add(function ($connect){
             Log::write('Confluence: Wait for token authentication timeout', 'ERROR');
             $this->_close($connect);
-        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_WAIT_VERIFY_TIMEOUT, false);
+        }, array($connect), MEEPO_PS_TRIDENT_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
 
     /**
@@ -146,9 +146,9 @@ class Confluence extends MeepoPS{
         //设定PING的定时器
         $connect->confluence['ping_timer_id'] = Timer::add(function ($connect){
             $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PING, 'msg_content'=>'PING'));
-        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        }, array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         //检测PING回复情况
-        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         $this->broadcastToBusiness();
         //告知对方, 已经收到消息, 并且已经添加成功了
         return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE, 'msg_content'=>'OK'));
@@ -166,9 +166,9 @@ class Confluence extends MeepoPS{
         //设定PING的定时器
         $connect->confluence['ping_timer_id'] = Timer::add(function ($connect){
             $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_PING, 'msg_content'=>'PING'));
-        }, array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        }, array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         //检测PING回复情况
-        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_INTERVAL);
+        $connect->confluence['check_ping_timer_id'] = Timer::add(array($this, 'checkPingLimit'), array($connect), MEEPO_PS_TRIDENT_SYS_PING_INTERVAL);
         $this->broadcastToBusiness($connect);
         //告知对方, 已经收到消息, 并且已经添加成功了
         return $connect->send(array('msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE, 'msg_content'=>'OK'));
@@ -193,7 +193,7 @@ class Confluence extends MeepoPS{
     public function checkPingLimit($connect){
         $connect->confluence['ping_no_response_count']++;
         //超出无响应次数限制时断开连接
-        if( ($connect->confluence['ping_no_response_count'] - 1) >= MEEPO_PS_THREE_LAYER_MOULD_SYS_PING_NO_RESPONSE_LIMIT){
+        if( ($connect->confluence['ping_no_response_count'] - 1) >= MEEPO_PS_TRIDENT_SYS_PING_NO_RESPONSE_LIMIT){
             $conn = '';
             if(isset($this->_businessList[$connect->id])){
                 $conn = $this->_businessList[$connect->id];
