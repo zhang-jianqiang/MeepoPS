@@ -151,6 +151,7 @@ class BusinessAndTransferService{
         if(empty(Trident::$callbackList['callbackNewData']) || !is_callable(Trident::$callbackList['callbackNewData'])){
             return;
         }
+        //填充$_SERVER
         $_SERVER['MEEPO_PS_MSG_TYPE'] = $data['msg_type'];
         $_SERVER['MEEPO_PS_TRANSFER_IP'] = $data['transfer_ip'];
         $_SERVER['MEEPO_PS_TRANSFER_PORT'] = $data['transfer_port'];
@@ -158,18 +159,27 @@ class BusinessAndTransferService{
         $_SERVER['MEEPO_PS_CLIENT_PORT'] = $data['client_port'];
         $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'] = $data['client_connect_id'];
         $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] = $data['client_unique_id'];
+        //填充$_SESSION
+        $_SESSION = $data['app_business']['session'];
         call_user_func_array(Trident::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
     }
 
     /**
      * 发送给Business的消息格式
      * @param $data mixed
+     * @param $msgType string|null
      * @return array
      */
-    public static function formatMessageToTransfer($data){
-        return array(
-            'msg_type' => $_SERVER['MEEPO_PS_MSG_TYPE'],
+    public static function formatMessageToTransfer($data, $msgType=null){
+        if(is_null($msgType)){
+            $msgType = $_SERVER['MEEPO_PS_MSG_TYPE'];
+        }
+        $format = array(
+            'msg_type' => $msgType,
             'msg_content' => $data,
+            'app_business' => array(
+                'session' => $_SESSION,
+            ),
             'transfer_ip' => $_SERVER['MEEPO_PS_TRANSFER_IP'],
             'transfer_port' => $_SERVER['MEEPO_PS_TRANSFER_PORT'],
             'client_ip' => $_SERVER['MEEPO_PS_CLIENT_IP'],
@@ -177,5 +187,6 @@ class BusinessAndTransferService{
             'client_connect_id' => $_SERVER['MEEPO_PS_CLIENT_CONNECT_ID'],
             'client_unique_id' => $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'],
         );
+        return $format;
     }
 }

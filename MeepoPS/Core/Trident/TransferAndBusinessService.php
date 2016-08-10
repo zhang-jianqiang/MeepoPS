@@ -60,6 +60,7 @@ class TransferAndBusinessService{
      * @param $data
      */
     public function callbackBusinessNewData($connect, $data){
+        //根据类型选择不同的处理方式
         switch($data['msg_type']){
             case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER:
                 //token校验
@@ -209,6 +210,9 @@ class TransferAndBusinessService{
         return array(
             'msg_type' => MsgTypeConst::MSG_TYPE_APP_MSG,
             'msg_content' => $data,
+            'app_business' => array(
+                'session' => !empty($connect->app_business['session']) ? $connect->app_business['session'] : array(),
+            ),
             'transfer_ip' => $this->transferIp,
             'transfer_port' => $this->transferPort,
             'client_ip' => $clientAddress[0],
@@ -222,7 +226,7 @@ class TransferAndBusinessService{
         foreach(Transfer::$clientList as $client){
             $clientId = Tool::encodeClientId($this->transferIp, $this->transferPort, $client->id);
             if($clientId !== $data['client_unique_id']){
-                $this->_send($client, $data['msg_content']);
+                $this->_send($client, $data);
             }
         }
     }
@@ -232,11 +236,24 @@ class TransferAndBusinessService{
             return;
         }
         $clientConnect = Transfer::$clientList[$data['to_client_connect_id']];
-        $this->_send($clientConnect, $data['msg_content']);
+        $this->_send($clientConnect, $data);
     }
 
     private function _send($connect, $data){
-        $data = call_user_func($this->encodeFunction, $data);
+        //处理链接需要保留的数据, 如SESSION等
+        $this->_connectProperty($connect, $data['app_business']);
+        //数据转码
+        $data = call_user_func($this->encodeFunction, $data['msg_content']);
+        //发送给客户端
         $connect->send($data);
+    }
+
+    /**
+     * 处理链接的属性, 如SESSION等
+     * @param $connect resource
+     * @param $connectProperty array
+     */
+    private function _connectProperty($connect, $connectProperty){
+        $connect->app_business['session'] = !empty($connectProperty['session']) ? $connectProperty['session'] : array();
     }
 }

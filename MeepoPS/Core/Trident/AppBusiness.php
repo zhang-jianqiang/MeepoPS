@@ -11,7 +11,7 @@
 namespace MeepoPS\Core\Trident;
 
 class AppBusiness{
-
+    
     /**
      * 发送给所有人消息
      * @param $message
@@ -54,7 +54,6 @@ class AppBusiness{
     /**
      * 给自己发送消息
      * @param $message
-     * @param $clientId
      * @return bool
      */
     public static function sendToMe($message){
@@ -65,6 +64,7 @@ class AppBusiness{
      * 发送操作
      * @param $connect
      * @param $data
+     * @return bool|int
      */
     private static function _send($connect, $data){
         return $connect->send($data);

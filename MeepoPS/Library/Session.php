@@ -74,7 +74,6 @@ class Session{
 
     /**
      * 读取Session时调用
-     * @param int $sessionId
      * @return string
      */
     private function _read(){
