@@ -40,7 +40,7 @@ class Tcp extends TransportProtocolInterface
     //待发送的缓冲区
     protected $_sendBuffer = '';
     //已接收到的数据
-    private $_readDate = '';
+    private $_readData = '';
     //当前包长
     private $_currentPackageSize = 0;
     //当前链接状态
@@ -101,7 +101,7 @@ class Tcp extends TransportProtocolInterface
                 break;
             }
             $isAlreadyReaded = true;
-            $this->_readDate .= $buffer;
+            $this->_readData .= $buffer;
         }
         //检测连接是否关闭
         if ($isAlreadyReaded === false && $isDestroy) {
@@ -118,9 +118,9 @@ class Tcp extends TransportProtocolInterface
     private function _readByApplicationProtocol()
     {
         //如果接收到的数据不为空, 并且没有被暂停
-        while (!empty($this->_readDate) && $this->_isPauseRead === false) {
+        while (!empty($this->_readData) && $this->_isPauseRead === false) {
             $applicationProtocolClassName = $this->_applicationProtocolClassName;
-            $this->_currentPackageSize = intval($applicationProtocolClassName::input($this->_readDate, $this));
+            $this->_currentPackageSize = intval($applicationProtocolClassName::input($this->_readData, $this));
             //如果数据包未完, 则不处理
             if ($this->_currentPackageSize === 0) {
                 break;
@@ -135,7 +135,7 @@ class Tcp extends TransportProtocolInterface
             //如果数据包超过配置的最大TCP链接所接收的数据量, 则抛弃本数据包, 写日志. 此方式模仿PHP的POST请求过大会直接放弃, 所以$_FILE有时会为空
             if ($this->_currentPackageSize > MEEPO_PS_TCP_CONNECT_READ_MAX_PACKET_SIZE) {
                 //放弃该数据包
-                $this->_readDate = substr($this->_readDate, $this->_currentPackageSize);
+                $this->_readData = substr($this->_readData, $this->_currentPackageSize);
                 $this->_currentPackageSize = 0;
                 Log::write('data packet size exceeds the maximum limit. size=' . $this->_currentPackageSize . '. limit=' . MEEPO_PS_TCP_CONNECT_READ_MAX_PACKET_SIZE, 'WARNING');
                 //强制销毁链接, 该链接尚未发送的数据也不发了.
@@ -145,14 +145,14 @@ class Tcp extends TransportProtocolInterface
             //读取完整数据包的个数
             self::$statistics['total_read_package_count']++;
             //如果缓冲区的所有数据是一个完整的包
-            if ($this->_currentPackageSize == strlen($this->_readDate)) {
-                $requestBuffer = $this->_readDate;
-                $this->_readDate = '';
+            if ($this->_currentPackageSize == strlen($this->_readData)) {
+                $requestBuffer = $this->_readData;
+                $this->_readData = '';
             } else {
                 //从读取缓冲区中获取一个完整的包
-                $requestBuffer = substr($this->_readDate, 0, $this->_currentPackageSize);
+                $requestBuffer = substr($this->_readData, 0, $this->_currentPackageSize);
                 //从读取缓冲区删除获取到的包
-                $this->_readDate = substr($this->_readDate, $this->_currentPackageSize);
+                $this->_readData = substr($this->_readData, $this->_currentPackageSize);
             }
             $this->_currentPackageSize = 0;
             if (!empty($this->instance->callbackNewData)) {
@@ -172,20 +172,20 @@ class Tcp extends TransportProtocolInterface
     private function _readNoApplicationProtocol()
     {
         //如果读取到的数据是空,或者链接已经被暂停
-        if ($this->_readDate === '' || $this->_isPauseRead === true) {
+        if ($this->_readData === '' || $this->_isPauseRead === true) {
             return;
         }
         self::$statistics['total_read_package_count']++;
         //触发接收到新数据的回调函数
         if (!empty($this->instance->callbackNewData)) {
             try {
-                call_user_func_array($this->instance->callbackNewData, array($this, $this->_readDate));
+                call_user_func_array($this->instance->callbackNewData, array($this, $this->_readData));
             } catch (\Exception $e) {
                 self::$statistics['exception_count']++;
                 Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->instance->callbackNewData) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
-        $this->_readDate = '';
+        $this->_readData = '';
     }
 
     /**
@@ -409,9 +409,9 @@ class Tcp extends TransportProtocolInterface
     public function substrReadData($start, $length = null)
     {
         if (is_null($length)) {
-            $this->_readDate = substr($this->_readDate, $start);
+            $this->_readData = substr($this->_readData, $start);
         } else {
-            $this->_readDate = substr($this->_readDate, $start, $length);
+            $this->_readData = substr($this->_readData, $start, $length);
         }
 
     }
