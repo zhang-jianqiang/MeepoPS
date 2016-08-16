@@ -148,7 +148,7 @@ class Websocket implements ApplicationProtocolInterface
         $response .= "Sec-WebSocket-Accept: $key\r\nSec-WebSocket-Version: 13\r\n\r\n";
         //消费掉数据流中握手的部分
         $connect->substrReadData(strlen($data));
-        $connect->send($response);
+        $connect->send($response, false);
         $connect->isHandshake = true;
     }
 
