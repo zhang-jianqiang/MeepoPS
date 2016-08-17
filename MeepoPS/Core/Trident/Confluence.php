@@ -85,9 +85,17 @@ class Confluence extends MeepoPS{
                     $this->_close($connect);
                     return;
                 }
-                if($this->_addTransfer($connect, $data)){
+//                if($this->_addTransfer($connect, $data)){
+//                    //删除等待校验超时的定时器
+//                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+//                }
+
+                $result = $this->_addTransfer($connect, $data);
+                if($result){
                     //删除等待校验超时的定时器
                     Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+                }else{
+                    Log::write('Confluence: _addTransfer return result: ' . $result, 'ERROR');
                 }
                 break;
             //新的Business加入
@@ -98,9 +106,17 @@ class Confluence extends MeepoPS{
                     $this->_close($connect);
                     return;
                 }
-                if($this->_addBusiness($connect, $data)){
+//                if($this->_addBusiness($connect, $data)){
+//                    //删除等待校验超时的定时器
+//                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+//                }
+
+                $result = $this->_addBusiness($connect, $data);
+                if($result){
                     //删除等待校验超时的定时器
                     Timer::delOne($connect->confluence['waiter_verify_timer_id']);
+                }else{
+                    Log::write('Confluence: _addBusiness return result: ' . $result, 'ERROR');
                 }
                 break;
             //PONG

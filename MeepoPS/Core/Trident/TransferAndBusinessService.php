@@ -49,6 +49,7 @@ class TransferAndBusinessService{
     public function callbackBusinessConnect($connect){
         $connect->business['waiter_verify_timer_id'] = Timer::add(function ($connect){
             Log::write('Transfer: Wait Business for token authentication timeout', 'ERROR');
+            Log::write('Transfer: Wait Business for token authentication timeout. client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
             $this->_close($connect);
         }, array($connect), MEEPO_PS_TRIDENT_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
@@ -140,7 +141,7 @@ class TransferAndBusinessService{
                 $this->_sendOne($data);
                 break;
             default:
-                Log::write('Transfer: Business message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Transfer: Business message type is not supported, data=' . $data, 'ERROR');
         }
     }
 
