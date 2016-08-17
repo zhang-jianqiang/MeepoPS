@@ -4,6 +4,7 @@
 
 #### 综述:
 - 目前版本为V0.0.4.
+- V0.0.5已经开发完成, 请切换到DEV分支抢先体验。V0.0.5-dev已经发布在Docker Hub。包括一切所需, 从CentOS7到PHP, 以及Libevent、Pcntl等扩展等整套环境。
 - PHP作为最好的语言, 不仅仅能依靠Nginx来开发Web应用, 同时,也可以构建高效稳定的即时通讯类Socket应用.
 - MeepoPS的最低运行要求是安装了PHP的PCNTL库.
 - MeepoPS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
