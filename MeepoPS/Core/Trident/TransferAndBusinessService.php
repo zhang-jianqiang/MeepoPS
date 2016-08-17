@@ -140,7 +140,7 @@ class TransferAndBusinessService{
                 $this->_sendOne($data);
                 break;
             default:
-                Log::write('Transfer: Business message type is not supported, data=' . $data, 'ERROR');
+                Log::write('Transfer: Business message type is not supported, data=' . json_encode($data), 'ERROR');
         }
     }
 
