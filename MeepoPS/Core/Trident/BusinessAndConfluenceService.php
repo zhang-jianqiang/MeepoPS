@@ -61,7 +61,7 @@ class BusinessAndConfluenceService{
                 $this->_businessAndTranferService->resetTransferList($data);
                 break;
             default:
-                Log::write('Business: Confluence message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Business: Confluence message type is not supported, data=' . json_encode($data), 'ERROR');
                 $this->_closeConfluence();
                 return;
         }

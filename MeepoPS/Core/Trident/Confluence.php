@@ -64,7 +64,7 @@ class Confluence extends MeepoPS{
      */
     public function callbackConfluenceConnect($connect){
         $connect->confluence['waiter_verify_timer_id'] = Timer::add(function ($connect){
-            Log::write('Confluence: Wait for token authentication timeout', 'ERROR');
+            Log::write('Confluence: Wait for token authentication timeout. client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
             $this->_close($connect);
         }, array($connect), MEEPO_PS_TRIDENT_SYS_WAIT_VERIFY_TIMEOUT, false);
     }
@@ -124,7 +124,7 @@ class Confluence extends MeepoPS{
                 $this->_pong($connect, $data);
                 break;
             default:
-                Log::write('Confluence: New link message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Confluence: New link message type is not supported, data=' . json_encode($data), 'ERROR');
                 $this->_close($connect);
                 return;
         }

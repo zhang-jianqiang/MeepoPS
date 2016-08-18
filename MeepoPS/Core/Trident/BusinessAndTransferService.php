@@ -89,7 +89,7 @@ class BusinessAndTransferService{
                 $this->_appMessage($connect, $data);
                 break;
             default:
-                Log::write('Business: Transfer message type is not supported, meg_type=' . $data['msg_type'], 'ERROR');
+                Log::write('Business: Transfer message type is not supported, data=' . json_encode($data), 'ERROR');
                 return;
         }
     }
