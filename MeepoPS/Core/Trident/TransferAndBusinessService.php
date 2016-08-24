@@ -171,7 +171,9 @@ class TransferAndBusinessService{
         if(isset($connect->business['check_ping_timer_id'])){
             Timer::delOne($connect->business['check_ping_timer_id']);
         }
-        $connect->close();
+        if(method_exists($connect, 'close')){
+            $connect->close();
+        }
     }
     
     

@@ -131,6 +131,8 @@ class BusinessAndConfluenceService{
         if(isset($this->_confluence->confluence['waiter_confluence_ping_timer_id'])){
             Timer::delOne($this->_confluence->confluence['waiter_confluence_ping_timer_id']);
         }
-        $this->_confluence->close();
+        if (method_exists($this->_confluence, 'close')) {
+            $this->_confluence->close();
+        }
     }
 }

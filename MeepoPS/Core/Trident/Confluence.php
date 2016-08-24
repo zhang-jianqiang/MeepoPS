@@ -225,7 +225,9 @@ class Confluence extends MeepoPS{
         if(isset($connect->confluence['waiter_verify_timer_id'])){
             Timer::delOne($connect->confluence['waiter_verify_timer_id']);
         }
-        $connect->close();
+        if (method_exists($connect, 'close')) {
+            $connect->close();
+        }
     }
 
     /**

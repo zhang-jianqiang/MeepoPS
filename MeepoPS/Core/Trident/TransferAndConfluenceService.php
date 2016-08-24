@@ -122,10 +122,13 @@ class TransferAndConfluenceService{
     /**
      * 断开和Confluence的链接
      */
-    private function _closeConfluence(){
-        if(isset($this->_confluence->confluence['waiter_confluence_ping_timer_id'])){
+    private function _closeConfluence()
+    {
+        if (isset($this->_confluence->confluence['waiter_confluence_ping_timer_id'])) {
             Timer::delOne($this->_confluence->confluence['waiter_confluence_ping_timer_id']);
         }
-        $this->_confluence->close();
+        if (method_exists($this->_confluence, 'close')) {
+            $this->_confluence->close();
+        }
     }
 }
