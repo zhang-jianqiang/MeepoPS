@@ -56,7 +56,7 @@ class TransferAndConfluenceService{
                 $this->_receivePingFromConfluence($connect, $data);
                 break;
             default:
-                Log::write('Transfer: Confluence message type is not supported, data' . json_encode($data), 'ERROR');
+                Log::write('Transfer: Confluence message type is not supported, data' . json_encode($data) . ', client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
                 $this->_closeConfluence();
                 return;
         }

@@ -140,7 +140,7 @@ class TransferAndBusinessService{
                 $this->_sendOne($data);
                 break;
             default:
-                Log::write('Transfer: Business message type is not supported, data=' . json_encode($data), 'ERROR');
+                Log::write('Transfer: Business message type is not supported, client address: ' . json_encode($connect->getClientAddress()) .', data=' . json_encode($data), 'ERROR');
         }
     }
 
@@ -156,7 +156,7 @@ class TransferAndBusinessService{
             if(isset($this->_businessList[$connect->id])){
                 $conn = $this->_businessList[$connect->id];
             }
-            Log::write('Transfer: PING Business no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
+            Log::write('Transfer: PING Business no response beyond the limit, has been disconnected, client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
             $this->_close($connect);
         }
     }

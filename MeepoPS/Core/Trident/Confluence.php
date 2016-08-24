@@ -81,42 +81,32 @@ class Confluence extends MeepoPS{
             case MsgTypeConst::MSG_TYPE_ADD_TRANSFER_TO_CONFLUENCE:
                 //token校验
                 if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
-                    Log::write('Confluence: New link token validation failed', 'ERROR');
+                    Log::write('Confluence: New link token validation failed, client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
                     $this->_close($connect);
                     return;
                 }
-//                if($this->_addTransfer($connect, $data)){
-//                    //删除等待校验超时的定时器
-//                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
-//                }
-
                 $result = $this->_addTransfer($connect, $data);
                 if($result){
                     //删除等待校验超时的定时器
                     Timer::delOne($connect->confluence['waiter_verify_timer_id']);
                 }else{
-                    Log::write('Confluence: _addTransfer return result: ' . $result, 'ERROR');
+                    Log::write('Confluence: _addTransfer return result: ' . $result . ', client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
                 }
                 break;
             //新的Business加入
             case MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_CONFLUENCE:
                 //token校验
                 if(!isset($data['token']) || Tool::verifyAuth($data['token']) !== true){
-                    Log::write('Confluence: New link token validation failed', 'ERROR');
+                    Log::write('Confluence: New link token validation failed, client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
                     $this->_close($connect);
                     return;
                 }
-//                if($this->_addBusiness($connect, $data)){
-//                    //删除等待校验超时的定时器
-//                    Timer::delOne($connect->confluence['waiter_verify_timer_id']);
-//                }
-
                 $result = $this->_addBusiness($connect, $data);
                 if($result){
                     //删除等待校验超时的定时器
                     Timer::delOne($connect->confluence['waiter_verify_timer_id']);
                 }else{
-                    Log::write('Confluence: _addBusiness return result: ' . $result, 'ERROR');
+                    Log::write('Confluence: _addBusiness return result: ' . $result . ', client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
                 }
                 break;
             //PONG
@@ -124,7 +114,7 @@ class Confluence extends MeepoPS{
                 $this->_pong($connect, $data);
                 break;
             default:
-                Log::write('Confluence: New link message type is not supported, data=' . json_encode($data), 'ERROR');
+                Log::write('Confluence: New link message type is not supported, client address: ' . json_encode($connect->getClientAddress()) .', data=' . json_encode($data), 'ERROR');
                 $this->_close($connect);
                 return;
         }
@@ -216,7 +206,7 @@ class Confluence extends MeepoPS{
             }else if(isset($this->_transferList[$connect->id])){
                 $conn = $this->_transferList[$connect->id];
             }
-            Log::write('Confluence: PING no response beyond the limit, has been disconnected. connect=' . json_encode($conn), 'ERROR');
+            Log::write('Confluence: PING no response beyond the limit, has been disconnected, client address: ' . json_encode($connect->getClientAddress()), 'ERROR');
             $this->_close($connect);
         }
     }
