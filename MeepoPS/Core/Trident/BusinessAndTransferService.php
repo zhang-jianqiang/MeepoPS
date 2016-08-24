@@ -68,7 +68,7 @@ class BusinessAndTransferService{
     }
 
     public function callbackTransferConnectClose($connect){
-        Timer::add(array($this, 'reConnectTransfer'), $connect, 1, false);
+        Timer::add(array($this, 'reConnectTransfer'), array($connect), 1, false);
     }
 
     /**
