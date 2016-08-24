@@ -64,7 +64,6 @@ class TcpClient extends Tcp{
             $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
             return;
         }
-
         //监听此链接
         MeepoPS::$globalEvent->add(array($this, 'checkConnection'), array(), $this->_connect, EventInterface::EVENT_TYPE_WRITE);
     }
