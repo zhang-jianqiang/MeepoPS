@@ -55,8 +55,6 @@ class BusinessAndTransferService{
         $transfer->instance->callbackNewData = array($this, 'callbackTransferNewData');
         $transfer->instance->callbackConnectClose = array($this, 'callbackTransferConnectClose');
         $transfer->transfer = array();
-        $transfer->host = $ip;
-        $transfer->port = $port;
         $transfer->connect();
         $result = $transfer->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER));
         if($result === false){
@@ -70,7 +68,7 @@ class BusinessAndTransferService{
     }
 
     public function callbackTransferConnectClose($connect){
-        Timer::add(array($this, 'reConnectTransfer'), array($connect->host, $connect->port), 1, false);
+        Timer::add(array($this, 'reConnectTransfer'), $connect, 1, false);
     }
 
     /**
