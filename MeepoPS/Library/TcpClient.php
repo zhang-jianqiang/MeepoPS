@@ -58,7 +58,9 @@ class TcpClient extends Tcp{
     public function connect(){
         $this->_connect = stream_socket_client('tcp://' . $this->host . ':' . $this->port, $errno, $errmsg, 5, $this->_isAsync);
         if(!$this->_connect){
-            $this->_connect->close();
+            if(is_object($this->_connect) && method_exists($this->_connect, 'close')){
+                $this->_connect->close();
+            }
             $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
             return;
         }
