@@ -22,9 +22,9 @@ $telnet->confluenceInnerIp = '127.0.0.1';
 
 $telnet->transferInnerIp = '0.0.0.0';
 $telnet->transferInnerPort = '19912';
-$telnet->transferChildProcessCount = 1;
+$telnet->transferChildProcessCount = 3;
 
-$telnet->businessChildProcessCount = 1;
+$telnet->businessChildProcessCount = 3;
 
 $telnet->callbackNewData = function($connect, $data){
     $data = json_decode($data, true);

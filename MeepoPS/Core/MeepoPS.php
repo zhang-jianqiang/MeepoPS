@@ -427,7 +427,7 @@ class MeepoPS
                 Log::write('MeepoPS normal exit');
                 return;
             }
-            Log::write('MeepoPS unexpectedly quits. last error: ' . json_encode($errno), 'ERROR');
+            Log::write('stream_socket_serverMeepoPS unexpectedly quits. last error: ' . json_encode($errno), 'ERROR');
         }
     }
 
