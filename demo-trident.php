@@ -26,6 +26,7 @@ $telnet->transferChildProcessCount = 3;
 
 $telnet->businessChildProcessCount = 3;
 
+//客户端消息格式: {"type":"SEND_ALL", "content":"hello world"}
 $telnet->callbackNewData = function($connect, $data){
     $data = json_decode($data, true);
     if(empty($data['type'])){

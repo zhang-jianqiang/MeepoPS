@@ -55,6 +55,8 @@ class BusinessAndTransferService{
         $transfer->instance->callbackNewData = array($this, 'callbackTransferNewData');
         $transfer->instance->callbackConnectClose = array($this, 'callbackTransferConnectClose');
         $transfer->transfer = array();
+        $transfer->host = $ip;
+        $transfer->port = $port;
         $transfer->connect();
         $result = $transfer->send(array('token'=>'', 'msg_type'=>MsgTypeConst::MSG_TYPE_ADD_BUSINESS_TO_TRANSFER));
         if($result === false){
