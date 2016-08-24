@@ -60,7 +60,7 @@ class Trident
         }
         //如果是启动Transfer或者全部启动时, 需要判断参数
         $apiName = $apiName ? '\MeepoPS\Api\\' . ucfirst($apiName) : '';
-        if($container != 'confluence' || $container != 'business'){
+        if($container != 'confluence' && $container != 'business'){
             if (!$apiName || !$host || !$port) {
                 Log::write('$apiName and $host and $port can not be empty.', 'FATAL');
             }
