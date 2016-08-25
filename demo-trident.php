@@ -14,20 +14,20 @@
 require_once 'MeepoPS/index.php';
 
 //使用基于三层网络模型的文本传输的Api类
-$telnet = new \MeepoPS\Api\Trident('telnet', '0.0.0.0', '19910');
+$trident = new \MeepoPS\Api\Trident('telnet', '0.0.0.0', '19910');
 
-$telnet->confluenceIp = '0.0.0.0';
-$telnet->confluencePort = '19911';
-$telnet->confluenceInnerIp = '127.0.0.1';
+$trident->confluenceIp = '0.0.0.0';
+$trident->confluencePort = '19911';
+$trident->confluenceInnerIp = '127.0.0.1';
 
-$telnet->transferInnerIp = '0.0.0.0';
-$telnet->transferInnerPort = '19912';
-$telnet->transferChildProcessCount = 3;
+$trident->transferInnerIp = '0.0.0.0';
+$trident->transferInnerPort = '19912';
+$trident->transferChildProcessCount = 3;
 
-$telnet->businessChildProcessCount = 3;
+$trident->businessChildProcessCount = 3;
 
 //客户端消息格式: {"type":"SEND_ALL", "content":"hello world"}
-$telnet->callbackNewData = function($connect, $data){
+$trident->callbackNewData = function($connect, $data){
     $data = json_decode($data, true);
     if(empty($data['type'])){
         return;
@@ -52,7 +52,7 @@ $telnet->callbackNewData = function($connect, $data){
 };
 
 //启动三层模型
-$telnet->run();
+$trident->run();
 
 //启动MeepoPS
 \MeepoPS\runMeepoPS();
