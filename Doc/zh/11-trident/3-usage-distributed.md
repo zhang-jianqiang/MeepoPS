@@ -102,7 +102,7 @@ $telnet = new \MeepoPS\Api\Trident('', '', '', array(), 'business');
 
 //Confluence的IP和端口, Business需要链接到Confluence去注册自己。
 $telnet->confluencePort = '19911';
-$telnet->confluenceInnerIp = '10.16.13.115';
+$telnet->confluenceInnerIp = '10.10.10.1';
 
 //这台机器上Business要启动几个子进程
 $telnet->businessChildProcessCount = 24;
