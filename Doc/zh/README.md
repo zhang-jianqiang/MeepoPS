@@ -35,6 +35,7 @@
   - [接口Telnet](3-api/101-telnet.md)
   - [接口HTTP](3-api/102-http.md)
   - [接口WebSocket](3-api/103-websocket.md)
+  - [接口Trident](3-api/104-trident.md)
 - 链接
   - [链接简介](4-connect/1-summary.md)
   - [属性instance](4-connect/2-property-instance.md)
@@ -58,7 +59,7 @@
   - [HTTP协议](7-protocol/4-http.md)
   - [WebSocket协议](7-protocol/5-websocket.md)
 - Trident模型
-  - [ThinkPHP](11-trident/1-summary.md)
+  - [Trident简介](11-trident/1-summary.md)
 - 测试
   - [事件和子进程](8-test/1-event-and-child-proccess.md)
 - 建议

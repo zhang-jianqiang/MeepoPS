@@ -163,7 +163,11 @@ class BusinessAndTransferService{
         $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] = $data['client_unique_id'];
         //填充$_SESSION
         $_SESSION = $data['app_business']['session'];
-        call_user_func_array(Trident::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
+        try{
+            call_user_func_array(Trident::$callbackList['callbackNewData'], array($connect, $data['msg_content']));
+        }catch (\Exception $e){
+            Log::write('MeepoPS: Trident execution callback function callbackNewData-' . json_encode(Trident::$callbackList['callbackNewData']) . ' throw exception' . json_encode($e), 'ERROR');
+        }
     }
 
     /**

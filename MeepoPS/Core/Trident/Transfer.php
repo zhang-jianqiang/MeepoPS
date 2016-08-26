@@ -12,6 +12,9 @@
  */
 namespace MeepoPS\Core\Trident;
 
+use MeepoPS\Api\Trident;
+use MeepoPS\Core\Log;
+
 class Transfer {
     //confluence的IP
     public $confluenceIp;
@@ -49,6 +52,12 @@ class Transfer {
         $this->_apiClass->$name = $value;
     }
 
+    public function callApiClassMethod($methodName, array $arguments){
+        return call_user_func_array(array($this->_apiClass, $methodName), $arguments);
+    }
+
+
+
     /**
      * 进程启动时, 监听端口, 提供给Business, 同时, 链接到Confluence
      */
@@ -65,6 +74,11 @@ class Transfer {
         $this->_transferAndConfluenceService->confluenceIp = $this->confluenceIp;
         $this->_transferAndConfluenceService->confluencePort = $this->confluencePort;
         $this->_transferAndConfluenceService->connectConfluence();
+        try{
+            call_user_func_array(Trident::$callbackList['callbackStartInstance'], array($instance));
+        }catch (\Exception $e){
+            Log::write('MeepoPS: Trident execution callback function callbackStartInstance-' . json_encode(Trident::$callbackList['callbackConnect']) . ' throw exception' . json_encode($e), 'ERROR');
+        }
     }
 
     /**
@@ -74,6 +88,14 @@ class Transfer {
     public function callbackTransferConnect($connect){
         $connect->unique_id = Tool::encodeClientId($this->innerIp, $this->innerPort, $connect->id);
         self::$clientList[$connect->id] = $connect;
+        if(empty(Trident::$callbackList['callbackNewData']) || !is_callable(Trident::$callbackList['callbackNewData'])){
+            return;
+        }
+        try{
+            call_user_func_array(Trident::$callbackList['callbackConnect'], array($connect));
+        }catch (\Exception $e){
+            Log::write('MeepoPS: Trident execution callback function callbackConnect-' . json_encode(Trident::$callbackList['callbackConnect']) . ' throw exception' . json_encode($e), 'ERROR');
+        }
     }
 
     /**
@@ -91,6 +113,10 @@ class Transfer {
      * @param $connect
      */
     public function callbackTransferConnectClose($connect){
-
+        try{
+            call_user_func_array(Trident::$callbackList['callbackConnectClose'], array($connect));
+        }catch (\Exception $e){
+            Log::write('MeepoPS: Trident execution callback function callbackConnectClose-' . json_encode(Trident::$callbackList['callbackConnectClose']) . ' throw exception' . json_encode($e), 'ERROR');
+        }
     }
 }

@@ -17,30 +17,34 @@ use MeepoPS\Core\Trident\Transfer;
 
 class Trident
 {
+    //Confluence层的相关配置
     public $confluenceIp = '0.0.0.0';
     public $confluencePort = '19911';
     public $confluenceInnerIp = '127.0.0.1';
     public $confluenceName = 'MeepoPS-Trident-Confluence';
     private $_confluenceChildProcessCount = 1;
 
+    //Transfer层的相关配置
     private $_transferHost;
     private $_transferPort;
     public $transferChildProcessCount = 1;
     public $transferName = 'MeepoPS-Trident-Transfer';
     //Transfer回复数据给客户端的时候转码函数
     public $transferEncodeFunction = 'json_encode';
-
-    public $businessChildProcessCount = 1;
-    public $businessName = 'MeepoPS-Trident-Business';
-
+    //Transfer的内网IP和端口, Business要用这个IP和端口链接到Transfer
     public $transferInnerIp = '0.0.0.0';
     public $transferInnerPort = '19912';
+
+    //Business层的相关配置
+    public $businessChildProcessCount = 1;
+    public $businessName = 'MeepoPS-Trident-Business';
 
     private $_contextOptionList = array();
     private $_transferApiName = '';
     private $_container = '';
 
     public static $callbackList = array();
+    private $_transferApiPropertyAndMethod = array();
 
     const INNER_PROTOCOL = 'telnetjson';
     
@@ -103,16 +107,25 @@ class Trident
     }
 
     /**
+     * 魔术方法。所有不可访问的、不存在的属性, 统统赋值给Transfer所使用的API类
      * __set
      * @param $name
      * @param $value
      */
     public function __set($name, $value){
-        //如果是回调函数系列, 则允许赋值
-        if(preg_match('/callback/', $name)){
+        //四个回调函数需要单独收集, 其他的和普通属性一样, 直接赋值给API类
+        if(in_array($name, array('callbackStartInstance', 'callbackConnect', 'callbackNewData', 'callbackConnectClose'))){
             self::$callbackList[$name] = $value;
+        }else{
+            $this->_transferApiPropertyAndMethod['property'][$name] = $value;
         }
     }
+
+    public function __call($name, $arguments)
+    {
+        $this->_transferApiPropertyAndMethod['method'][$name] = $arguments;
+    }
+
 
     private function _initConfluence(){
         $confluence = new Confluence(self::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort);
@@ -129,9 +142,16 @@ class Trident
 
         $transfer->confluenceIp = $this->confluenceInnerIp;
         $transfer->confluencePort = $this->confluencePort;
-
+        //设置API接口的属性
+        foreach($this->_transferApiPropertyAndMethod['property'] as $methodName => $arguments){
+            $transfer->setApiClassProperty($methodName, $arguments);
+        }
         $transfer->setApiClassProperty('childProcessCount', $this->transferChildProcessCount);
         $transfer->setApiClassProperty('instanceName', $this->transferName);
+        //调用API接口的方法
+        foreach($this->_transferApiPropertyAndMethod['method'] as $methodName => $arguments){
+            $transfer->callApiClassMethod($methodName, $arguments);
+        }
     }
 
     private function _initBusiness(){
