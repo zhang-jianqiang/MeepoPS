@@ -57,6 +57,8 @@
   - [Telnet协议](7-protocol/3-telnet.md)
   - [HTTP协议](7-protocol/4-http.md)
   - [WebSocket协议](7-protocol/5-websocket.md)
+- Trident模型
+  - [ThinkPHP](11-trident/1-summary.md)
 - 测试
   - [事件和子进程](8-test/1-event-and-child-proccess.md)
 - 建议
