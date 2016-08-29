@@ -16,7 +16,7 @@
 在一台机器上部署Confluence, 这台机器的IP是10.10.10.1, Confluence不接收设置子进程数。
 
 ###### 10.10.10.1机器上的示例代码如下:
-```
+```php
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 
@@ -38,7 +38,7 @@ $trident->run();
 在两台机器上部署Transfer, 这两台机器的IP是10.10.10.2和10.10.10.3, Transfer可以设置子进程数, 初始建议和CPU核心数相同。
 
 ###### 10.10.10.2机器上的示例代码如下:
-```
+```php
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 
@@ -70,7 +70,7 @@ $telnet->run();
 ```
 
 ###### 10.10.10.3机器上的示例代码如下:
-```
+```php
 //这些都和上面的一模一样
 require_once 'MeepoPS/index.php';
 $telnet = new \MeepoPS\Api\Trident('telnet', '0.0.0.0', '19910', array(), 'transfer');
@@ -93,7 +93,7 @@ $telnet->run();
 在剩余七台机器上部署Business, 这七台机器的IP是10.10.10.3 - 10.10.10.10, Business可以设置子进程数, 初始建议和CPU核心数相同。
 
 ###### 这七台机器代码完全相同, 示例代码如下:
-```
+```php
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 

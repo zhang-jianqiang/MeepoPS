@@ -3,7 +3,7 @@
 
 ## 使用方法
 使用时调用Trident的接口即可。
-```
+```php
 //----------引入MeepoPS----------
 require_once 'MeepoPS/index.php';
 

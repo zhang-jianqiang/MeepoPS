@@ -244,8 +244,15 @@ class TransferAndBusinessService{
     private function _send($connect, $data){
         //处理链接需要保留的数据, 如SESSION等
         $this->_connectProperty($connect, $data['app_business']);
+        $data = $data['msg_content'];
         //数据转码
-        $data = call_user_func($this->encodeFunction, $data['msg_content']);
+        if(!empty($this->encodeFunction)){
+            try{
+                $data = call_user_func($this->encodeFunction, $data['msg_content']);
+            }catch (\Exception $e){
+                Log::write('Trident: execution callback function encodeFunction-' . json_encode($this->encodeFunction) . ' throw exception' . json_encode($e), 'ERROR');
+            }
+        }
         //发送给客户端
         $connect->send($data);
     }

@@ -28,11 +28,8 @@ class Trident
     private $_transferHost;
     private $_transferPort;
     public $transferChildProcessCount = 1;
-
-//    public $transferName = 'MeepoPS-Trident-Transfer';
-
     //Transfer回复数据给客户端的时候转码函数
-    public $transferEncodeFunction = 'json_encode';
+    public $transferEncodeFunction;
     //Transfer的内网IP和端口, Business要用这个IP和端口链接到Transfer
     public $transferInnerIp = '0.0.0.0';
     public $transferInnerPort = '19912';
@@ -61,6 +58,7 @@ class Trident
     public function __construct($apiName, $host, $port, $contextOptionList = array(), $container='')
     {
         //参数合法性校验
+        $container = strtolower($container);
         if($container && (!in_array($container, array('confluence', 'business', 'transfer')))){
             Log::write('Container must is confluence | business | transfer', 'FATAL');
         }
@@ -145,14 +143,16 @@ class Trident
         $transfer->confluenceIp = $this->confluenceInnerIp;
         $transfer->confluencePort = $this->confluencePort;
         //设置API接口的属性
-        foreach($this->_transferApiPropertyAndMethod['property'] as $methodName => $arguments){
-            $transfer->setApiClassProperty($methodName, $arguments);
+        if($this->_transferApiPropertyAndMethod['property']){
+            foreach($this->_transferApiPropertyAndMethod['property'] as $methodName => $arguments){
+                $transfer->setApiClassProperty($methodName, $arguments);
+            }
         }
-        $transfer->setApiClassProperty('childProcessCount', $this->transferChildProcessCount);
-//        $transfer->setApiClassProperty('instanceName', $this->transferName);
         //调用API接口的方法
-        foreach($this->_transferApiPropertyAndMethod['method'] as $methodName => $arguments){
-            $transfer->callApiClassMethod($methodName, $arguments);
+        if(!empty($this->_transferApiPropertyAndMethod['method'])){
+            foreach($this->_transferApiPropertyAndMethod['method'] as $methodName => $arguments){
+                $transfer->callApiClassMethod($methodName, $arguments);
+            }
         }
     }
 

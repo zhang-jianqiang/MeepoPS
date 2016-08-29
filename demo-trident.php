@@ -19,12 +19,11 @@ $trident = new \MeepoPS\Api\Trident('telnet', '0.0.0.0', '19910');
 $trident->confluenceIp = '0.0.0.0';
 $trident->confluencePort = '19911';
 $trident->confluenceInnerIp = '127.0.0.1';
-
-$trident->transferName = 'MeepoPS:123';
+$trident->instanceName = 'MeepoPS-Trident-Transfer';
 
 $trident->transferInnerIp = '0.0.0.0';
 $trident->transferInnerPort = '19912';
-$trident->transferChildProcessCount = 3;
+$trident->childProcessCount = 3;
 
 $trident->businessChildProcessCount = 3;
 

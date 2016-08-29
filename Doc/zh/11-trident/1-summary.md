@@ -41,6 +41,8 @@ Transfer在接收普通用户的链接时, 仍旧使用Telnet接口或Http接口
 
 ##### Business
 Business作为业务中心。接收Transfer发送来的数据, 进行业务逻辑的处理, 比如增删改查。处理后将结果发送给Transfer。
+我们所有的代码都是在写Business层的。在传统接口中, 回调函数如callbackNewData($connect, $data)中的参数$connect是服务器和用户的链接。
+但是在Trident模型的Business层中, callbackNewData($connect, $data)中的参数$connect是Business和Transfer之间的链接, 通常业务开发中不需要用到这个参数。其他回掉函数不受影响, 唯独callbackNewData是个特例。
 
 ## Trident工作流程
 
