@@ -49,7 +49,7 @@ class BusinessAndTransferService{
      *
      */
     private function _connectTransfer($ip, $port){
-        $transfer = new TcpClient(Trident::INNER_PROTOCOL, $ip, $port, false);
+        $transfer = new TcpClient(Trident::$innerProtocol, $ip, $port, false);
         //实例化一个空类
         $transfer->instance = new \stdClass();
         $transfer->instance->callbackNewData = array($this, 'callbackTransferNewData');

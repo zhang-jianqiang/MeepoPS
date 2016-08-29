@@ -27,7 +27,7 @@ class TransferAndConfluenceService{
      * 向中心机(Confluence层)发送自己的地址和端口, 以便Business感知。
      */
     public function connectConfluence(){
-        $this->_confluence = new TcpClient(Trident::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort, true);
+        $this->_confluence = new TcpClient(Trident::$innerProtocol, $this->confluenceIp, $this->confluencePort, true);
         //实例化一个空类
         $this->_confluence->instance = new \stdClass();
         $this->_confluence->instance->callbackNewData = array($this, 'callbackConfluenceNewData');

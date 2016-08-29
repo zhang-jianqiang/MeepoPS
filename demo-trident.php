@@ -20,6 +20,8 @@ $trident->confluenceIp = '0.0.0.0';
 $trident->confluencePort = '19911';
 $trident->confluenceInnerIp = '127.0.0.1';
 
+$trident->instanceName = 'MeepoPS:123';
+
 $trident->transferInnerIp = '0.0.0.0';
 $trident->transferInnerPort = '19912';
 $trident->transferChildProcessCount = 3;

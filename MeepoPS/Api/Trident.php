@@ -46,7 +46,7 @@ class Trident
     public static $callbackList = array();
     private $_transferApiPropertyAndMethod = array();
 
-    const INNER_PROTOCOL = 'telnetjson';
+    public static $innerProtocol = 'telnetjson';
     
     /**
      * Trident constructor.
@@ -128,7 +128,7 @@ class Trident
 
 
     private function _initConfluence(){
-        $confluence = new Confluence(self::INNER_PROTOCOL, $this->confluenceIp, $this->confluencePort);
+        $confluence = new Confluence(self::$innerProtocol, $this->confluenceIp, $this->confluencePort);
         $confluence->childProcessCount = $this->_confluenceChildProcessCount;
         $confluence->instanceName = $this->confluenceName;
     }

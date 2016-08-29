@@ -32,7 +32,7 @@ class TransferAndBusinessService{
      * 监听一个端口, 用来做内部通讯(Business会链接这个端口)。
      */
     public function listenBusiness(){
-        $this->_transfer = new MeepoPS(Trident::INNER_PROTOCOL, $this->transferIp, $this->transferPort);
+        $this->_transfer = new MeepoPS(Trident::$innerProtocol, $this->transferIp, $this->transferPort);
         $this->_transfer->callbackConnect = array($this, 'callbackBusinessConnect');
         $this->_transfer->callbackNewData = array($this, 'callbackBusinessNewData');
         $this->_transfer->callbackConnectClose = array($this, 'callbackBusinessConnectClose');

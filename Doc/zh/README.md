@@ -71,6 +71,11 @@
 - 集成到其他框架
   - [集成简介](10-framework/1-summary.md)
   - [ThinkPHP](10-framework/2-thinkphp.md)
+- 高级分布式接口Trident
+  - [Trident简介](11-trident/1-summary.md)
+  - [Trident内部流程](11-trident/2-pic-text-summary.md)
+  - [单机部署Trident](11-trident/3-usage-local.md)
+  - [集群部署Trident](11-trident/4-usage-distributed.md)
 - 示例
   - [基于WebSocket的智能客服](../../Example/Chat_Robot/README.md)
   - [基于Telnet的监控集群日志](../../Example/Monitor_Log/README.md)
