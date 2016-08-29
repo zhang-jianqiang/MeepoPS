@@ -56,11 +56,10 @@ class TcpClient extends Tcp{
     }
 
     public function connect(){
-        $this->_connect = stream_socket_client('tcp://' . $this->host . ':' . $this->port, $errno, $errmsg, 5, $this->_isAsync);
+        $remoteSocket = 'tcp://' . $this->host . ':' . $this->port;
+        $this->_connect = stream_socket_client($remoteSocket, $errno, $errmsg, 5, $this->_isAsync);
         if(!$this->_connect){
-            if(is_object($this->_connect) && method_exists($this->_connect, 'close')){
-                $this->_connect->close();
-            }
+            Log::write('TcpClient link to '.$remoteSocket.' failed.', 'ERROR');
             $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
             return;
         }
