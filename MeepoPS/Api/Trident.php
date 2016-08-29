@@ -28,7 +28,9 @@ class Trident
     private $_transferHost;
     private $_transferPort;
     public $transferChildProcessCount = 1;
+
     public $transferName = 'MeepoPS-Trident-Transfer';
+
     //Transfer回复数据给客户端的时候转码函数
     public $transferEncodeFunction = 'json_encode';
     //Transfer的内网IP和端口, Business要用这个IP和端口链接到Transfer
@@ -147,7 +149,7 @@ class Trident
             $transfer->setApiClassProperty($methodName, $arguments);
         }
         $transfer->setApiClassProperty('childProcessCount', $this->transferChildProcessCount);
-        $transfer->setApiClassProperty('instanceName', $this->transferName);
+//        $transfer->setApiClassProperty('instanceName', $this->transferName);
         //调用API接口的方法
         foreach($this->_transferApiPropertyAndMethod['method'] as $methodName => $arguments){
             $transfer->callApiClassMethod($methodName, $arguments);
