@@ -29,7 +29,7 @@ class Trident
     private $_transferPort;
     public $transferChildProcessCount = 1;
 
-    public $transferName = 'MeepoPS-Trident-Transfer';
+//    public $transferName = 'MeepoPS-Trident-Transfer';
 
     //Transfer回复数据给客户端的时候转码函数
     public $transferEncodeFunction = 'json_encode';
