@@ -120,7 +120,7 @@ class Select implements EventInterface
         try {
             call_user_func($this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0], $uniqueId);
         } catch (\Exception $e) {
-            Log::write('MeepoPS: execution callback function run timer signal callback-' . $this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0] . ' throw exception', 'ERROR');
+            Log::write('MeepoPS: execution callback function run timer signal callback-' . $this->_eventList[self::EVENT_TYPE_SIGNAL][$uniqueId][0] . ' throw exception' . json_encode($e), 'ERROR');
         }
     }
 
@@ -165,7 +165,7 @@ class Select implements EventInterface
             try {
                 call_user_func_array($task[0], $task[1]);
             } catch (\Exception $e) {
-                Log::write('MeepoPS: execution callback function run timer event-' . $task[0] . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function run timer event-' . $task[0] . ' throw exception' . json_encode($e), 'ERROR');
             }
             continue;
         }
@@ -249,7 +249,7 @@ class Select implements EventInterface
                         try {
                             call_user_func($this->_eventList[$select['type']][$uniqueId][0], $this->_eventList[$select['type']][$uniqueId][1]);
                         } catch (\Exception $e) {
-                            Log::write('MeepoPS: execution callback function select loop-' . $this->_eventList[$select['type']][$uniqueId][0] . ' throw exception', 'ERROR');
+                            Log::write('MeepoPS: execution callback function select loop-' . $this->_eventList[$select['type']][$uniqueId][0] . ' throw exception' . json_encode($e), 'ERROR');
                         }
                     }
                 }

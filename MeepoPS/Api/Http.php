@@ -66,6 +66,23 @@ class Http extends MeepoPS
     }
 
     /**
+     * 设置域名和路径
+     * @param $domain
+     * @param $path
+     * @return bool
+     */
+    public function setDocument($domain, $path){
+        if(!$domain || !$path){
+            return false;
+        }
+        if(!file_exists($path) || !is_dir($path)){
+            return false;
+        }
+        $this->_documentRoot[$domain] = $path;
+        return true;
+    }
+
+    /**
      * 设置http头
      * @param string $string 头字符串
      * @param bool $replace 是否用后面的头替换前面相同类型的头.即相同的多个头存在时,后来的会覆盖先来的.
@@ -156,7 +173,7 @@ class Http extends MeepoPS
                 call_user_func_array($this->_userCallbackNewData, array($connect, $data));
             } catch (\Exception $e) {
                 Tcp::$statistics['exception_count']++;
-                Log::write('MeepoPS: execution callback function callbackNewData-' . $this->_userCallbackNewData . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function callbackNewData-' . json_encode($this->_userCallbackNewData) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
         self::$_sessionInstance = new Session();

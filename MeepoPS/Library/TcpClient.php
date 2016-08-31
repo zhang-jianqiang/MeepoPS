@@ -1,6 +1,8 @@
 <?php
 /**
- * Created by Lane
+ * 基于TCP的客户端链接
+ * 本函数参考Workerman实现
+ * Created by lixuan868686@163.com
  * User: lane
  * Date: 16/6/27
  * Time: 下午4:40
@@ -17,10 +19,10 @@ use MeepoPS\Core\TransportProtocol\Tcp;
 class TcpClient extends Tcp{
 
     public $callbackConnect;
-    private $_static = self::CONNECT_STATUS_CLOSING;
+    public $host;
+    public $port;
+
     private $_protocol;
-    private $_host;
-    private $_port;
     private $_isAsync;
 
     /**
@@ -33,26 +35,32 @@ class TcpClient extends Tcp{
     public function __construct($protocol, $host, $port, $isAsync=false){
         //传入的协议是应用层协议还是传输层协议
         $protocol = '\MeepoPS\Core\ApplicationProtocol\\' . ucfirst($protocol);
-        if (class_exists($protocol, false)) {
-            $this->_protocol = '\MeepoPS\Core\ApplicationProtocol\\' . $protocol;
-        } else {
-            Log::write('Application layer protocol class not found. portocol:' . $protocol, 'FATAL');
+        if($protocol){
+            if (class_exists($protocol)) {
+                $this->_protocol = '\MeepoPS\Core\ApplicationProtocol\\' . $protocol;
+                $this->_applicationProtocolClassName = $protocol;
+            } else {
+                Log::write('Application layer protocol class not found. portocol:' . $protocol, 'FATAL');
+            }
         }
-        $this->_applicationProtocolClassName = $protocol;
+
         //属性赋值
-        $this->_host = $host;
-        $this->_port = $port;
+        $this->host = $host;
+        $this->port = $port;
         $this->id = self::$_recorderId++;
         $this->_isAsync = $isAsync ? STREAM_CLIENT_ASYNC_CONNECT : STREAM_CLIENT_CONNECT;
+        $this->_currentStatus = self::CONNECT_STATUS_CONNECTING;
         //更改统计信息
         self::$statistics['total_connect_count']++;
+        self::$statistics['current_connect_count']++;
     }
 
     public function connect(){
-        $this->_connect = stream_socket_client('tcp://' . $this->_host . ':' . $this->_port, $errno, $errmsg, 5, $this->_isAsync);
+        $remoteSocket = 'tcp://' . $this->host . ':' . $this->port;
+        $this->_connect = stream_socket_client($remoteSocket, $errno, $errmsg, 5, $this->_isAsync);
         if(!$this->_connect){
-            $this->_connect->close();
-            $this->_static = self::CONNECT_STATUS_CLOSED;
+            Log::write('TcpClient link to '.$remoteSocket.' failed.', 'ERROR');
+            $this->_currentStatus = self::CONNECT_STATUS_CLOSED;
             return;
         }
         //监听此链接
@@ -77,8 +85,9 @@ class TcpClient extends Tcp{
         }
         MeepoPS::$globalEvent->add(array($this, 'read'), array(), $tcpConnect, EventInterface::EVENT_TYPE_READ);
         if($this->_sendBuffer){
-            MeepoPS::$globalEvent->add(array($this, 'fwrite'), array(), $tcpConnect, EventInterface::EVENT_TYPE_WRITE);
+            MeepoPS::$globalEvent->add(array($this, 'sendEvent'), array(), $tcpConnect, EventInterface::EVENT_TYPE_WRITE);
         }
-        $this->_static = self::CONNECT_STATUS_ESTABLISH;
+        $this->_currentStatus = self::CONNECT_STATUS_ESTABLISH;
+        $this->_clientAddress = stream_socket_get_name($tcpConnect, true);
     }
 }

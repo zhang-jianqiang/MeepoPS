@@ -13,7 +13,7 @@
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 
-//使用文本传输的Api类
+//使用HTTP协议传输的Api类
 $http = new \MeepoPS\Api\Http('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数

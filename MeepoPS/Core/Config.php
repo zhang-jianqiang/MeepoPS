@@ -68,3 +68,15 @@ define('MEEPO_PS_HTTP_SESSION_NAME', $config['http']['http_session_name']);
 
 //上传文件时, 是否只获取文件的内容, 而不需要生成临时文件。true是生成临时文件,同Nginx/Apache一样。false是只获取文件的内容。
 define('MEEPO_PS_HTTP_UPLOAD_FILE_GENERATE_TEMP_FILE', $config['http']['http_upload_file_generate_temp_file']);
+
+//三层模型中, 内部链接的PING间隔
+define('MEEPO_PS_TRIDENT_SYS_PING_INTERVAL', $config['trident']['trident_sys_ping_interval']);
+
+//三层模型中, 内部链接的未收到PING的最大次数, 超出后断开连接
+define('MEEPO_PS_TRIDENT_SYS_PING_NO_RESPONSE_LIMIT', $config['trident']['trident_sys_ping_no_response_limit']);
+
+//三层模型中, 内部链接等待权限验证的超时时间
+define('MEEPO_PS_TRIDENT_SYS_WAIT_VERIFY_TIMEOUT', $config['trident']['trident_sys_wait_verify_timeout']);
+
+//三层模型中, Confluence定时给Business推送全量Transfer
+define('MEEPO_PS_TRIDENT_SYS_CONFLUENCE_BROADCAST_INTERVAL', $config['trident']['trident_sys_confluence_broadcast_interval']);

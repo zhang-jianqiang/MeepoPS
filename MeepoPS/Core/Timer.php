@@ -115,7 +115,7 @@ class Timer
             try {
                 call_user_func_array($task[0], $task[1]);
             } catch (\Exception $e) {
-                Log::write('MeepoPS: execution callback function timer execute-' . $task[0] . ' throw exception', 'ERROR');
+                Log::write('MeepoPS: execution callback function timer execute-' . $task[0] . ' throw exception' . json_encode($e), 'ERROR');
             }
             //删除本次已经执行的任务
             unset(self::$_taskList[$timerId]);

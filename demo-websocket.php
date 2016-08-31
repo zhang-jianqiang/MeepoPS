@@ -12,7 +12,7 @@
 //引入MeepoPS
 require_once 'MeepoPS/index.php';
 
-//使用文本传输的Api类
+//使用WebSocket协议传输的Api类
 $webSocket = new \MeepoPS\Api\Websocket('0.0.0.0', '19910');
 
 //启动的子进程数量. 通常为CPU核心数
@@ -28,7 +28,6 @@ $webSocket->callbackNewData = 'callbackNewData';
 
 function callbackNewData($connect, $data){
     $msg = $connect->id . ': ' . $data;
-    var_dump($connect->id . ': ' . $data);
     foreach($connect->instance->clientList as $client){
         $client->send($msg);
     } 

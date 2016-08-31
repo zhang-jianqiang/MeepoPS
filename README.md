@@ -3,8 +3,12 @@
 ###### MeepoPS可以轻松构建在线实时聊天, 即时游戏, 视频流媒体播放, RPC, 实时监控, 以及原本使用HTTP的接口/定时任务的场景中等. 在下个版本, MeepoPS的HTTP协议在简单场景下是可以替代Apache/Nginx的.
 
 #### 综述:
+<<<<<<< HEAD
 - 目前版本为V0.0.4.
 - V0.0.5已经开发完成, 请切换到DEV分支抢先体验。V0.0.5-dev已经发布在Docker Hub。包括一切所需, 从CentOS7到PHP, 以及Libevent、Pcntl等扩展等整套环境。
+=======
+- 目前版本为V0.0.5.
+>>>>>>> dev
 - PHP作为最好的语言, 不仅仅能依靠Nginx来开发Web应用, 同时,也可以构建高效稳定的即时通讯类Socket应用.
 - MeepoPS的最低运行要求是安装了PHP的PCNTL库.
 - MeepoPS的定位是一个插件. 不但可以独立运行, 也可以依附与ThinkPHP, CodeIgniter, YII等MVC框架中.
@@ -45,6 +49,13 @@
     1. 基于Telnet协议的服务端使用方法请参考demo-telnet.php.
     2. 如果服务端启动的是HOST是0.0.0.0, 那么客户端可以是外机,可以是本机.本机可以是127.0.0.1, 也可以是localhost.
     3. 如果服务端启动的是HOST是127.0.0.1/localhost, 那么客户端是不能外机,只能是本机.
+
+###### Docker:
+我们提供了Docker来快速部署。使用Docker可以快速部署MeepoPS, 我们的容器中已经安装好了MeepoPS、CentOS7、PHP5.6.24、Libevent2.0.20以及他们所需要的各项依赖。
+```
+docker pull xyzasd01/meepops-0.0.5-dev
+```
+MeepoPS部署在/usr/local/MeepoPS目录下
 
 ##### 客户端使用方法:
 
