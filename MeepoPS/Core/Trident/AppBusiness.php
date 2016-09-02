@@ -10,6 +10,8 @@
  */
 namespace MeepoPS\Core\Trident;
 
+use MeepoPS\Core\Log;
+
 class AppBusiness{
     
     /**
@@ -40,6 +42,7 @@ class AppBusiness{
         //选择Transfer
         $transferKey = Tool::encodeTransferAddress($clientDecodeId['transfer_ip'], $clientDecodeId['transfer_port']);
         if(!isset(BusinessAndTransferService::$transferList[$transferKey])){
+            Log::write('AppBusiness: choice transfer failed', 'warning');
             return false;
         }
         $transfer = BusinessAndTransferService::$transferList[$transferKey];

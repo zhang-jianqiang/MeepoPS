@@ -235,6 +235,7 @@ class TransferAndBusinessService{
 
     private function _sendOne($data){
         if(empty($data['to_client_connect_id']) || !isset(Transfer::$clientList[$data['to_client_connect_id']])){
+            Log::write('sendOne: choice connect object from Transfer::$clientList failed', 'warning');
             return;
         }
         $clientConnect = Transfer::$clientList[$data['to_client_connect_id']];

@@ -41,7 +41,9 @@ $trident->callbackInstanceStop = function(){
 };
 
 //例如客户端消息格式: {"type":"SEND_ALL", "content":"hello world"}
+//例如客户端消息格式: {"type":"SEND_ONE", "content":"zai ma ?", "send_to_one":"MC4wLjAuMF8xOTkxM183"}
 $trident->callbackNewData = function($connect, $data){
+    var_dump('用户' . $_SERVER['MEEPO_PS_CLIENT_UNIQUE_ID'] . '发消息啦');
     $data = json_decode($data, true);
     if(empty($data['type'])){
         return;
