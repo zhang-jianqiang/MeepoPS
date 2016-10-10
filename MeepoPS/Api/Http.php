@@ -43,7 +43,13 @@ class Http extends MeepoPS
         //域名和目录
         $domainDocumentList = explode('|', MEEPO_PS_HTTP_DOMAIN_DOCUMENT_LIST);
         foreach($domainDocumentList as $domainDocument){
+            if(!$domainDocument){
+                continue;
+            }
             $domainDocument = explode('&', $domainDocument);
+            if(empty($domainDocument[0]) || empty($domainDocument[1])){
+                continue;
+            }
             $this->_documentRoot[trim($domainDocument[0])] = trim($domainDocument[1]);
         }
         //默认页
