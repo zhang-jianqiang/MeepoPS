@@ -184,7 +184,8 @@ class Http extends MeepoPS
             $this->_close($connect, $this->_getErrorPage(400, 'Bad Request'));
             return;
         }
-        $urlPath = $requestUri['path'];
+        $urlPath = !empty($requestUri['path']) ? $requestUri['path'] : '';
+        $_SERVER['HTTP_HOST'] = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
         $urlPath = $urlPath[strlen($urlPath) - 1] === '/' ? substr($urlPath, 0, -1) : $urlPath;
         $documentRoot = isset($this->_documentRoot[$_SERVER['HTTP_HOST']]) ? $this->_documentRoot[$_SERVER['HTTP_HOST']] : current($this->_documentRoot);
         $filename = $documentRoot . $urlPath;
