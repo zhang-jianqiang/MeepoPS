@@ -195,4 +195,19 @@ $http = new \MeepoPS\Api\Http('0.0.0.0', '8080');
 $http->setDocument('localhost:8080', '/var/www/MeepoPS/Example/Web_Server/Web');
 ```
 
+
+#### 退出业务程序: end($msg='')
+- 名称: end();
+- 参数1: $msg。退出时的异常消息
+- 返回: void
+- 描述: 新增自V0.0.6。使程序不在向下执行, 退出业务逻辑返回到MeepoPS, 功能和普通Web开发的Exit一样, 就像平时exit()后退出PHP, 交接给Nginx继续执行。可是在MeepoPS中, 不能使用exit()。
+
+###### 示例:
+这是我们自行编写的代码: demo.php
+```php
+<?php
+\MeepoPS\Api\Http::end('系统错误, 请稍后再试');
+```
+
+
 了解HTTP协议是什么, 这里是 [传送门](../7-protocol/4-http.md)

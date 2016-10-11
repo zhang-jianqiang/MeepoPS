@@ -1,5 +1,11 @@
 # 更新日志
 
+### 2016-**-** 发布V0.0.6
+- 新增HTTP接口的end()方法。
+- 修复使用HTTP接口时，配置文件http.http_domain_document_list为空时的BUG
+- 修复Autoload的BUG
+- 消除数个NOTICE
+
 ### 2016-09-02 发布V0.0.5
 - 新增三层模型Trident, 作为分布式、集群化、多进程通信的解决方案。
 - 新增统计当前在线链接数。

@@ -21,7 +21,7 @@ require 'Autoload.php';
 require 'Constant.php';
 
 //定义版本号
-define('MEEPO_PS_VERSION', '0.0.5');
+define('MEEPO_PS_VERSION', '0.0.6');
 
 //错误报告是否开启
 if (MEEPO_PS_DEBUG) {
