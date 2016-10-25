@@ -50,7 +50,7 @@ class Http extends MeepoPS
             if(empty($domainDocument[0]) || empty($domainDocument[1])){
                 continue;
             }
-            $this->_documentRoot[trim($domainDocument[0])] = trim($domainDocument[1]);
+            $this->_documentRoot[strtolower(trim($domainDocument[0]))] = trim($domainDocument[1]);
         }
         //默认页
         $this->_defaultIndexList = explode(',', MEEPO_PS_HTTP_DEFAULT_PAGE);
@@ -204,7 +204,7 @@ class Http extends MeepoPS
             return;
         }
         $urlPath = !empty($requestUri['path']) ? $requestUri['path'] : '';
-        $_SERVER['HTTP_HOST'] = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+        $_SERVER['HTTP_HOST'] = !empty($_SERVER['HTTP_HOST']) ? strtolower($_SERVER['HTTP_HOST']) : '';
         $urlPath = $urlPath[strlen($urlPath) - 1] === '/' ? substr($urlPath, 0, -1) : $urlPath;
         $documentRoot = isset($this->_documentRoot[$_SERVER['HTTP_HOST']]) ? $this->_documentRoot[$_SERVER['HTTP_HOST']] : current($this->_documentRoot);
         $filename = $documentRoot . $urlPath;
