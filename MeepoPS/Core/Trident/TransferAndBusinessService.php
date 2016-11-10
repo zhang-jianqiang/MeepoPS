@@ -249,7 +249,7 @@ class TransferAndBusinessService{
         //数据转码
         if(!empty($this->encodeFunction)){
             try{
-                $data = call_user_func($this->encodeFunction, $data['msg_content']);
+                $data = call_user_func($this->encodeFunction, $data);
             }catch (\Exception $e){
                 Log::write('Trident: execution callback function encodeFunction-' . json_encode($this->encodeFunction) . ' throw exception' . json_encode($e), 'ERROR');
             }
