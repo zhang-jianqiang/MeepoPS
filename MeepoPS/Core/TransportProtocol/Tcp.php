@@ -350,7 +350,11 @@ class Tcp extends TransportProtocolInterface
                 Log::write('MeepoPS: execution callback function callbackConnectClose-' . json_encode($this->instance->callbackConnectClose) . ' throw exception' . json_encode($e), 'ERROR');
             }
         }
-        unset($this);
+        try {
+            unset($this);
+        } catch (\Exception $e) {
+            Log::write('MeepoPS: This is fatal error! I haven\'t been able to reproduce the problem. Please contact me: lixuan868686@163.com.' . ' throw exception' . json_encode($e), 'ERROR');
+        }
     }
 
     /**
